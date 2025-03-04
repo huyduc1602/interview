@@ -35,12 +35,19 @@ try {
     const indexPath = 'dist/index.html';
     let htmlContent = fs.readFileSync(indexPath, 'utf-8');
 
-    // Check if the script tag already exists
     if (!htmlContent.includes('env-config.js')) {
-        // Insert the script tag before the closing head tag
-        htmlContent = htmlContent.replace('</head>', '  <script src="/env-config.js"></script>\n  </head>');
-        fs.writeFileSync(indexPath, htmlContent);
-        console.log('Successfully injected env-config.js script tag into index.html');
+        const headEndPos = htmlContent.indexOf('</head>');
+        if (headEndPos !== -1) {
+            // Split the HTML at the </head> position
+            const before = htmlContent.slice(0, headEndPos);
+            const after = htmlContent.slice(headEndPos);
+            // Insert the script tag
+            htmlContent = before + '<script src="./env-config.js"></script>\n' + after;
+            fs.writeFileSync(indexPath, htmlContent);
+            console.log('Successfully injected env-config.js script tag into index.html');
+        } else {
+            console.error('Could not find </head> tag in index.html');
+        }
     }
 } catch (error) {
     console.error('Failed to inject script tag:', error);
