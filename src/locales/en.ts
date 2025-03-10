@@ -248,6 +248,14 @@ export default {
       spreadsheetId: {
         label: "Spreadsheet ID",
         help: "Enter your Spreadsheet ID."
+      },
+      sheetNameKnowledgeBase: {
+        label: "Knowledge Base Sheet Name",
+        help: "Enter the sheet name for the Knowledge Base."
+      },
+      "sheetNameInterviewQuestions": {
+        label: "Interview Questions Sheet Name",
+        help: "Enter the sheet name for the Interview Questions."
       }
     },
     save: "Save Settings",
