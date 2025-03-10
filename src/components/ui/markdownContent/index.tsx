@@ -1,7 +1,7 @@
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { type CSSProperties } from 'react';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
@@ -10,8 +10,10 @@ interface MarkdownContentProps {
     className?: string;
 }
 
-// Add type for syntax highlighting style
-type PrismStyleObj = { [key: string]: CSSProperties };
+// Updated type definition for Prism styles
+type PrismTheme = {
+    [key: string]: React.CSSProperties;
+};
 
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
     return (
@@ -32,7 +34,8 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                    code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; [key: string]: any }) {
+                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+                    code({ inline, children, className, ...props }: React.HTMLAttributes<HTMLElement> & { inline?: boolean }) {
                         return !inline ? (
                             <div className="relative group">
                                 <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition">
@@ -44,7 +47,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                                     </button>
                                 </div>
                                 <SyntaxHighlighter
-                                    style={oneDark as PrismStyleObj}
+                                    style={oneDark as PrismTheme}
                                     customStyle={{
                                         padding: '1rem',
                                         fontSize: '0.875rem',

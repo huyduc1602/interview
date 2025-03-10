@@ -5,4 +5,5 @@ export interface ChatOptions {
   max_tokens?: number;
 }
 
+// eslint-disable-next-line no-unused-vars
 export function chatWithGPT(prompt: string, options?: ChatOptions): Promise<string>;

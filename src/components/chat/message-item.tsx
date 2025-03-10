@@ -1,3 +1,4 @@
+import React from 'react';
 import { MarkdownContent } from '@/components/ui/markdownContent';
 import { Button } from '@/components/ui/button';
 import { Save, AlertCircle, User, Bot } from 'lucide-react';
