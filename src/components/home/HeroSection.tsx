@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
     const { t } = useTranslation();
@@ -12,6 +13,12 @@ const HeroSection: React.FC = () => {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 {t('home.hero.subtitle')}
             </p>
+            <div className="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                {t('home.hero.apiKeyGuideDescription')}
+                <Link to="/api-key-guide" className="text-blue-600 hover:underline">
+                    {t('home.hero.apiKeyGuideLink')}
+                </Link>
+            </div>
         </div>
     );
 };

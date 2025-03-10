@@ -32,6 +32,8 @@ export default {
     hero: {
       title: 'Trung Tâm Chuẩn Bị Phỏng Vấn',
       subtitle: 'Nền tảng toàn diện để thành thạo các cuộc phỏng vấn kỹ thuật. Theo dõi tiến độ, luyện tập với trí tuệ nhân tạo và chuẩn bị hiệu quả.',
+      apiKeyGuideLink: "Lấy API Keys",
+      apiKeyGuideDescription: "Để bắt đầu, bạn cần lấy các khóa API cần thiết. Vui lòng truy cập "
     },
     features: {
       knowledgeBase: {
@@ -238,6 +240,41 @@ export default {
     },
     buttons: {
       fetchData: "Lấy dữ liệu"
+    }
+  },
+  apiKeyGuide: {
+    title: "Hướng dẫn API Key",
+    googleSheet: {
+      title: "Khóa API Google Sheet",
+      description: "Thực hiện các bước sau để lấy khóa API Google Sheet:",
+      steps: {
+        "1": "Truy cập Google Cloud Console.",
+        "2": "Tạo một dự án mới hoặc chọn một dự án hiện có.",
+        "3": "Đi đến mục 'APIs & Services' và bật Google Sheets API.",
+        "4": "Tạo thông tin xác thực cho API và sao chép khóa API."
+      },
+      link: "Google Cloud Console"
+    },
+    openai: {
+      title: "Khóa API OpenAI",
+      description: "Thực hiện các bước sau để lấy khóa API OpenAI:",
+      steps: {
+        "1": "Truy cập trang web OpenAI và đăng nhập vào tài khoản của bạn.",
+        "2": "Đi đến mục API.",
+        "3": "Tạo một khóa API mới và sao chép nó."
+      },
+      link: "Đăng ký OpenAI"
+    },
+    googleClient: {
+      title: "ID và Bí mật khách hàng của Google",
+      description: "Thực hiện các bước sau để lấy ID và Bí mật khách hàng của Google:",
+      steps: {
+        "1": "Truy cập Google Cloud Console.",
+        "2": "Tạo một dự án mới hoặc chọn một dự án hiện có.",
+        "3": "Đi đến mục 'APIs & Services' và bật Google OAuth 2.0 API.",
+        "4": "Tạo thông tin xác thực OAuth 2.0 và sao chép ID khách hàng và bí mật."
+      },
+      link: "Thông tin xác thực Google Cloud Console"
     }
   }
 };

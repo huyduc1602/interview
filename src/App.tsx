@@ -5,9 +5,10 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import InterviewQuestions from './pages/InterviewQuestions';
 import ChatPage from './pages/ChatPage';
 import Settings from './pages/Settings';
+import ApiKeyGuide from '@/pages/ApiKeyGuide';
 import './i18n';
 
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -18,12 +19,13 @@ function App() {
             <Route path="/questions" element={<InterviewQuestions />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/api-key-guide" element={<ApiKeyGuide />} />
             <Route path="/" element={<HomePage />} />
           </Routes>
         </main>
       </div>
     </Router>
   );
-}
+};
 
 export default App;
