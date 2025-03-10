@@ -18,7 +18,8 @@ export default {
       delete: 'Delete',
       interview: 'Interview Questions',
       knowledge: 'Knowledge Base'
-    }
+    },
+    settings: "Setting"
   },
   nav: {
     home: 'Interview Hub',

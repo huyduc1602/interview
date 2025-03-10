@@ -8,7 +8,7 @@ import { SearchInput, HighlightText } from '@/components/ui';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronUp, Shuffle, Tag, X, BookmarkPlus } from "lucide-react";
+import { ChevronUp, Shuffle, Tag, X, BookmarkPlus, Settings } from "lucide-react";
 import { TooltipProvider, Tooltip } from "@/components/ui/tooltip";
 import { useTranslation } from 'react-i18next';
 import { ModelSelector } from '@/components/ui/model-selector';
@@ -16,22 +16,11 @@ import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import ApiKeyForm from '@/components/ApiKeyForm';
+import SettingsButton from '@/components/ui/SettingsButton';
 import type { InterviewQuestion, ExpandedCategories, InterviewCategory } from '@/types/interview';
 import { RootState } from "@/store/types";
 import { KnowledgeCategory } from "@/types/knowledge";
 import { useApiKeys } from '@/hooks/useApiKeys';
-
-/**
- * Component for displaying and managing a list of interview questions.
- * 
- * This component allows users to shuffle, search, and select interview questions
- * from various categories. It uses Redux to manage state and includes features
- * such as category selection, question filtering, and AI-generated answers.
- * 
- * The component fetches questions from the store on mount and provides options
- * to regenerate answers using AI models. Users can toggle categories, view
- * questions in a sidebar, and see detailed answers in the main content area.
- */
 
 export default function InterviewQuestions() {
     const dispatch = useDispatch();
@@ -49,6 +38,7 @@ export default function InterviewQuestions() {
     const fetchedRef = useRef(false);
     const prevApiKeyRef = useRef('');
     const prevSpreadsheetIdRef = useRef('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const {
         loading,
@@ -97,8 +87,10 @@ export default function InterviewQuestions() {
         }
     }, [dispatch, getApiKey, user]);
 
-    const handleApiKeySubmit = (apiKey: string, spreadsheetId: string) => {
-        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    const handleApiKeySubmit = async (apiKey: string, spreadsheetId: string) => {
+        setIsLoading(true);
+        await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+        setIsLoading(false);
     };
 
     const toggleCategory = (categoryIndex: number) => {
@@ -423,7 +415,7 @@ export default function InterviewQuestions() {
                     sidebar={renderSidebar()}
                     content={renderContent()}
                 />
-                <ApiKeyForm onSubmit={handleApiKeySubmit} />
+                <SettingsButton onSubmit={handleApiKeySubmit} isLoading={isLoading} />
             </Layout>
         </TooltipProvider>
     );

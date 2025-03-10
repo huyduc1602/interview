@@ -7,7 +7,7 @@ import { useAIResponse } from '@/hooks/useAIResponse';
 import { Layout, SidebarLayout, CategoryHeader } from '@/layouts';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { cn } from "@/lib/utils";
-import { Search, Send } from "lucide-react";
+import { Search, Send, Settings, X } from "lucide-react";
 import { ModelSelector } from '@/components/ui/model-selector';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { useTranslation } from 'react-i18next';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import ApiKeyForm from '@/components/ApiKeyForm';
+import SettingsButton from '@/components/ui/SettingsButton';
 import { useApiKeys } from '@/hooks/useApiKeys';
 
 type KnowledgeBaseProps = object
@@ -35,6 +36,8 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
     const { getApiKey } = useApiKeys();
+    const [isApiKeyFormVisible, setIsApiKeyFormVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const {
         loading,
@@ -111,8 +114,11 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         }
     }, [chatHistory, user]);
 
-    const handleApiKeySubmit = (apiKey: string, spreadsheetId: string) => {
-        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    const handleApiKeySubmit = async (apiKey: string, spreadsheetId: string) => {
+        setIsLoading(true);
+        await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+        setIsLoading(false);
+        setIsApiKeyFormVisible(false);
     };
 
     const toggleCategory = (categoryIndex: number): void => {
@@ -254,7 +260,6 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
             <div className="space-y-4">
                 {questions.map((category, categoryIndex) => {
                     const filteredItems = filterItems((category.items as KnowledgeItem[] || []) as KnowledgeItem[], searchQuery);
-                    console.log('filteredItems', filteredItems)
                     if (filteredItems.length === 0 && searchQuery) return null;
                     return (
                         <div key={categoryIndex} className="space-y-2">
@@ -283,7 +288,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                                                     search={searchQuery}
                                                 />
                                             ) : (
-                                                    item.question
+                                                item.question
                                             )}
                                         </button>
                                     ))}
@@ -417,7 +422,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                 sidebar={renderSidebar()}
                 content={renderContent()}
             />
-            <ApiKeyForm onSubmit={handleApiKeySubmit} />
+            <SettingsButton onSubmit={handleApiKeySubmit} isLoading={isLoading} />
         </Layout>
     );
 }

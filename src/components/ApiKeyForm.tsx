@@ -30,9 +30,11 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
         onSubmit(apiKey, spreadsheetId);
     };
 
+    const classInput = 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-6">Enter Google Sheet API Key and Spreadsheet ID</h2>
+        <div className="p-6">
+            <h2 className="text-2xl font-semibold mb-6 text-center">Enter Google Sheet API Key and Spreadsheet ID</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Google Sheet API Key</label>
@@ -40,7 +42,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         type="text"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                        className={classInput}
                         placeholder="Enter your API key"
                     />
                 </div>
@@ -50,12 +52,18 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         type="text"
                         value={spreadsheetId}
                         onChange={(e) => setSpreadsheetId(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                        className={classInput}
                         placeholder="Enter your Spreadsheet ID"
                     />
                 </div>
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                <Button type="submit" variant="default" className="w-full py-2">Fetch Data</Button>
+                <Button
+                    type="submit"
+                    variant="default"
+                    className="w-[90%] text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2"
+                >
+                    Fetch Data
+                </Button>
             </form>
         </div>
     );
