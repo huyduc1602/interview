@@ -6,7 +6,7 @@ A React application to help manage interview questions and knowledge using Googl
 
 - 📝 Interview question management
 - 📚 Knowledge tracking system
-- 🤖 AI-powered answers using ChatGPT
+- 🤖 AI-powered answers using ChatGPT, Gemini, Mistral
 - 🌐 Multi-language support (English/Vietnamese)
 - 🎨 Dark/Light theme
 - 📊 Google Sheets integration
