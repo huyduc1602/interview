@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface UseAIResponseProps {
+  // eslint-disable-next-line no-unused-vars
   generateAnswer: (prompt: string) => Promise<string>;
+  // eslint-disable-next-line no-unused-vars
   onSuccess?: (content: string) => void;
+  // eslint-disable-next-line no-unused-vars
   onError?: (error: Error) => void;
 }
 
