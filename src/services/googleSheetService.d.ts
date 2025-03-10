@@ -27,6 +27,7 @@ export interface ApiResponse<T> {
     success: boolean;
     data?: T;
     error?: string;
+    warnings?: string;
 }
 
 export function fetchGoogleSheetData(): Promise<ApiResponse<SheetData>>;

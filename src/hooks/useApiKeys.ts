@@ -28,24 +28,18 @@ export function useApiKeys() {
   const getApiKey = (service: string) => {
     const key = apiKeys[service];
     if (key) {
-      try {
-        return atob(key);
-      } catch (error) {
-        console.error('Failed to decode API key:', error);
-        return null;
-      }
+      return key;
     }
     return window.__ENV?.[`VITE_${service.toUpperCase()}_API_KEY`] || import.meta.env[`VITE_${service.toUpperCase()}_API_KEY`];
   };
 
   const saveApiKey = (service: string, key: string) => {
     if (user) {
-      const updatedKeys = { ...apiKeys, [service]: btoa(key) };
+      const updatedKeys = { ...apiKeys, [service]: key };
       setApiKeys(updatedKeys);
       try {
         const encodedKeys = btoa(JSON.stringify(updatedKeys));
         localStorage.setItem(`api_keys_${user.id}`, encodedKeys);
-        console.log(`Saved ${service} key:`, key); // Add this line for debugging
       } catch (error) {
         console.error('Failed to encode API keys to localStorage:', error);
       }

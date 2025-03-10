@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDataRequest, clearCachedAnswers } from '@/store/interview/slice';
 import { useChat } from '@/hooks/useChat';
@@ -46,6 +46,9 @@ export default function InterviewQuestions() {
     const { user } = useAuth();
     const { saveItem } = useSavedItems();
     const { getApiKey } = useApiKeys();
+    const fetchedRef = useRef(false);
+    const prevApiKeyRef = useRef('');
+    const prevSpreadsheetIdRef = useRef('');
 
     const {
         loading,
@@ -71,9 +74,27 @@ export default function InterviewQuestions() {
     });
 
     useEffect(() => {
+        // Skip if no user
+        if (!user) return;
+
         const apiKey = getApiKey('google_sheet');
         const spreadsheetId = getApiKey('spreadsheet_id');
-        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+
+        // Only fetch if we haven't fetched yet or if keys have changed
+        if (
+            !fetchedRef.current ||
+            apiKey !== prevApiKeyRef.current ||
+            spreadsheetId !== prevSpreadsheetIdRef.current
+        ) {
+            // Save current values for comparison on next render
+            prevApiKeyRef.current = apiKey;
+            prevSpreadsheetIdRef.current = spreadsheetId;
+            fetchedRef.current = true;
+
+            if (apiKey && spreadsheetId) {
+                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+            }
+        }
     }, [dispatch, getApiKey, user]);
 
     const handleApiKeySubmit = (apiKey: string, spreadsheetId: string) => {
