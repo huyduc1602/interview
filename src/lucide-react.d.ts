@@ -34,4 +34,5 @@ declare module 'lucide-react' {
   export const Tag: React.FC<LucideProps>;
   export const Eye: React.FC<LucideProps>;
   export const EyeOff: React.FC<LucideProps>;
+  export const Upload: React.FC<LucideProps>;
 }

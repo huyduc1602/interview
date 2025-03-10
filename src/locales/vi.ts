@@ -208,15 +208,19 @@ export default {
     apiKeys: {
       info: "Nhập khóa API của bạn bên dưới. Các khóa của bạn được lưu trữ an toàn trong trình duyệt và không bao giờ được gửi đến máy chủ của chúng tôi.",
       openai: {
+        label: "Khóa API OpenAI",
         help: "Lấy khóa API từ bảng điều khiển OpenAI"
       },
       gemini: {
+        label: "Khóa API Google Gemini",
         help: "Lấy khóa API từ Google Cloud Console"
       },
       mistral: {
+        label: "Khóa API Mistral",
         help: "Lấy khóa API từ bảng điều khiển Mistral AI"
       },
       openchat: {
+        label: "Khóa API OpenChat",
         help: "Lấy khóa API từ bảng điều khiển OpenChat"
       }
     },
@@ -224,6 +228,8 @@ export default {
     saved: "Đã lưu cài đặt thành công!",
     showKeys: 'Hiển thị API Keys',
     hideKeys: 'Ẩn API Keys',
+    upload: "Tải lên khóa API",
+    downloadSample: "Tải xuống mẫu khóa API"
   },
   apiKeyForm: {
     title: "Nhập Khóa API Google Sheet và ID Bảng tính",

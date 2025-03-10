@@ -226,15 +226,19 @@ export default {
     apiKeys: {
       info: "Enter your API keys below. Your keys are stored securely in your browser and never sent to our servers.",
       openai: {
+        label: "OpenAI API Key",
         help: "Get your API key from OpenAI dashboard"
       },
       gemini: {
+        label: "Google Gemini API Key",
         help: "Get your API key from Google Cloud Console"
       },
       mistral: {
+        label: "Mistral API Key",
         help: "Get your API key from Mistral AI dashboard"
       },
       openchat: {
+        label: "OpenChat API Key",
         help: "Get your API key from OpenChat dashboard"
       }
     },
@@ -242,6 +246,8 @@ export default {
     saved: "Settings saved successfully!",
     showKeys: 'Show API Keys',
     hideKeys: 'Hide API Keys',
+    upload: "Upload API Keys",
+    downloadSample: "Download Sample API Keys"
   },
   apiKeyForm: {
     title: "Enter Google Sheet API Key and Spreadsheet ID",
