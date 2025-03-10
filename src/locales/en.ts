@@ -234,6 +234,8 @@ export default {
       }
     },
     save: "Save Settings",
-    saved: "Settings saved successfully!"
+    saved: "Settings saved successfully!",
+    showKeys: 'Show API Keys',
+    hideKeys: 'Hide API Keys',
   }
 }
