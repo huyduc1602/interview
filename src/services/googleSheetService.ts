@@ -3,7 +3,7 @@ import type { ApiResponse, SheetData, Category, KnowledgeItem, QuestionItem } fr
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
 
-export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: string,user: User | null): Promise<ApiResponse<SheetData>> => {
+export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: string, user: User | null): Promise<ApiResponse<SheetData>> => {
     if (!user) {
         throw new Error('User not authenticated');
     }
@@ -11,7 +11,7 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
     const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
     const SHEET_KNOWLEDGE = "Danh mục kiến thức";
     const SHEET_QUESTIONS = "Câu hỏi phỏng vấn";
-    
+
     try {
         // Fetch knowledge data
         const knowledgeResponse = await axios.get(
@@ -112,6 +112,10 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                 }));
             } catch (error) {
                 console.error(`Failed to fetch answers for category ${category}:`, error);
+                return {
+                    success: false,
+                    error: `Failed to fetch answers for category ${category}: ${error instanceof Error ? error.message : 'Unknown error'}`
+                };
             }
         }
 
@@ -146,7 +150,7 @@ export const updateKnowledgeStatus = async (rowIndex: number, status: string, us
     if (!user) {
         throw new Error('User not authenticated');
     }
-    
+
     const API_KEY = getApiKey('google_sheet', user.id);
     const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
     const SHEET_KNOWLEDGE = "Danh mục kiến thức";
