@@ -20,6 +20,7 @@ import { User } from '@/types/common';
 interface KnowledgeStatusPayload {
     rowIndex: number;
     status: string;
+    user: User | null
 }
 
 interface AnswerPayload {
@@ -27,9 +28,10 @@ interface AnswerPayload {
     answer: string;
 }
 
-function* fetchDataSaga(): Generator<unknown, void, ApiResponse<SheetData>> {
+function* fetchDataSaga(action: PayloadAction<{ apiKey: string; spreadsheetId: string; user: User | null }>): Generator<unknown, void, ApiResponse<SheetData>> {
     try {
-        const response = yield call(fetchGoogleSheetData);
+        const { apiKey, spreadsheetId, user } = action.payload;
+        const response = yield call(fetchGoogleSheetData, apiKey, spreadsheetId, user);
         if (response.success && response.data) {
             yield put(fetchDataSuccess(response.data));
         } else {
@@ -42,7 +44,7 @@ function* fetchDataSaga(): Generator<unknown, void, ApiResponse<SheetData>> {
     }
 }
 
-function* fetchAnswerSaga(action: PayloadAction<{ question: string, user: User }>): Generator<unknown, void, AIResponse> {
+function* fetchAnswerSaga(action: PayloadAction<{ question: string; user: User }>): Generator<unknown, void, AIResponse> {
     try {
         const { question, user } = action.payload;
         const response: AIResponse = yield call(fetchChatGPTAnswer, question, 'gpt-3.5-turbo-0125', user);
@@ -61,12 +63,12 @@ function* updateKnowledgeStatusSaga(
     action: PayloadAction<KnowledgeStatusPayload>
 ): Generator<unknown, void, boolean> {
     try {
-        const { rowIndex, status } = action.payload;
+        const { rowIndex, status, user } = action.payload;
         if (!rowIndex || !status) {
             throw new Error('Missing required parameters');
         }
 
-        const success = yield call(updateKnowledgeStatus, rowIndex, status);
+        const success = yield call(updateKnowledgeStatus, rowIndex, status, user);
         if (success) {
             yield put(updateKnowledgeStatusSuccess(action.payload));
         } else {

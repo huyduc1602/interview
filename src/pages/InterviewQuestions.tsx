@@ -15,9 +15,11 @@ import { ModelSelector } from '@/components/ui/model-selector';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
+import ApiKeyForm from '@/components/ApiKeyForm';
 import type { InterviewQuestion, ExpandedCategories, InterviewCategory } from '@/types/interview';
 import { RootState } from "@/store/types";
 import { KnowledgeCategory } from "@/types/knowledge";
+import { useApiKeys } from '@/hooks/useApiKeys';
 
 /**
  * Component for displaying and managing a list of interview questions.
@@ -43,6 +45,7 @@ export default function InterviewQuestions() {
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const { user } = useAuth();
     const { saveItem } = useSavedItems();
+    const { getApiKey } = useApiKeys();
 
     const {
         loading,
@@ -68,8 +71,14 @@ export default function InterviewQuestions() {
     });
 
     useEffect(() => {
-        dispatch(fetchDataRequest());
-    }, [dispatch]);
+        const apiKey = getApiKey('google_sheet');
+        const spreadsheetId = getApiKey('spreadsheet_id');
+        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    }, [dispatch, getApiKey, user]);
+
+    const handleApiKeySubmit = (apiKey: string, spreadsheetId: string) => {
+        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    };
 
     const toggleCategory = (categoryIndex: number) => {
         setExpandedCategories(prev => ({
@@ -393,6 +402,7 @@ export default function InterviewQuestions() {
                     sidebar={renderSidebar()}
                     content={renderContent()}
                 />
+                <ApiKeyForm onSubmit={handleApiKeySubmit} />
             </Layout>
         </TooltipProvider>
     );
