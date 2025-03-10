@@ -12,6 +12,8 @@ interface APIKeys {
   gemini?: string;
   mistral?: string;
   openchat?: string;
+  googleSheetApiKey?: string;
+  spreadsheetId?: string;
 }
 
 export default function Settings() {
@@ -64,7 +66,7 @@ export default function Settings() {
   };
 
   const handleDownloadSample = () => {
-    const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...`;
+    const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...\ngoogleSheetApiKey=...\nspreadsheetId=...`;
     const blob = new Blob([sampleContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -190,6 +192,36 @@ export default function Settings() {
                 />
                 <p className="text-sm text-gray-500">
                   {t('settings.apiKeys.openchat.help')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('settings.apiKeys.googleSheetApiKey.label')}
+                </label>
+                <Input
+                  type={showKeys ? "text" : "password"}
+                  value={apiKeys.googleSheetApiKey || ''}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, googleSheetApiKey: e.target.value }))}
+                  placeholder="AIzaSy..."
+                />
+                <p className="text-sm text-gray-500">
+                  {t('settings.apiKeys.googleSheetApiKey.help')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('settings.apiKeys.spreadsheetId.label')}
+                </label>
+                <Input
+                  type={showKeys ? "text" : "password"}
+                  value={apiKeys.spreadsheetId || ''}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, spreadsheetId: e.target.value }))}
+                  placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+                />
+                <p className="text-sm text-gray-500">
+                  {t('settings.apiKeys.spreadsheetId.help')}
                 </p>
               </div>
             </div>

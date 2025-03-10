@@ -222,6 +222,14 @@ export default {
       openchat: {
         label: "Khóa API OpenChat",
         help: "Lấy khóa API từ bảng điều khiển OpenChat"
+      },
+      googleSheetApiKey: {
+        label: "Khóa API Google Sheet",
+        help: "Nhập khóa API Google Sheet của bạn."
+      },
+      spreadsheetId: {
+        label: "ID Bảng tính",
+        help: "Nhập ID Bảng tính của bạn."
       }
     },
     save: "Lưu Cài đặt",

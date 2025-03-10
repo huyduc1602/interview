@@ -240,6 +240,14 @@ export default {
       openchat: {
         label: "OpenChat API Key",
         help: "Get your API key from OpenChat dashboard"
+      },
+      googleSheetApiKey: {
+        label: "Google Sheet API Key",
+        help: "Enter your Google Sheet API key."
+      },
+      spreadsheetId: {
+        label: "Spreadsheet ID",
+        help: "Enter your Spreadsheet ID."
       }
     },
     save: "Save Settings",
