@@ -98,10 +98,14 @@ export default function InterviewQuestions() {
     };
 
     const toggleCategory = (categoryIndex: number) => {
-        setExpandedCategories(prev => ({
-            ...prev,
-            [categoryIndex]: !prev[categoryIndex]
-        }));
+        setExpandedCategories(prev => {
+            const newExpandedCategories: ExpandedCategories = {};
+            Object.keys(prev).forEach(key => {
+                newExpandedCategories[parseInt(key)] = false;
+            });
+            newExpandedCategories[categoryIndex] = !prev[categoryIndex];
+            return newExpandedCategories;
+        });
     };
 
     const filterQuestions = (items: InterviewQuestion[], query: string): InterviewQuestion[] => {
@@ -335,29 +339,31 @@ export default function InterviewQuestions() {
                                         itemCount={filteredItems.length}
                                         onClick={() => toggleCategory(categoryIndex)}
                                     />
-                                    <div className="ml-6 space-y-1">
-                                        {filteredItems.map((item: InterviewQuestion, itemIndex: number) => (
-                                            <button
-                                                key={itemIndex}
-                                                onClick={() => handleQuestionClick(item, category.category)}
-                                                className={cn(
-                                                    "w-full text-left px-2 py-1 rounded text-sm",
-                                                    selectedQuestion?.question === item.question
-                                                        ? "bg-purple-100 text-purple-900"
-                                                        : "hover:bg-gray-100"
-                                                )}
-                                            >
-                                                {searchQuery ? (
-                                                    <HighlightText
-                                                        text={item.question}
-                                                        search={searchQuery}
-                                                    />
-                                                ) : (
-                                                    item.question
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    {expandedCategories[categoryIndex] && (
+                                        <div className="ml-6 space-y-1">
+                                            {filteredItems.map((item: InterviewQuestion, itemIndex: number) => (
+                                                <button
+                                                    key={itemIndex}
+                                                    onClick={() => handleQuestionClick(item, category.category)}
+                                                    className={cn(
+                                                        "w-full text-left px-2 py-1 rounded text-sm",
+                                                        selectedQuestion?.question === item.question
+                                                            ? "bg-purple-100 text-purple-900"
+                                                            : "hover:bg-gray-100"
+                                                    )}
+                                                >
+                                                    {searchQuery ? (
+                                                        <HighlightText
+                                                            text={item.question}
+                                                            search={searchQuery}
+                                                        />
+                                                    ) : (
+                                                        item.question
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
