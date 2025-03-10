@@ -240,5 +240,22 @@ export default {
     saved: "Settings saved successfully!",
     showKeys: 'Show API Keys',
     hideKeys: 'Hide API Keys',
+  },
+  apiKeyForm: {
+    title: "Enter Google Sheet API Key and Spreadsheet ID",
+    labels: {
+      apiKey: "Google Sheet API Key",
+      spreadsheetId: "Spreadsheet ID"
+    },
+    placeholders: {
+      apiKey: "Enter your API key",
+      spreadsheetId: "Enter your Spreadsheet ID"
+    },
+    errors: {
+      required: "Both API key and Spreadsheet ID are required."
+    },
+    buttons: {
+      fetchData: "Fetch Data"
+    }
   }
 }
