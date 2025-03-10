@@ -1,6 +1,6 @@
 # Interview Helper
 
-A React application to help manage interview questions and knowledge using Google Sheets as a backend. Built with React, TypeScript, and integrated with ChatGPT for AI-powered responses.
+A React application to help manage interview questions and knowledge using Google Sheets as a backend. Built with React, TypeScript, and integrated with multiple AI services for AI-powered responses.
 
 ## Features
 
@@ -24,7 +24,7 @@ Before you begin, ensure you have:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/interview.git
+git clone https://github.com/huyduc1602/interview.git
 cd interview
 ```
 
@@ -39,6 +39,8 @@ npm install
 VITE_GOOGLE_SHEET_API_KEY=your_google_sheet_api_key
 VITE_SPREADSHEET_ID=your_spreadsheet_id
 VITE_OPENCHAT_API_KEY=your_chatgpt_api_key
+VITE_GEMINI_API_KEY=your_gemini_api_key
+VITE_MISTRAL_API_KEY=your_mistral_api_key
 ```
 
 ## Google Sheets Setup
@@ -81,14 +83,32 @@ npm run get-token
 
 ```
 interview/
+├── public/                     # Static files
+├── scripts/                    # Utility scripts
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Page components
-│   ├── services/      # API services
-│   ├── store/         # Redux store
-│   └── locales/       # i18n translations
-├── public/            # Static files
-└── scripts/          # Utility scripts
+│   ├── assets/                 # Static assets (images, fonts, etc.)
+│   ├── components/             # Reusable UI components
+│   │   ├── auth/               # Authentication components
+│   │   ├── icons/              # Icon components
+│   │   ├── ui/                 # UI components (buttons, inputs, etc.)
+│   ├── hooks/                  # Custom hooks
+│   ├── layouts/                # Layout components
+│   ├── locales/                # i18n translations
+│   ├── pages/                  # Page components
+│   │   ├── InterviewQuestions/ # Interview Questions page components
+│   │   ├── KnowledgeBase/      # Knowledge Base page components
+│   ├── services/               # API services
+│   ├── store/                  # Redux store
+│   │   ├── actions/            # Redux actions
+│   │   ├── reducers/           # Redux reducers
+│   │   ├── selectors/          # Redux selectors
+│   │   ├── slice/              # Redux slices
+│   ├── styles/                 # Global styles
+│   ├── types/                  # TypeScript types
+│   ├── utils/                  # Utility functions
+│   ├── App.tsx                 # Main App component
+│   ├── index.tsx               # Entry point
+└── [README.md](http://_vscodecontentref_/2)                   # Project documentation
 ```
 
 ## Environment Variables
@@ -98,6 +118,8 @@ interview/
 | `VITE_GOOGLE_SHEET_API_KEY` | Google Sheets API key | Yes |
 | `VITE_SPREADSHEET_ID` | ID of your Google Sheet | Yes |
 | `VITE_OPENCHAT_API_KEY` | OpenAI API key | Yes |
+| `VITE_GEMINI_API_KEY` | Gemini API key	| Yes |
+| `VITE_MISTRAL_API_KEY` | Mistral API key	| Yes |
 
 ## Development
 
@@ -178,3 +200,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Redux Toolkit
 - Google Sheets API
 - OpenAI API
+- Gemini API
+- Mistral API
+- Lucide Icons
+- i18next
+- React Router
+- JSZip
+- FileSaver.js
