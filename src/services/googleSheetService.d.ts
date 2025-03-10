@@ -1,5 +1,3 @@
-import { t } from "i18next";
-
 export interface KnowledgeItem {
     rowIndex: number;
     order: string;
@@ -32,4 +30,5 @@ export interface ApiResponse<T> {
 }
 
 export function fetchGoogleSheetData(): Promise<ApiResponse<SheetData>>;
+// eslint-disable-next-line no-unused-vars
 export function updateKnowledgeStatus(rowIndex: number, status: string): Promise<boolean>;

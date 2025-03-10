@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '../button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../select';
+import { Category } from '@/services/googleSheetService.d'; // Make sure to import from .d.ts file
+import { RootState } from '@/store';
 
 interface SaveDialogProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ export function SaveDialog({ isOpen, onClose, message }: SaveDialogProps) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [category, setCategory] = useState('');
-  const { questions } = useSelector((state: any) => state.interview);
+  const { questions } = useSelector((state: RootState) => state.interview);
 
   if (!isOpen || !message) return null;
 
@@ -50,7 +52,7 @@ export function SaveDialog({ isOpen, onClose, message }: SaveDialogProps) {
               <SelectValue placeholder={t('chat.selectCategory')} />
             </SelectTrigger>
             <SelectContent>
-              {questions.map((cat: any) => (
+              {(questions as Category[]).map((cat) => (
                 <SelectItem key={cat.category} value={cat.category}>
                   {cat.category}
                 </SelectItem>
