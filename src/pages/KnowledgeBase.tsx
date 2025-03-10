@@ -17,7 +17,6 @@ import { BookmarkPlus } from 'lucide-react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useTranslation } from 'react-i18next';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
-import ApiKeyForm from '@/components/ApiKeyForm';
 import SettingsButton from '@/components/ui/SettingsButton';
 import { useApiKeys } from '@/hooks/useApiKeys';
 
@@ -36,6 +35,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
     const { getApiKey } = useApiKeys();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isApiKeyFormVisible, setIsApiKeyFormVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -410,7 +410,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
             <Layout>
                 <div className="max-w-md mx-auto mt-10 p-6">
                     <h1 className="text-2xl font-bold mb-6">Login to Save Your Chat History</h1>
-                    <LoginForm />
+                    <LoginForm onSuccess={() => window.location.reload()} />
                 </div>
             </Layout>
         );

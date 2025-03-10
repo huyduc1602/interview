@@ -194,7 +194,8 @@ export default {
   auth: {
     login: "Đăng nhập",
     loginTitle: "Chào mừng trở lại!",
-    logout: "Đăng xuất"
+    logout: "Đăng xuất",
+    enterEmail: "Nhập địa chỉ email"
   },
   settings: {
     title: "Cài đặt",

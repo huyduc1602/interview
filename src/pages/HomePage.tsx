@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import BookOpen from '@/components/icons/BookOpen';
 import Brain from '@/components/icons/Brain';
@@ -23,7 +23,7 @@ const HomePage = () => {
         generateAnswer,
         answer,
         error,
-        setAnswer  // Make sure useChat returns this
+        setAnswer
     } = useChat({ type: 'chat' }, user);
 
     const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -40,6 +40,13 @@ const HomePage = () => {
             console.error('Chat error:', error);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            setChatInput('');
+            setAnswer('');
+        }
+    }, [user, setAnswer]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -69,7 +76,7 @@ const HomePage = () => {
                         {!user && showLoginForm && (
                             <div className="max-w-sm mx-auto">
                                 <h2 className="text-xl font-semibold mb-4">{t('auth.loginTitle')}</h2>
-                                <LoginForm onSuccess={() => setShowLoginForm(false)} />
+                                <LoginForm onSuccess={() => window.location.reload()} />
                             </div>
                         )}
 
