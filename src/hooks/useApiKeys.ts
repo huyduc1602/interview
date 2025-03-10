@@ -31,8 +31,6 @@ export function useApiKeys() {
   }, [user]);
 
   const getApiKey = (service: string) => {
-    console.log('getApiKey', apiKeys);
-    console.log('service', service);
     return apiKeys[service] || '';
   };
 
