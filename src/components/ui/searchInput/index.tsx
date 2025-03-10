@@ -4,7 +4,6 @@ import { ChangeEvent } from "react";
 
 interface SearchInputProps {
   value: string;
-  // eslint-disable-next-line no-unused-vars
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   className?: string;
