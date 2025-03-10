@@ -212,7 +212,8 @@ export default {
   auth: {
     login: "Sign In",
     loginTitle: "Welcome Back!",
-    logout: "Sign Out"
+    logout: "Sign Out",
+    enterEmail: "Enter your email"
   },
   settings: {
     title: "Settings",

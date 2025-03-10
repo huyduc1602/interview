@@ -4,7 +4,7 @@ import { fetchDataRequest, clearCachedAnswers } from '@/store/interview/slice';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
 import { Layout, SidebarLayout, CategoryHeader } from '@/layouts';
-import { SearchInput, HighlightText } from '@/components/ui';
+import { SearchInput, HighlightText, LoginForm } from '@/components/ui';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -407,6 +407,17 @@ export default function InterviewQuestions() {
             )}
         </div>
     );
+
+    if (!user) {
+        return (
+            <Layout>
+                <div className="max-w-md mx-auto mt-10 p-6">
+                    <h1 className="text-2xl font-bold mb-6">Login to Save Your Chat History</h1>
+                    <LoginForm onSuccess={() => window.location.reload()} />
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <TooltipProvider>
