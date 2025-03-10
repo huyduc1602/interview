@@ -9,7 +9,7 @@ export const getApiKey = (service: string, userId: string): string => {
     const savedKeys = localStorage.getItem(`api_keys_${userId}`);
     if (savedKeys) {
         try {
-            const decodedKeys = JSON.parse(atob(savedKeys));
+            const decodedKeys = JSON.parse(savedKeys);
             if (decodedKeys[service]) {
                 return decodedKeys[service];
             }

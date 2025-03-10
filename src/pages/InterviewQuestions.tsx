@@ -19,7 +19,7 @@ import SettingsButton from '@/components/ui/SettingsButton';
 import type { InterviewQuestion, ExpandedCategories, InterviewCategory } from '@/types/interview';
 import { RootState } from "@/store/types";
 import { KnowledgeCategory } from "@/types/knowledge";
-import { useApiKeys } from '@/hooks/useApiKeys';
+import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 
 export default function InterviewQuestions() {
@@ -38,6 +38,7 @@ export default function InterviewQuestions() {
     const fetchedRef = useRef(false);
     const prevApiKeyRef = useRef('');
     const prevSpreadsheetIdRef = useRef('');
+    const prevSheetNameRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const {
@@ -67,21 +68,24 @@ export default function InterviewQuestions() {
         // Skip if no user
         if (!user) return;
 
-        const apiKey = getApiKey('google_sheet');
-        const spreadsheetId = getApiKey('spreadsheet_id');
+        const apiKey = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY);
+        const spreadsheetId = getApiKey(ApiKeyService.SPREADSHEET_ID);
+        const sheetName = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
 
         // Only fetch if we haven't fetched yet or if keys have changed
         if (
             !fetchedRef.current ||
             apiKey !== prevApiKeyRef.current ||
-            spreadsheetId !== prevSpreadsheetIdRef.current
+            spreadsheetId !== prevSpreadsheetIdRef.current ||
+            sheetName !== prevSheetNameRef.current
         ) {
             // Save current values for comparison on next render
             prevApiKeyRef.current = apiKey;
             prevSpreadsheetIdRef.current = spreadsheetId;
+            prevSheetNameRef.current = sheetName;
             fetchedRef.current = true;
 
-            if (apiKey && spreadsheetId) {
+            if (apiKey && spreadsheetId && sheetName) {
                 dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
             }
         }
@@ -419,7 +423,7 @@ export default function InterviewQuestions() {
                     sidebar={renderSidebar()}
                     content={renderContent()}
                 />
-                <SettingsButton onSubmit={handleApiKeySubmit} isLoading={isLoading} />
+                <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS} isLoading={isLoading} />
             </Layout>
         </TooltipProvider>
     );

@@ -264,7 +264,8 @@ export default {
     },
     buttons: {
       fetchData: "Lấy dữ liệu"
-    }
+    },
+    submit: "Lưu"
   },
   apiKeyGuide: {
     title: "Hướng dẫn API Key",

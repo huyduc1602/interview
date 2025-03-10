@@ -6,10 +6,11 @@ import { useTranslation } from 'react-i18next';
 
 interface SettingsButtonProps {
     onSubmit: (apiKey: string, spreadsheetId: string) => Promise<void>;
+    sheetName?: string;
     isLoading: boolean;
 }
 
-const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, isLoading }) => {
+const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, sheetName, isLoading }) => {
     const { t } = useTranslation();
     const [isApiKeyFormVisible, setIsApiKeyFormVisible] = useState(false);
 
@@ -39,7 +40,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, isLoading }) 
                                 <p>{t('common.loading')}</p>
                             </div>
                         ) : (
-                            <ApiKeyForm onSubmit={onSubmit} />
+                            <ApiKeyForm onSubmit={onSubmit} sheetNameProp={sheetName} />
                         )}
                     </div>
                 </div>

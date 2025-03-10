@@ -3,6 +3,7 @@ import { handleAPIError } from './utils';
 import { MistralResponse } from './types';
 import { getApiKey } from '../../utils/apiKeys';
 import { User } from '@/types/common';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
@@ -11,7 +12,7 @@ export async function generateMistralResponse(prompt: string, user: User | null)
     throw new Error('User not authenticated');
   }
 
-  const MISTRAL_API_KEY = getApiKey('mistral', user.id);
+  const MISTRAL_API_KEY = getApiKey(ApiKeyService.MISTRAL, user.id);
 
   if (!MISTRAL_API_KEY) {
     throw new Error('Mistral API key not configured');

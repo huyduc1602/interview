@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 
-declare global {
-  interface Window {
-    __ENV?: Record<string, string>;
-  }
+export enum ApiKeyService {
+  OPENAI = 'openai',
+  GEMINI = 'gemini',
+  MISTRAL = 'mistral',
+  OPENCHAT = 'openchat',
+  GOOGLE_SHEET_API_KEY = 'googleSheetApiKey',
+  SPREADSHEET_ID = 'spreadsheetId',
+  GOOGLE_SHEET_KNOWLEDGE_BASE = 'sheetNameKnowledgeBase',
+  GOOGLE_SHEET_INTERVIEW_QUESTIONS = 'sheetNameInterviewQuestions'
 }
 
 export function useApiKeys() {
@@ -16,7 +21,7 @@ export function useApiKeys() {
       const savedKeys = localStorage.getItem(`api_keys_${user.id}`);
       if (savedKeys) {
         try {
-          const decodedKeys = JSON.parse(atob(savedKeys));
+          const decodedKeys = JSON.parse(savedKeys);
           setApiKeys(decodedKeys);
         } catch (error) {
           console.error('Failed to decode API keys from localStorage:', error);
@@ -26,11 +31,9 @@ export function useApiKeys() {
   }, [user]);
 
   const getApiKey = (service: string) => {
-    const key = apiKeys[service];
-    if (key) {
-      return key;
-    }
-    return window.__ENV?.[`VITE_${service.toUpperCase()}_API_KEY`] || import.meta.env[`VITE_${service.toUpperCase()}_API_KEY`];
+    console.log('getApiKey', apiKeys);
+    console.log('service', service);
+    return apiKeys[service] || '';
   };
 
   const saveApiKey = (service: string, key: string) => {
@@ -38,7 +41,7 @@ export function useApiKeys() {
       const updatedKeys = { ...apiKeys, [service]: key };
       setApiKeys(updatedKeys);
       try {
-        const encodedKeys = btoa(JSON.stringify(updatedKeys));
+        const encodedKeys = JSON.stringify(updatedKeys);
         localStorage.setItem(`api_keys_${user.id}`, encodedKeys);
       } catch (error) {
         console.error('Failed to encode API keys to localStorage:', error);

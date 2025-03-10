@@ -3,6 +3,7 @@ import type { OpenChatResponse } from './types';
 import { handleAPIError } from './utils';
 import { getApiKey } from '../../utils/apiKeys';
 import { User } from '@/types/common';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.together.xyz/v1/chat/completions';
 
@@ -11,7 +12,7 @@ export async function generateOpenChatResponse(prompt: string, user: User | null
     throw new Error('User not authenticated');
   }
 
-  const OPENCHAT_API_KEY = getApiKey('openchat', user.id);
+  const OPENCHAT_API_KEY = getApiKey(ApiKeyService.OPENCHAT, user.id);
 
   if (!OPENCHAT_API_KEY) {
     throw new Error('OpenChat API key not configured');

@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, Key, Eye, EyeOff, Upload } from 'lucide-react';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 interface APIKeys {
   openai?: string;
@@ -146,7 +147,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.openai || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, openai: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.OPENAI]: e.target.value }))}
                   placeholder="sk-..."
                 />
                 <p className="text-sm text-gray-500">
@@ -161,7 +162,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.gemini || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, gemini: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GEMINI]: e.target.value }))}
                   placeholder="AIzaSy..."
                 />
                 <p className="text-sm text-gray-500">
@@ -176,7 +177,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.mistral || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, mistral: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.MISTRAL]: e.target.value }))}
                 />
                 <p className="text-sm text-gray-500">
                   {t('settings.apiKeys.mistral.help')}
@@ -190,7 +191,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.openchat || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, openchat: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.OPENCHAT]: e.target.value }))}
                 />
                 <p className="text-sm text-gray-500">
                   {t('settings.apiKeys.openchat.help')}
@@ -204,7 +205,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.googleSheetApiKey || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, googleSheetApiKey: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GOOGLE_SHEET_API_KEY]: e.target.value }))}
                   placeholder="AIzaSy..."
                 />
                 <p className="text-sm text-gray-500">
@@ -219,7 +220,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.spreadsheetId || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, spreadsheetId: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.SPREADSHEET_ID]: e.target.value }))}
                   placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
                 />
                 <p className="text-sm text-gray-500">
@@ -234,7 +235,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.sheetNameKnowledgeBase || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameKnowledgeBase: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE]: e.target.value }))}
                   placeholder="KnowledgeBase"
                 />
                 <p className="text-sm text-gray-500">
@@ -249,7 +250,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.sheetNameInterviewQuestions || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameInterviewQuestions: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS]: e.target.value }))}
                   placeholder="InterviewQuestions"
                 />
                 <p className="text-sm text-gray-500">
