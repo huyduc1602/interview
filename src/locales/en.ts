@@ -1,3 +1,5 @@
+import { downloadSampleCsv } from "@/utils/downloadSampleCsv";
+
 export default {
   common: {
     search: 'Search',
@@ -253,7 +255,7 @@ export default {
         label: "Knowledge Base Sheet Name",
         help: "Enter the sheet name for the Knowledge Base."
       },
-      "sheetNameInterviewQuestions": {
+      sheetNameInterviewQuestions: {
         label: "Interview Questions Sheet Name",
         help: "Enter the sheet name for the Interview Questions."
       }
@@ -263,7 +265,8 @@ export default {
     showKeys: 'Show API Keys',
     hideKeys: 'Hide API Keys',
     upload: "Upload API Keys",
-    downloadSample: "Download Sample API Keys"
+    downloadSample: "Download Sample API Keys",
+    downloadSampleCsv: "Download Sample CSV"
   },
   apiKeyForm: {
     title: "Enter Google Sheet API Key and Spreadsheet ID",
