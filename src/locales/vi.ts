@@ -18,7 +18,8 @@ export default {
       delete: 'Xóa',
       interview: 'Câu hỏi phỏng vấn',
       knowledge: 'Cơ sở kiến thức'
-    }
+    },
+    settings: "Cài đặt"
   },
   nav: {
     home: 'Trung tâm Phỏng vấn',
