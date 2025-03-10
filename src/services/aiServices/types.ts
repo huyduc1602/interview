@@ -67,7 +67,7 @@ export interface MistralResponse extends BaseResponse {
   id: string;
   object: string;
   created: number;
-  prompt: any[];
+  prompt: PromptMessage[];
   choices: Array<{
     index: number;
     seed?: number;
@@ -75,10 +75,15 @@ export interface MistralResponse extends BaseResponse {
     message: {
       role: string;
       content: string;
-      tool_calls: any[];
+      tool_calls: unknown[];
     };
     finish_reason: string;
   }>;
+}
+
+export interface PromptMessage {
+  role: string;
+  content: string;
 }
 
 export interface OpenChatResponse extends BaseResponse {
@@ -86,7 +91,7 @@ export interface OpenChatResponse extends BaseResponse {
   object: string;
   created: number;
   model: string;
-  prompt: any[];
+  prompt: PromptMessage[];
   choices: Array<{
     finish_reason: string;
     seed: number;
@@ -95,7 +100,7 @@ export interface OpenChatResponse extends BaseResponse {
     message: {
       role: string;
       content: string;
-      tool_calls: any[];
+      tool_calls: unknown[];
     };
   }>;
   usage?: TokenUsage;
@@ -103,13 +108,13 @@ export interface OpenChatResponse extends BaseResponse {
 
 export interface ApiResponse {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 
 export interface SheetData {
   id: string;
-  values: any[][];
+  values: unknown[][];
 }
 
 export type AIResponse =
@@ -141,10 +146,22 @@ export function isOpenChatResponse(response: AIResponse): response is OpenChatRe
   );
 }
 
-export const processGeminiResponse = (response: any): GeminiResponse => {
+export const processGeminiResponse = (response: unknown): GeminiResponse => {
+  type GeminiCandidate = {
+    content: {
+      parts: Array<{
+        text: string;
+      }>;
+      role: string;
+    };
+    finishReason: string;
+    avgLogprobs?: number;
+  };
+  
+  const typedResponse = response as { candidates?: GeminiCandidate[] };
   return {
     model: AIModel.GEMINI,
-    candidates: response.candidates || [{
+    candidates: typedResponse.candidates || [{
       content: {
         parts: [{ text: '' }],
         role: 'model'

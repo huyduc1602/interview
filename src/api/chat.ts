@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import type { ChatOptions } from './chat.d';
+import { APIError } from 'openai';
 
 const openai = new OpenAI({
     apiKey: import.meta.env.VITE_OPENCHAT_API_KEY,
@@ -57,10 +58,11 @@ Format your responses in Markdown with:
             temperature,
             max_tokens
         });
-
+        
         return completion.choices[0].message.content || '';
+        
     } catch (error) {
-        if ((error as any).status === 429) {
+        if (error instanceof APIError && error.status === 429) {
             throw new Error('API_RATE_LIMIT');
         }
         throw error;
