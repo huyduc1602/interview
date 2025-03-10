@@ -35,8 +35,6 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
     const { getApiKey } = useApiKeys();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [isApiKeyFormVisible, setIsApiKeyFormVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const {
@@ -118,7 +116,6 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         setIsLoading(true);
         await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
         setIsLoading(false);
-        setIsApiKeyFormVisible(false);
     };
 
     const toggleCategory = (categoryIndex: number): void => {
