@@ -269,11 +269,13 @@ export default {
     title: "Enter Google Sheet API Key and Spreadsheet ID",
     labels: {
       apiKey: "Google Sheet API Key",
-      spreadsheetId: "Spreadsheet ID"
+      spreadsheetId: "Spreadsheet ID",
+      sheetName: "Sheet Name"
     },
     placeholders: {
       apiKey: "Enter your API key",
-      spreadsheetId: "Enter your Spreadsheet ID"
+      spreadsheetId: "Enter your Spreadsheet ID",
+      sheetName: "Enter the sheet name"
     },
     errors: {
       required: "Both API key and Spreadsheet ID are required."
