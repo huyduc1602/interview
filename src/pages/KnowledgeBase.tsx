@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import SettingsButton from '@/components/ui/SettingsButton';
 import { useApiKeys } from '@/hooks/useApiKeys';
+import LoginPrompt from "@/components/auth/LoginPrompt";
 
 type KnowledgeBaseProps = object
 
@@ -406,14 +407,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     );
 
     if (!user) {
-        return (
-            <Layout>
-                <div className="max-w-md mx-auto mt-10 p-6">
-                    <h1 className="text-2xl font-bold mb-6">Login to Save Your Chat History</h1>
-                    <LoginForm onSuccess={() => window.location.reload()} />
-                </div>
-            </Layout>
-        );
+        return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
 
     return (

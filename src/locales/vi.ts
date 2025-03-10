@@ -195,7 +195,8 @@ export default {
     login: "Đăng nhập",
     loginTitle: "Chào mừng trở lại!",
     logout: "Đăng xuất",
-    enterEmail: "Nhập địa chỉ email"
+    enterEmail: "Nhập địa chỉ email",
+    requestLogin: "Đăng nhập để xem lịch sử chat",
   },
   settings: {
     title: "Cài đặt",

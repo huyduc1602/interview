@@ -33,7 +33,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             />
             <button
             type="submit"
-            className="w-[90%] px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-transform transform hover:scale-105 active:scale-95"
+            className="w-[90%] px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-transform transform hover:scale-105 active:scale-95 text-center"
             >
             {t('auth.login')}
             </button>
