@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
 import { fetchChatGPTAnswer } from '@/services/aiServices/chatgptService';
 import { generateGeminiResponse } from '@/services/aiServices/geminiService';
 import { generateMistralResponse } from '@/services/aiServices/mistralService';
@@ -13,6 +14,7 @@ import {
   isMistralResponse,
   isOpenChatResponse
 } from '@/services/aiServices/types';
+import { User } from '@/types/common';
 
 interface UseChatOptions {
   type: 'knowledge' | 'interview' | 'chat';
@@ -21,16 +23,16 @@ interface UseChatOptions {
 interface UseChatReturn {
   loading: boolean;
   selectedModel: string;
-  setSelectedModel: (model: string) => void;
-  generateAnswer: (prompt: string) => Promise<string>;
+  setSelectedModel: Dispatch<SetStateAction<string>>;
+  generateAnswer: (input: string) => Promise<string>;
   answer: string | null;
-  setAnswer: (answer: string | null) => void;
+  setAnswer: Dispatch<SetStateAction<string | null>>;
   error: string | null;
   usage: TokenUsage | undefined;
   isFirstQuestion: boolean;
 }
 
-export function useChat({ type }: UseChatOptions): UseChatReturn {
+export function useChat({ type }: UseChatOptions, user: User | null): UseChatReturn {
   const [selectedModel, setSelectedModel] = useState<AIModelType>(AIModel.GPT35_0125);
   const [loading, setLoading] = useState(false);
   const [usage, setUsage] = useState<TokenUsage | undefined>(undefined);
@@ -65,7 +67,7 @@ export function useChat({ type }: UseChatOptions): UseChatReturn {
         case AIModel.GPT35:
         case AIModel.GPT4:
         case AIModel.GPT35_0125:
-          response = await fetchChatGPTAnswer(finalInput, selectedModel);
+          response = await fetchChatGPTAnswer(finalInput, selectedModel, user);
           if (isOpenAIResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
@@ -76,7 +78,7 @@ export function useChat({ type }: UseChatOptions): UseChatReturn {
           break;
 
         case AIModel.GEMINI:
-          response = await generateGeminiResponse(finalInput);
+          response = await generateGeminiResponse(finalInput, user);
           if (isGeminiResponse(response)) {
             setUsage(undefined);
             setIsFirstQuestion(false);
@@ -87,7 +89,7 @@ export function useChat({ type }: UseChatOptions): UseChatReturn {
           break;
 
         case AIModel.MISTRAL:
-          response = await generateMistralResponse(finalInput);
+          response = await generateMistralResponse(finalInput, user);
           if (isMistralResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
@@ -98,7 +100,7 @@ export function useChat({ type }: UseChatOptions): UseChatReturn {
           break;
 
         case AIModel.OPENCHAT:
-          response = await generateOpenChatResponse(finalInput);
+          response = await generateOpenChatResponse(finalInput, user);
           if (isOpenChatResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
@@ -123,7 +125,7 @@ export function useChat({ type }: UseChatOptions): UseChatReturn {
     } finally {
       setLoading(false);
     }
-  }, [selectedModel, isFirstQuestion, getSystemContext]);
+  }, [selectedModel, isFirstQuestion, getSystemContext, user]);
 
   useEffect(() => {
     setIsFirstQuestion(true);

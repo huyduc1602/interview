@@ -1,11 +1,18 @@
 import axios from 'axios';
 import { handleAPIError } from './utils';
 import { MistralResponse } from './types';
+import { getApiKey } from '../../utils/apiKeys';
+import { User } from '@/types/common';
 
-const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
 const API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
-export async function generateMistralResponse(prompt: string): Promise<MistralResponse> {
+export async function generateMistralResponse(prompt: string, user: User | null): Promise<MistralResponse> {
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const MISTRAL_API_KEY = getApiKey('mistral', user.id);
+
   if (!MISTRAL_API_KEY) {
     throw new Error('Mistral API key not configured');
   }
@@ -41,13 +48,13 @@ export async function generateMistralResponse(prompt: string): Promise<MistralRe
       object: string;
       created: number;
       choices: Array<{
-      index: number;
-      message: {
-        role: string;
-        tool_calls?: any[] | null;
-        content: string;
-      };
-      finish_reason: string;
+        index: number;
+        message: {
+          role: string;
+          tool_calls?: unknown[] | null;
+          content: string;
+        };
+        finish_reason: string;
       }>;
     }
 

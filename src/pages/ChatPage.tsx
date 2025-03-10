@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Layout } from '@/layouts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { AIModel, TokenUsage } from '../services/aiServices/types';
 import { useChat } from '@/hooks/useChat';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   role: 'user' | 'assistant' | 'error';
@@ -18,6 +19,7 @@ interface Message {
 }
 
 interface ChatPageProps {
+  // eslint-disable-next-line no-unused-vars
   onModelChange?: (model: AIModel) => void;
   tokenUsage?: TokenUsage;
 }
@@ -31,14 +33,15 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const { user } = useAuth();
+ 
   const {
     loading,
     selectedModel: selectedModelString,
     setSelectedModel: setModel,
     generateAnswer,
     usage
-  } = useChat({ type: 'chat' });
+  } = useChat({ type: 'chat' }, user);
 
   const selectedModel = selectedModelString as AIModel;
 

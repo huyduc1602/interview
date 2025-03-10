@@ -16,3 +16,9 @@ export interface SavedItem {
     answer: string;
     model: string;
 }
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+}
