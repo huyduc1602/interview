@@ -60,7 +60,10 @@ export default function Settings() {
             </Alert>
 
             <div className="flex items-center gap-4">
-              <Button onClick={handleSave}>
+              <Button
+                onClick={handleSave}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300"
+              >
                 {t('settings.save')}
               </Button>
               {saved && (
@@ -68,7 +71,11 @@ export default function Settings() {
                   {t('settings.saved')}
                 </span>
               )}
-              <Button variant="outline" onClick={() => setShowKeys(!showKeys)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowKeys(!showKeys)}
+                className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-2 px-4 rounded transition duration-300"
+              >
                 {showKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} &nbsp;
                 {showKeys ? t('settings.hideKeys') : t('settings.showKeys')}
               </Button>
