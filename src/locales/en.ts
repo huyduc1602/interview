@@ -1,5 +1,3 @@
-import { downloadSampleCsv } from "@/utils/downloadSampleCsv";
-
 export default {
   common: {
     search: 'Search',
