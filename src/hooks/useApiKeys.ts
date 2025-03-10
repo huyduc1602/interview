@@ -29,6 +29,7 @@ export function useApiKeys() {
       const updatedKeys = { ...apiKeys, [service]: key };
       setApiKeys(updatedKeys);
       localStorage.setItem(`api_keys_${user.id}`, JSON.stringify(updatedKeys));
+      console.log(`Saved ${service} key:`, key); // Add this line for debugging
     }
   };
 
