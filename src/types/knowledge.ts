@@ -1,7 +1,8 @@
 import { BaseItem } from './common';
 
 export interface KnowledgeItem extends BaseItem {
-    content: string;
+    category: string;
+    question: string;
     answer: string | null;
 }
 

@@ -27,7 +27,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const { t } = useTranslation();
     const { user } = useAuth();
     const dispatch = useDispatch();
-    const { questions: knowledge } = useSelector((state: RootState) => state.interview);
+    const { questions } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
@@ -62,6 +62,13 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const fetchedRef = useRef(false);
     const prevApiKeyRef = useRef('');
     const prevSpreadsheetIdRef = useRef('');
+
+    useEffect(() => {
+        setExpandedCategories(questions.reduce((acc, category, index) => {
+            acc[index] = category.items.length > 0;
+            return acc;
+        }, {} as ExpandedCategories));
+    }, [questions]);
 
     useEffect(() => {
         // Skip if no user
@@ -118,7 +125,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const filterItems = (items: KnowledgeItem[], query: string): KnowledgeItem[] => {
         if (!query) return items;
         return items.filter(item =>
-            item.content.toLowerCase().includes(query.toLowerCase())
+            item.question.toLowerCase().includes(query.toLowerCase())
         );
     };
 
@@ -126,7 +133,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         setSelectedItem({ ...item, answer: null });
 
         try {
-            const answer = await handleGenerateAnswer(item.content);
+            const answer = await handleGenerateAnswer(item.question);
             setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to generate answer:', error);
@@ -138,7 +145,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         if (!selectedItem) return;
 
         try {
-            const answer = await generateAnswer(selectedItem.content);
+            const answer = await generateAnswer(selectedItem.question);
             setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to regenerate answer:', error);
@@ -155,26 +162,26 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         try {
             setChatHistory(prev => ({
                 ...prev,
-                [selectedItem.content]: [
-                    ...(prev[selectedItem.content] || []),
+                [selectedItem.question]: [
+                    ...(prev[selectedItem.question] || []),
                     { role: 'user', content: question, timestamp: Date.now() }
                 ]
             }));
 
-            const contextualQuestion = `Based on the topic "${selectedItem.content}" and its explanation, please answer this follow-up question: ${question}`;
+            const contextualQuestion = `Based on the topic "${selectedItem.question}" and its explanation, please answer this follow-up question: ${question}`;
             const answer = await generateAnswer(contextualQuestion);
 
             setChatHistory(prev => ({
                 ...prev,
-                [selectedItem.content]: [
-                    ...(prev[selectedItem.content] || []),
+                [selectedItem.question]: [
+                    ...(prev[selectedItem.question] || []),
                     { role: 'assistant', content: answer, timestamp: Date.now() }
                 ]
             }));
 
             if (user && selectedItem) {
                 const savedItem = savedItems.find(
-                    item => item.question === selectedItem.content
+                    item => item.question === selectedItem.question
                 );
 
                 if (savedItem) {
@@ -185,8 +192,8 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
             console.error('Failed to get follow-up answer:', error);
             setChatHistory(prev => ({
                 ...prev,
-                [selectedItem.content]: [
-                    ...(prev[selectedItem.content] || []),
+                [selectedItem.question]: [
+                    ...(prev[selectedItem.question] || []),
                     {
                         role: 'assistant',
                         content: t('common.errors.failedToGetAnswer'),
@@ -208,7 +215,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         saveItem({
             type: 'knowledge',
             category: item.category || '',
-            question: item.content,
+            question: item.question,
             answer: item.answer,
             model: model
         });
@@ -245,10 +252,10 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
             </div>
 
             <div className="space-y-4">
-                {knowledge.map((category, categoryIndex) => {
+                {questions.map((category, categoryIndex) => {
                     const filteredItems = filterItems((category.items as KnowledgeItem[] || []) as KnowledgeItem[], searchQuery);
+                    console.log('filteredItems', filteredItems)
                     if (filteredItems.length === 0 && searchQuery) return null;
-
                     return (
                         <div key={categoryIndex} className="space-y-2">
                             <CategoryHeader
@@ -265,18 +272,18 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                                             onClick={() => handleItemClick(item)}
                                             className={cn(
                                                 "w-full text-left px-2 py-1 rounded text-sm",
-                                                selectedItem?.content === item.content
+                                                selectedItem?.question === item.question
                                                     ? "bg-purple-100 text-purple-900"
                                                     : "hover:bg-gray-100"
                                             )}
                                         >
                                             {searchQuery ? (
                                                 <HighlightText
-                                                    text={item.content}
+                                                    text={item.question}
                                                     search={searchQuery}
                                                 />
                                             ) : (
-                                                item.content
+                                                    item.question
                                             )}
                                         </button>
                                     ))}
@@ -296,7 +303,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                     <div className="border-b pb-4">
                         <div className="flex items-center justify-between">
                             <h1 className="text-2xl font-semibold">
-                                {selectedItem.content}
+                                {selectedItem.question}
                             </h1>
                             {user && selectedItem.answer && (
                                 <Button
@@ -330,9 +337,9 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                             </h2>
 
                             {/* Item-specific Chat History */}
-                            {chatHistory[selectedItem.content]?.length > 0 && (
+                            {chatHistory[selectedItem.question]?.length > 0 && (
                                 <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
-                                    {chatHistory[selectedItem.content].map((message, index) => (
+                                    {chatHistory[selectedItem.question].map((message, index) => (
                                         <div
                                             key={index}
                                             className={cn(
