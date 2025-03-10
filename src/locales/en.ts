@@ -282,7 +282,8 @@ export default {
     },
     buttons: {
       fetchData: "Fetch Data"
-    }
+    },
+    submit: "Save"
   },
   apiKeyGuide: {
     title: "API Key Guide",

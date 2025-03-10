@@ -1,45 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { useApiKeys } from '@/hooks/useApiKeys';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 
 interface ApiKeyFormProps {
     onSubmit: (apiKey: string, spreadsheetId: string, sheetName: string) => void;
+    sheetNameProp?: string;
 }
 
-export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
+export default function ApiKeyForm({ onSubmit, sheetNameProp }: ApiKeyFormProps) {
+    const { t } = useTranslation();
     const { getApiKey, saveApiKey } = useApiKeys();
     const [apiKey, setApiKey] = useState('');
     const [spreadsheetId, setSpreadsheetId] = useState('');
     const [sheetName, setSheetName] = useState('');
-    const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const { t } = useTranslation();
-    const navigate = useNavigate();
 
     useEffect(() => {
-        const initialApiKey = getApiKey('google_sheet');
-        const initialSpreadsheetId = getApiKey('spreadsheet_id');
-        const initialSheetName = getApiKey('sheet_name');
-        if (initialApiKey) setApiKey(initialApiKey);
-        if (initialSpreadsheetId) setSpreadsheetId(initialSpreadsheetId);
-        if (initialSheetName) setSheetName(initialSheetName);
+        setApiKey(getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY) || '');
+        setSpreadsheetId(getApiKey(ApiKeyService.SPREADSHEET_ID) || '');
+        setSheetName(getApiKey(sheetNameProp || ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE));
     }, [getApiKey]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!apiKey || !spreadsheetId || !sheetName) {
-            setError(t('apiKeyForm.errors.required'));
-            return;
-        }
         setIsLoading(true);
         saveApiKey('google_sheet', apiKey);
         saveApiKey('spreadsheet_id', spreadsheetId);
         saveApiKey('sheet_name', sheetName);
         await onSubmit(apiKey, spreadsheetId, sheetName);
         setIsLoading(false);
-        navigate('/settings');
     };
 
     const classInput = 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
@@ -70,7 +59,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         disabled={isLoading}
                     />
                 </div>
-                <div className="mb-6">
+                <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('apiKeyForm.labels.sheetName')}</label>
                     <input
                         type="text"
@@ -81,19 +70,13 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         disabled={isLoading}
                     />
                 </div>
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                <Button
+                <button
                     type="submit"
-                    variant="default"
-                    className="w-[90%] text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2"
+                    className="w-[90%] text-center bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
                     disabled={isLoading}
                 >
-                    {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                    ) : (
-                        t('apiKeyForm.buttons.fetchData')
-                    )}
-                </Button>
+                    {isLoading ? t('apiKeyForm.loading') : t('apiKeyForm.submit')}
+                </button>
             </form>
         </div>
     );

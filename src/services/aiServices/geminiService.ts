@@ -4,6 +4,7 @@ import type { GeminiResponse } from './types';
 import { handleAPIError } from './utils';
 import { getApiKey } from '../../utils/apiKeys';
 import { User } from '@/types/common';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
 
@@ -12,7 +13,7 @@ export async function generateGeminiResponse(prompt: string, user: User | null):
     throw new Error('User not authenticated');
   }
 
-  const GEMINI_API_KEY = getApiKey('gemini', user.id);
+  const GEMINI_API_KEY = getApiKey(ApiKeyService.GEMINI, user.id);
 
   if (!GEMINI_API_KEY) {
     throw new Error('Gemini API key not configured');

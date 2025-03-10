@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { OpenAIResponse } from './types';
 import { getApiKey } from '../../utils/apiKeys';
 import { User } from '@/types/common';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 
@@ -10,7 +11,7 @@ export async function fetchChatGPTAnswer(prompt: string, model: string, user: Us
     throw new Error('User not authenticated');
   }
 
-  const OPENAI_API_KEY = getApiKey('openai', user.id);
+  const OPENAI_API_KEY = getApiKey(ApiKeyService.OPENAI, user.id);
 
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not configured');

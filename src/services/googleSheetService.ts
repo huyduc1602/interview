@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import type { ApiResponse, SheetData, Category, KnowledgeItem, QuestionItem } from './googleSheetService.d';
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
+import { ApiKeyService } from '@/hooks/useApiKeys';
 
 // Define the Google Sheets API response interface
 interface GoogleSheetValuesResponse {
@@ -62,9 +63,8 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
 
     try {
         // Validate API keys before making any requests
-        const API_KEY = getApiKey('google_sheet', user.id);
-        const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
-        console.log(`API_KEY: ${API_KEY}, SPREADSHEET_ID: ${SPREADSHEET_ID}`);
+        const API_KEY = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY, user.id);
+        const SPREADSHEET_ID = getApiKey(ApiKeyService.SPREADSHEET_ID, user.id);
 
         if (!API_KEY) {
             isFetching = false;
@@ -307,8 +307,8 @@ export const updateKnowledgeStatus = async (rowIndex: number, status: string, us
         throw new Error('User not authenticated');
     }
 
-    const API_KEY = getApiKey('google_sheet', user.id);
-    const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
+    const API_KEY = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY, user.id);
+    const SPREADSHEET_ID = getApiKey(ApiKeyService.SPREADSHEET_ID, user.id);
     const SHEET_KNOWLEDGE = "Danh mục kiến thức";
     try {
         const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_KNOWLEDGE)}!C${rowIndex}`;
