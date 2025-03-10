@@ -251,11 +251,13 @@ export default {
     title: "Nhập Khóa API Google Sheet và ID Bảng tính",
     labels: {
       apiKey: "Khóa API Google Sheet",
-      spreadsheetId: "ID Bảng tính"
+      spreadsheetId: "ID Bảng tính",
+      sheetName: "Tên trang"
     },
     placeholders: {
       apiKey: "Nhập khóa API của bạn",
-      spreadsheetId: "Nhập ID Bảng tính của bạn"
+      spreadsheetId: "Nhập ID Bảng tính của bạn",
+      sheetName: "Nhập tên trang"
     },
     errors: {
       required: "Cần nhập cả khóa API và ID Bảng tính"
