@@ -24,7 +24,7 @@ const HomePage = () => {
         answer,
         error,
         setAnswer  // Make sure useChat returns this
-    } = useChat({ type: 'chat' });
+    } = useChat({ type: 'chat' }, user);
 
     const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();

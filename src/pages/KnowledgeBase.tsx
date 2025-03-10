@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDataRequest } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
@@ -18,8 +18,9 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { useTranslation } from 'react-i18next';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 
-interface KnowledgeBaseProps { }
+type KnowledgeBaseProps = object
 
+// eslint-disable-next-line no-empty-pattern
 export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const { t } = useTranslation();
     const { user } = useAuth();
@@ -37,7 +38,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         selectedModel,
         setSelectedModel,
         generateAnswer
-    } = useChat({ type: 'knowledge' });
+    } = useChat({ type: 'knowledge' }, user);
 
     const {
         handleGenerateAnswer,
