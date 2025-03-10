@@ -32,4 +32,6 @@ declare module 'lucide-react' {
   export const ChevronRight: React.FC<LucideProps>;
   export const Shuffle: React.FC<LucideProps>;
   export const Tag: React.FC<LucideProps>;
+  export const Eye: React.FC<LucideProps>;
+  export const EyeOff: React.FC<LucideProps>;
 }

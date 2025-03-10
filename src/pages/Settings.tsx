@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, Key } from 'lucide-react';
+import { Info, Key, Eye, EyeOff } from 'lucide-react';
 
 interface APIKeys {
   openai?: string;
@@ -19,6 +19,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [apiKeys, setApiKeys] = useState<APIKeys>({});
   const [saved, setSaved] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -58,13 +59,28 @@ export default function Settings() {
               </AlertDescription>
             </Alert>
 
+            <div className="flex items-center gap-4">
+              <Button onClick={handleSave}>
+                {t('settings.save')}
+              </Button>
+              {saved && (
+                <span className="text-sm text-green-600">
+                  {t('settings.saved')}
+                </span>
+              )}
+              <Button variant="outline" onClick={() => setShowKeys(!showKeys)}>
+                {showKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} &nbsp;
+                {showKeys ? t('settings.hideKeys') : t('settings.showKeys')}
+              </Button>
+            </div>
+
             <div className="grid gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
                   OpenAI API Key
                 </label>
                 <Input
-                  type="password"
+                  type={showKeys ? "text" : "password"}
                   value={apiKeys.openai || ''}
                   onChange={(e) => setApiKeys(prev => ({ ...prev, openai: e.target.value }))}
                   placeholder="sk-..."
@@ -79,7 +95,7 @@ export default function Settings() {
                   Google Gemini API Key
                 </label>
                 <Input
-                  type="password"
+                  type={showKeys ? "text" : "password"}
                   value={apiKeys.gemini || ''}
                   onChange={(e) => setApiKeys(prev => ({ ...prev, gemini: e.target.value }))}
                   placeholder="AIzaSy..."
@@ -94,7 +110,7 @@ export default function Settings() {
                   Mistral API Key
                 </label>
                 <Input
-                  type="password"
+                  type={showKeys ? "text" : "password"}
                   value={apiKeys.mistral || ''}
                   onChange={(e) => setApiKeys(prev => ({ ...prev, mistral: e.target.value }))}
                 />
@@ -108,7 +124,7 @@ export default function Settings() {
                   OpenChat API Key
                 </label>
                 <Input
-                  type="password"
+                  type={showKeys ? "text" : "password"}
                   value={apiKeys.openchat || ''}
                   onChange={(e) => setApiKeys(prev => ({ ...prev, openchat: e.target.value }))}
                 />
@@ -116,17 +132,6 @@ export default function Settings() {
                   {t('settings.apiKeys.openchat.help')}
                 </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Button onClick={handleSave}>
-                {t('settings.save')}
-              </Button>
-              {saved && (
-                <span className="text-sm text-green-600">
-                  {t('settings.saved')}
-                </span>
-              )}
             </div>
           </div>
         </TabsContent>

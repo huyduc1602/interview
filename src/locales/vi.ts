@@ -216,6 +216,8 @@ export default {
       }
     },
     save: "Lưu Cài đặt",
-    saved: "Đã lưu cài đặt thành công!"
+    saved: "Đã lưu cài đặt thành công!",
+    showKeys: 'Hiển thị API Keys',
+    hideKeys: 'Ẩn API Keys',
   }
 };
