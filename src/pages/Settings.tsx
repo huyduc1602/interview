@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, Key, Eye, EyeOff, Upload } from 'lucide-react';
+import CSV from '@/components/icons/CSV';
 import { ApiKeyService } from '@/hooks/useApiKeys';
+import { downloadSampleCsv } from '@/utils/downloadSampleCsv';
 
 interface APIKeys {
   openai?: string;
@@ -68,7 +70,7 @@ export default function Settings() {
     }
   };
 
-  const handleDownloadSample = () => {
+  const handleDownloadSampleKeys = () => {
     const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...\ngoogleSheetApiKey=...\nspreadsheetId=...\nsheetNameKnowledgeBase=...\nsheetNameInterviewQuestions=...`;
     const blob = new Blob([sampleContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -77,6 +79,10 @@ export default function Settings() {
     a.download = 'sample-api-keys.txt';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadSampleCsv = () => {
+    downloadSampleCsv();
   };
 
   return (
@@ -100,29 +106,29 @@ export default function Settings() {
               </AlertDescription>
             </Alert>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Button
                 onClick={handleSave}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 w-full sm:w-auto"
               >
                 {t('settings.save')}
               </Button>
               {saved && (
-                <span className="text-sm text-green-600">
+                <span className="text-sm text-green-600 w-full sm:w-auto">
                   {t('settings.saved')}
                 </span>
               )}
               <Button
                 variant="outline"
                 onClick={() => setShowKeys(!showKeys)}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-2 px-4 rounded transition duration-300"
+                className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-2 px-4 rounded transition duration-300 w-full sm:w-auto"
               >
                 {showKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} &nbsp;
                 {showKeys ? t('settings.hideKeys') : t('settings.showKeys')}
               </Button>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Upload className="w-4 h-4" />
-                <span className="text-gray-700 font-semibold">{t('settings.upload')}</span>
+              <label className="flex items-center gap-2 cursor-pointer w-full sm:w-auto bg-purple-700 py-4 px-2 rounded">
+                <Upload className="w-4 h-4 text-white" />
+                <span className="text-white font-semibold">{t('settings.upload')}</span>
                 <input
                   type="file"
                   accept=".txt"
@@ -132,10 +138,19 @@ export default function Settings() {
               </label>
               <Button
                 variant="outline"
-                onClick={handleDownloadSample}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-2 px-4 rounded transition duration-300"
+                onClick={handleDownloadSampleKeys}
+                className="border border-gray-300 hover:border-gray-400 text-white bg-yellow-400 font-semibold py-2 px-4 rounded transition duration-300 w-full sm:w-auto"
               >
+                <Key className="w-4 h-4 mr-2" />
                 {t('settings.downloadSample')}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownloadSampleCsv}
+                className="border border-gray-300 hover:border-gray-400 bg-green-400 text-white font-semibold py-2 px-4 rounded transition duration-300 w-full sm:w-auto"
+              >
+                <CSV className="w-4 h-4 mr-2" />
+                {t('settings.downloadSampleCsv')}
               </Button>
             </div>
 
@@ -235,7 +250,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.sheetNameKnowledgeBase || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE]: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameKnowledgeBase: e.target.value }))}
                   placeholder="KnowledgeBase"
                 />
                 <p className="text-sm text-gray-500">
@@ -250,7 +265,7 @@ export default function Settings() {
                 <Input
                   type={showKeys ? "text" : "password"}
                   value={apiKeys.sheetNameInterviewQuestions || ''}
-                  onChange={(e) => setApiKeys(prev => ({ ...prev, [ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS]: e.target.value }))}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameInterviewQuestions: e.target.value }))}
                   placeholder="InterviewQuestions"
                 />
                 <p className="text-sm text-gray-500">

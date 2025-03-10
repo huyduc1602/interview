@@ -245,7 +245,8 @@ export default {
     showKeys: 'Hiển thị API Keys',
     hideKeys: 'Ẩn API Keys',
     upload: "Tải lên khóa API",
-    downloadSample: "Tải xuống mẫu khóa API"
+    downloadSample: "Tải xuống mẫu khóa API",
+    downloadSampleCsv: "Tải xuống mẫu file CSV"
   },
   apiKeyForm: {
     title: "Nhập Khóa API Google Sheet và ID Bảng tính",
