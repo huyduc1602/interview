@@ -222,5 +222,22 @@ export default {
     saved: "Đã lưu cài đặt thành công!",
     showKeys: 'Hiển thị API Keys',
     hideKeys: 'Ẩn API Keys',
+  },
+  apiKeyForm: {
+    title: "Nhập Khóa API Google Sheet và ID Bảng tính",
+    labels: {
+      apiKey: "Khóa API Google Sheet",
+      spreadsheetId: "ID Bảng tính"
+    },
+    placeholders: {
+      apiKey: "Nhập khóa API của bạn",
+      spreadsheetId: "Nhập ID Bảng tính của bạn"
+    },
+    errors: {
+      required: "Cần nhập cả khóa API và ID Bảng tính"
+    },
+    buttons: {
+      fetchData: "Lấy dữ liệu"
+    }
   }
 };
