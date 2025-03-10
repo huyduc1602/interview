@@ -15,6 +15,7 @@ import {
     updateKnowledgeStatusSuccess,
     updateKnowledgeStatusFailure,
 } from './slice';
+import { User } from '@/types/common';
 
 interface KnowledgeStatusPayload {
     rowIndex: number;
@@ -26,7 +27,7 @@ interface AnswerPayload {
     answer: string;
 }
 
-function* fetchDataSaga(): Generator<any, void, ApiResponse<SheetData>> {
+function* fetchDataSaga(): Generator<unknown, void, ApiResponse<SheetData>> {
     try {
         const response = yield call(fetchGoogleSheetData);
         if (response.success && response.data) {
@@ -41,11 +42,12 @@ function* fetchDataSaga(): Generator<any, void, ApiResponse<SheetData>> {
     }
 }
 
-function* fetchAnswerSaga(action: PayloadAction<string>): Generator<any, void, AIResponse> {
+function* fetchAnswerSaga(action: PayloadAction<{ question: string, user: User }>): Generator<unknown, void, AIResponse> {
     try {
-        const response: AIResponse = yield call(fetchChatGPTAnswer, action.payload, 'gpt-3.5-turbo-0125');
+        const { question, user } = action.payload;
+        const response: AIResponse = yield call(fetchChatGPTAnswer, question, 'gpt-3.5-turbo-0125', user);
         yield put(fetchAnswerSuccess({
-            question: action.payload,
+            question,
             answer: 'choices' in response ? response.choices[0].message.content : response.candidates[0].content.parts[0].text,
         } as AnswerPayload));
     } catch (error) {
@@ -57,7 +59,7 @@ function* fetchAnswerSaga(action: PayloadAction<string>): Generator<any, void, A
 
 function* updateKnowledgeStatusSaga(
     action: PayloadAction<KnowledgeStatusPayload>
-): Generator<any, void, boolean> {
+): Generator<unknown, void, boolean> {
     try {
         const { rowIndex, status } = action.payload;
         if (!rowIndex || !status) {

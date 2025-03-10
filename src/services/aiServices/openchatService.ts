@@ -1,11 +1,18 @@
 import axios from 'axios';
 import type { OpenChatResponse } from './types';
 import { handleAPIError } from './utils';
+import { getApiKey } from '../../utils/apiKeys';
+import { User } from '@/types/common';
 
-const OPENCHAT_API_KEY = import.meta.env.VITE_OPENCHAT_API_KEY;
 const API_URL = 'https://api.together.xyz/v1/chat/completions';
 
-export async function generateOpenChatResponse(prompt: string): Promise<OpenChatResponse> {
+export async function generateOpenChatResponse(prompt: string, user: User | null): Promise<OpenChatResponse> {
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const OPENCHAT_API_KEY = getApiKey('openchat', user.id);
+
   if (!OPENCHAT_API_KEY) {
     throw new Error('OpenChat API key not configured');
   }
@@ -41,7 +48,7 @@ export async function generateOpenChatResponse(prompt: string): Promise<OpenChat
     interface Message {
       role: string;
       content: string;
-      tool_calls?: any[];
+      tool_calls?: unknown[];
     }
 
     interface Choice {

@@ -1,19 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface InterviewState {
-  knowledge: any[];
-  questions: any[];
-  answers: { [key: string]: any };
+  knowledge: unknown[];
+  questions: unknown[];
+  answers: { [key: string]: unknown };
   loading: boolean;
-  error: null | any;
+  error: null | unknown;
   cachedAnswers: {
     [language: string]: {
       [type: string]: {
-        [questionId: string]: any;
+        [questionId: string]: unknown;
       };
     };
   };
-  [key: string]: any[] | any;
+  [key: string]: unknown[] | unknown;
 }
 
 const loadCachedAnswers = () => {
@@ -77,15 +77,15 @@ const interviewSlice = createSlice({
       interface KnowledgeItem {
         rowIndex: number;
         status: string;
-        [key: string]: any;
+        [key: string]: unknown;
       }
 
       interface KnowledgeCategory {
         items: KnowledgeItem[];
-        [key: string]: any;
+        [key: string]: unknown;
       }
 
-            state.knowledge = state.knowledge.map((category: KnowledgeCategory) => ({
+            state.knowledge = (state.knowledge as KnowledgeCategory[]).map((category: KnowledgeCategory) => ({
               ...category,
               items: category.items.map((item: KnowledgeItem) =>
                 item.rowIndex === rowIndex
@@ -121,11 +121,11 @@ const interviewSlice = createSlice({
       localStorage.removeItem('cachedAnswers');
     },
 
-    setItems: (state, action: PayloadAction<{ key: string; items: any[] }>) => {
+    setItems: (state, action: PayloadAction<{ key: string; items: unknown[] }>) => {
       state[`${action.payload.key}`] = action.payload.items;
     },
-    addItems: (state, action: PayloadAction<{ key: string; items: any[] }>) => {
-      const currentItems = state[action.payload.key] || [];
+    addItems: (state, action: PayloadAction<{ key: string; items: unknown[] }>) => {
+      const currentItems = (state[action.payload.key] as unknown[]) || [];
       state[action.payload.key] = [
         ...currentItems,
         ...action.payload.items.filter(item => !currentItems.includes(item))
