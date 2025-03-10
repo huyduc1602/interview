@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { useApiKeys } from '@/hooks/useApiKeys';
 
 interface ApiKeyFormProps {
-    // eslint-disable-next-line no-unused-vars
     onSubmit: (apiKey: string, spreadsheetId: string) => void;
 }
 
@@ -11,6 +10,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
     const { getApiKey, saveApiKey } = useApiKeys();
     const [apiKey, setApiKey] = useState('');
     const [spreadsheetId, setSpreadsheetId] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const initialApiKey = getApiKey('google_sheet');
@@ -21,6 +21,10 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!apiKey || !spreadsheetId) {
+            setError('Both API key and Spreadsheet ID are required.');
+            return;
+        }
         saveApiKey('google_sheet', apiKey);
         saveApiKey('spreadsheet_id', spreadsheetId);
         onSubmit(apiKey, spreadsheetId);
@@ -50,6 +54,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         placeholder="Enter your Spreadsheet ID"
                     />
                 </div>
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                 <Button type="submit" variant="default" className="w-full py-2">Fetch Data</Button>
             </form>
         </div>

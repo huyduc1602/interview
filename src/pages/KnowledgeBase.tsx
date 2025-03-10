@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDataRequest } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
@@ -58,10 +58,33 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         }, [])
     });
 
+    // Add these refs to track fetch status and previous values
+    const fetchedRef = useRef(false);
+    const prevApiKeyRef = useRef('');
+    const prevSpreadsheetIdRef = useRef('');
+
     useEffect(() => {
+        // Skip if no user
+        if (!user) return;
+
         const apiKey = getApiKey('google_sheet');
         const spreadsheetId = getApiKey('spreadsheet_id');
-        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+
+        // Only fetch if we haven't fetched yet or if keys have changed
+        if (
+            !fetchedRef.current ||
+            apiKey !== prevApiKeyRef.current ||
+            spreadsheetId !== prevSpreadsheetIdRef.current
+        ) {
+            // Save current values for comparison on next render
+            prevApiKeyRef.current = apiKey;
+            prevSpreadsheetIdRef.current = spreadsheetId;
+            fetchedRef.current = true;
+
+            if (apiKey && spreadsheetId) {
+                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+            }
+        }
     }, [dispatch, getApiKey, user]);
 
     // Load chat history from localStorage on component mount
