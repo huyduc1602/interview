@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, Key, Eye, EyeOff } from 'lucide-react';
+import { Info, Key, Eye, EyeOff, Upload } from 'lucide-react';
 
 interface APIKeys {
   openai?: string;
@@ -41,6 +41,37 @@ export default function Settings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        const lines = text.split('\n');
+        const newApiKeys: APIKeys = {};
+        lines.forEach(line => {
+          const [key, value] = line.split('=');
+          if (key && value) {
+            newApiKeys[key.trim() as keyof APIKeys] = value.trim();
+          }
+        });
+        setApiKeys(newApiKeys);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleDownloadSample = () => {
+    const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...`;
+    const blob = new Blob([sampleContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample-api-keys.txt';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -84,12 +115,29 @@ export default function Settings() {
                 {showKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />} &nbsp;
                 {showKeys ? t('settings.hideKeys') : t('settings.showKeys')}
               </Button>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Upload className="w-4 h-4" />
+                <span className="text-gray-700 font-semibold">{t('settings.upload')}</span>
+                <input
+                  type="file"
+                  accept=".txt"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+              <Button
+                variant="outline"
+                onClick={handleDownloadSample}
+                className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-2 px-4 rounded transition duration-300"
+              >
+                {t('settings.downloadSample')}
+              </Button>
             </div>
 
             <div className="grid gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  OpenAI API Key
+                  {t('settings.apiKeys.openai.label')}
                 </label>
                 <Input
                   type={showKeys ? "text" : "password"}
@@ -104,7 +152,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Google Gemini API Key
+                  {t('settings.apiKeys.gemini.label')}
                 </label>
                 <Input
                   type={showKeys ? "text" : "password"}
@@ -119,7 +167,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Mistral API Key
+                  {t('settings.apiKeys.mistral.label')}
                 </label>
                 <Input
                   type={showKeys ? "text" : "password"}
@@ -133,7 +181,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  OpenChat API Key
+                  {t('settings.apiKeys.openchat.label')}
                 </label>
                 <Input
                   type={showKeys ? "text" : "password"}
