@@ -213,7 +213,8 @@ export default {
     login: "Sign In",
     loginTitle: "Welcome Back!",
     logout: "Sign Out",
-    enterEmail: "Enter your email"
+    enterEmail: "Enter your email",
+    requestLogin: "Login to Save Your Chat History",
   },
   settings: {
     title: "Settings",
