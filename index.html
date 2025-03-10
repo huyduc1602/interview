@@ -12,6 +12,17 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('redirected') === 'true') {
+        var path = params.get('path');
+        if (path) {
+          window.history.replaceState({}, '', path);
+        }
+      }
+    })();
+  </script>
 </body>
 
 </html>
