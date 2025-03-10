@@ -15,8 +15,9 @@ import { ModelSelector } from '@/components/ui/model-selector';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
-import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
+import type { InterviewQuestion, ExpandedCategories, InterviewCategory } from '@/types/interview';
 import { RootState } from "@/store/types";
+import { KnowledgeCategory } from "@/types/knowledge";
 
 /**
  * Component for displaying and managing a list of interview questions.
@@ -49,7 +50,7 @@ export default function InterviewQuestions() {
         setSelectedModel,
         generateAnswer,
         setAnswer
-    } = useChat({ type: 'interview' });
+    } = useChat({ type: 'interview' }, user);
 
     const {
         handleGenerateAnswer,
@@ -110,8 +111,8 @@ export default function InterviewQuestions() {
         const allQuestions = questions
             .filter(category => selectedCategories.includes(category.category))
             .flatMap(category =>
-                category.items.map((item: any) => ({
-                    ...item,
+                category.items.map((item: unknown) => ({
+                    ...(item as InterviewQuestion),
                     category: category.category
                 }))
             );
@@ -120,7 +121,7 @@ export default function InterviewQuestions() {
             .sort(() => Math.random() - 0.5)
             .map((question, index) => ({
                 ...question,
-                question: question.content,
+                question: question.question,
                 orderNumber: index + 1
             }));
 
@@ -292,10 +293,10 @@ export default function InterviewQuestions() {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {questions.map((category: any, categoryIndex: number) => {
-                            const items = category.items?.map((item: any) => ({
-                                ...item,
-                                question: item.content || item.question
+                        {questions.map((category: (KnowledgeCategory | InterviewCategory), categoryIndex: number) => {
+                            const items = (category.items as InterviewQuestion[])?.map((item: unknown) => ({
+                                ...(item as InterviewQuestion),
+                                question: (item as InterviewQuestion).question || (item as InterviewQuestion).question
                             })) || [];
                             const filteredItems = filterQuestions(items, searchQuery);
                             if (filteredItems.length === 0 && searchQuery) return null;
