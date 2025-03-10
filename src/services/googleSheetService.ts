@@ -1,12 +1,17 @@
 import axios from 'axios';
 import type { ApiResponse, SheetData, Category, KnowledgeItem, QuestionItem } from './googleSheetService.d';
+import { getApiKey } from '@/utils/apiKeys';
+import { User } from '@/types/common';
 
-const API_KEY = import.meta.env.VITE_GOOGLE_SHEET_API_KEY;
-const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID;
-const SHEET_KNOWLEDGE = "Danh mục kiến thức";
-const SHEET_QUESTIONS = "Câu hỏi phỏng vấn";
-
-export const fetchGoogleSheetData = async (): Promise<ApiResponse<SheetData>> => {
+export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: string,user: User | null): Promise<ApiResponse<SheetData>> => {
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
+    const API_KEY = getApiKey('google_sheet', user.id);
+    const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
+    const SHEET_KNOWLEDGE = "Danh mục kiến thức";
+    const SHEET_QUESTIONS = "Câu hỏi phỏng vấn";
+    
     try {
         // Fetch knowledge data
         const knowledgeResponse = await axios.get(
@@ -137,7 +142,14 @@ export const fetchGoogleSheetData = async (): Promise<ApiResponse<SheetData>> =>
     }
 };
 
-export const updateKnowledgeStatus = async (rowIndex: number, status: string): Promise<boolean> => {
+export const updateKnowledgeStatus = async (rowIndex: number, status: string, user: User | null): Promise<boolean> => {
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
+    
+    const API_KEY = getApiKey('google_sheet', user.id);
+    const SPREADSHEET_ID = getApiKey('spreadsheet_id', user.id);
+    const SHEET_KNOWLEDGE = "Danh mục kiến thức";
     try {
         const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_KNOWLEDGE)}!C${rowIndex}`;
 

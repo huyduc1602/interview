@@ -1,3 +1,4 @@
+import { User } from '@/types/common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface InterviewState {
@@ -40,7 +41,7 @@ const interviewSlice = createSlice({
   initialState,
   reducers: {
     // Data fetching actions
-    fetchDataRequest: (state) => {
+    fetchDataRequest: (state, _action: PayloadAction<{ apiKey: string; spreadsheetId: string, user: User| null }>) => {
       state.loading = true;
     },
     fetchDataSuccess: (state, action) => {

@@ -17,6 +17,8 @@ import { BookmarkPlus } from 'lucide-react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useTranslation } from 'react-i18next';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
+import ApiKeyForm from '@/components/ApiKeyForm';
+import { useApiKeys } from '@/hooks/useApiKeys';
 
 type KnowledgeBaseProps = object
 
@@ -32,6 +34,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     const [chatInput, setChatInput] = useState('');
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
+    const { getApiKey } = useApiKeys();
 
     const {
         loading,
@@ -56,8 +59,10 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
     });
 
     useEffect(() => {
-        dispatch(fetchDataRequest());
-    }, [dispatch]);
+        const apiKey = getApiKey('google_sheet');
+        const spreadsheetId = getApiKey('spreadsheet_id');
+        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    }, [dispatch, getApiKey, user]);
 
     // Load chat history from localStorage on component mount
     useEffect(() => {
@@ -75,6 +80,10 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
             localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(chatHistory));
         }
     }, [chatHistory, user]);
+
+    const handleApiKeySubmit = (apiKey: string, spreadsheetId: string) => {
+        dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+    };
 
     const toggleCategory = (categoryIndex: number): void => {
         setExpandedCategories(prev => ({
@@ -378,6 +387,7 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
                 sidebar={renderSidebar()}
                 content={renderContent()}
             />
+            <ApiKeyForm onSubmit={handleApiKeySubmit} />
         </Layout>
     );
 }

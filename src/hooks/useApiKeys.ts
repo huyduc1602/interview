@@ -24,8 +24,17 @@ export function useApiKeys() {
     return apiKeys[service] || window.__ENV?.[`VITE_${service.toUpperCase()}_API_KEY`] || import.meta.env[`VITE_${service.toUpperCase()}_API_KEY`];
   };
 
+  const saveApiKey = (service: string, key: string) => {
+    if (user) {
+      const updatedKeys = { ...apiKeys, [service]: key };
+      setApiKeys(updatedKeys);
+      localStorage.setItem(`api_keys_${user.id}`, JSON.stringify(updatedKeys));
+    }
+  };
+
   return {
     apiKeys,
-    getApiKey
+    getApiKey,
+    saveApiKey
   };
 }
