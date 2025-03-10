@@ -25,7 +25,12 @@ export default function Settings() {
     if (user) {
       const savedKeys = localStorage.getItem(`api_keys_${user.id}`);
       if (savedKeys) {
-        setApiKeys(JSON.parse(savedKeys));
+        try {
+          setApiKeys(JSON.parse(savedKeys));
+        } catch (error) {
+          console.error('Failed to parse API keys from localStorage:', error);
+          localStorage.removeItem(`api_keys_${user.id}`);
+        }
       }
     }
   }, [user]);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useApiKeys } from '@/hooks/useApiKeys';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 interface ApiKeyFormProps {
     onSubmit: (apiKey: string, spreadsheetId: string) => void;
@@ -14,6 +15,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const initialApiKey = getApiKey('google_sheet');
@@ -33,6 +35,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
         saveApiKey('spreadsheet_id', spreadsheetId);
         await onSubmit(apiKey, spreadsheetId);
         setIsLoading(false);
+        navigate('/settings');
     };
 
     const classInput = 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';

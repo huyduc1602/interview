@@ -32,6 +32,8 @@ export default {
     hero: {
       title: 'Interview Preparation Hub',
       subtitle: 'Your comprehensive platform for mastering technical interviews. Track your progress, practice with AI-powered responses, and prepare effectively.',
+      apiKeyGuideLink: "Get API Keys",
+      apiKeyGuideDescription: "To get started, you need to obtain the necessary API keys. Please visit the "
     },
     features: {
       knowledgeBase: {
@@ -72,7 +74,7 @@ export default {
       welcome: "Welcome, {{name}}! How can I help you today?",
       startPrompt: "Ask me anything about programming, interviews, or technical topics!",
       inputPlaceholder: "Type your message here..."
-    }
+    },
   },
   knowledgeBase: {
     title: 'Knowledge Base',
@@ -256,6 +258,41 @@ export default {
     },
     buttons: {
       fetchData: "Fetch Data"
+    }
+  },
+  apiKeyGuide: {
+    title: "API Key Guide",
+    googleSheet: {
+      title: "Google Sheet API Key",
+      description: "Follow these steps to obtain your Google Sheet API key:",
+      steps: {
+        "1": "Go to the Google Cloud Console.",
+        "2": "Create a new project or select an existing project.",
+        "3": "Navigate to the 'APIs & Services' section and enable the Google Sheets API.",
+        "4": "Create credentials for the API and copy the API key."
+      },
+      link: "Google Cloud Console"
+    },
+    openai: {
+      title: "OpenAI API Key",
+      description: "Follow these steps to obtain your OpenAI API key:",
+      steps: {
+        "1": "Go to the OpenAI website and sign in to your account.",
+        "2": "Navigate to the API section.",
+        "3": "Generate a new API key and copy it."
+      },
+      link: "OpenAI Signup"
+    },
+    googleClient: {
+      title: "Google Client ID and Secret",
+      description: "Follow these steps to obtain your Google Client ID and Secret:",
+      steps: {
+        "1": "Go to the Google Cloud Console.",
+        "2": "Create a new project or select an existing project.",
+        "3": "Navigate to the 'APIs & Services' section and enable the Google OAuth 2.0 API.",
+        "4": "Create OAuth 2.0 credentials and copy the Client ID and Secret."
+      },
+      link: "Google Cloud Console Credentials"
     }
   }
 }
