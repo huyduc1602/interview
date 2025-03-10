@@ -15,21 +15,40 @@ export function useApiKeys() {
     if (user) {
       const savedKeys = localStorage.getItem(`api_keys_${user.id}`);
       if (savedKeys) {
-        setApiKeys(JSON.parse(savedKeys));
+        try {
+          const decodedKeys = JSON.parse(atob(savedKeys));
+          setApiKeys(decodedKeys);
+        } catch (error) {
+          console.error('Failed to decode API keys from localStorage:', error);
+        }
       }
     }
   }, [user]);
 
   const getApiKey = (service: string) => {
-    return apiKeys[service] || window.__ENV?.[`VITE_${service.toUpperCase()}_API_KEY`] || import.meta.env[`VITE_${service.toUpperCase()}_API_KEY`];
+    const key = apiKeys[service];
+    if (key) {
+      try {
+        return atob(key);
+      } catch (error) {
+        console.error('Failed to decode API key:', error);
+        return null;
+      }
+    }
+    return window.__ENV?.[`VITE_${service.toUpperCase()}_API_KEY`] || import.meta.env[`VITE_${service.toUpperCase()}_API_KEY`];
   };
 
   const saveApiKey = (service: string, key: string) => {
     if (user) {
-      const updatedKeys = { ...apiKeys, [service]: key };
+      const updatedKeys = { ...apiKeys, [service]: btoa(key) };
       setApiKeys(updatedKeys);
-      localStorage.setItem(`api_keys_${user.id}`, JSON.stringify(updatedKeys));
-      console.log(`Saved ${service} key:`, key); // Add this line for debugging
+      try {
+        const encodedKeys = btoa(JSON.stringify(updatedKeys));
+        localStorage.setItem(`api_keys_${user.id}`, encodedKeys);
+        console.log(`Saved ${service} key:`, key); // Add this line for debugging
+      } catch (error) {
+        console.error('Failed to encode API keys to localStorage:', error);
+      }
     }
   };
 
