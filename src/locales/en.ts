@@ -318,5 +318,10 @@ export default {
       },
       link: "Google Cloud Console Credentials"
     }
+  },
+  notFound: {
+    title: "Page Not Found",
+    message: "Sorry, the page you are looking for does not exist.",
+    homeLink: "Go to Home"
   }
 }

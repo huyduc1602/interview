@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navigation } from '@/components/layout/Navigation';
-import HomePage from "./pages/HomePage";
-import KnowledgeBase from './pages/KnowledgeBase';
-import InterviewQuestions from './pages/InterviewQuestions';
-import ChatPage from './pages/ChatPage';
-import Settings from './pages/Settings';
+import HomePage from "@/pages/HomePage";
+import KnowledgeBase from '@/pages/KnowledgeBase';
+import InterviewQuestions from '@/pages/InterviewQuestions';
+import ChatPage from '@/pages/ChatPage';
+import Settings from '@/pages/Settings';
 import ApiKeyGuide from '@/pages/ApiKeyGuide';
+import NotFound from '@/pages/NotFound';
 import './i18n';
 
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/api-key-guide" element={<ApiKeyGuide />} />
             <Route path="/" element={<HomePage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </div>

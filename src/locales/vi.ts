@@ -300,5 +300,10 @@ export default {
       },
       link: "Thông tin xác thực Google Cloud Console"
     }
+  },
+  notFound: {
+    title: "Không tìm thấy trang",
+    message: "Xin lỗi, trang bạn đang tìm không tồn tại.",
+    homeLink: "Về trang chủ"
   }
 };
