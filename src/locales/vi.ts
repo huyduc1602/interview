@@ -230,6 +230,14 @@ export default {
       spreadsheetId: {
         label: "ID Bảng tính",
         help: "Nhập ID Bảng tính của bạn."
+      },
+      sheetNameKnowledgeBase: {
+        label: "Tên trang tính cơ sở tri thức",
+        help: "Nhập tên trang tính cho Cơ sở tri thức."
+      },
+      sheetNameInterviewQuestions: {
+        label: "Tên trang tính câu hỏi phỏng vấn",
+        help: "Nhập tên trang tính cho Câu hỏi phỏng vấn."
       }
     },
     save: "Lưu Cài đặt",

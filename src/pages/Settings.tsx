@@ -14,6 +14,8 @@ interface APIKeys {
   openchat?: string;
   googleSheetApiKey?: string;
   spreadsheetId?: string;
+  sheetNameKnowledgeBase?: string;
+  sheetNameInterviewQuestions?: string;
 }
 
 export default function Settings() {
@@ -66,7 +68,7 @@ export default function Settings() {
   };
 
   const handleDownloadSample = () => {
-    const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...\ngoogleSheetApiKey=...\nspreadsheetId=...`;
+    const sampleContent = `openai=sk-...\ngemini=AIzaSy...\nmistral=...\nopenchat=...\ngoogleSheetApiKey=...\nspreadsheetId=...\nsheetNameKnowledgeBase=...\nsheetNameInterviewQuestions=...`;
     const blob = new Blob([sampleContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -222,6 +224,36 @@ export default function Settings() {
                 />
                 <p className="text-sm text-gray-500">
                   {t('settings.apiKeys.spreadsheetId.help')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('settings.apiKeys.sheetNameKnowledgeBase.label')}
+                </label>
+                <Input
+                  type={showKeys ? "text" : "password"}
+                  value={apiKeys.sheetNameKnowledgeBase || ''}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameKnowledgeBase: e.target.value }))}
+                  placeholder="KnowledgeBase"
+                />
+                <p className="text-sm text-gray-500">
+                  {t('settings.apiKeys.sheetNameKnowledgeBase.help')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('settings.apiKeys.sheetNameInterviewQuestions.label')}
+                </label>
+                <Input
+                  type={showKeys ? "text" : "password"}
+                  value={apiKeys.sheetNameInterviewQuestions || ''}
+                  onChange={(e) => setApiKeys(prev => ({ ...prev, sheetNameInterviewQuestions: e.target.value }))}
+                  placeholder="InterviewQuestions"
+                />
+                <p className="text-sm text-gray-500">
+                  {t('settings.apiKeys.sheetNameInterviewQuestions.help')}
                 </p>
               </div>
             </div>

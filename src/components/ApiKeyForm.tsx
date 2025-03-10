@@ -5,13 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 interface ApiKeyFormProps {
-    onSubmit: (apiKey: string, spreadsheetId: string) => void;
+    onSubmit: (apiKey: string, spreadsheetId: string, sheetName: string) => void;
 }
 
 export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
     const { getApiKey, saveApiKey } = useApiKeys();
     const [apiKey, setApiKey] = useState('');
     const [spreadsheetId, setSpreadsheetId] = useState('');
+    const [sheetName, setSheetName] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
@@ -20,20 +21,23 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
     useEffect(() => {
         const initialApiKey = getApiKey('google_sheet');
         const initialSpreadsheetId = getApiKey('spreadsheet_id');
+        const initialSheetName = getApiKey('sheet_name');
         if (initialApiKey) setApiKey(initialApiKey);
         if (initialSpreadsheetId) setSpreadsheetId(initialSpreadsheetId);
+        if (initialSheetName) setSheetName(initialSheetName);
     }, [getApiKey]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!apiKey || !spreadsheetId) {
+        if (!apiKey || !spreadsheetId || !sheetName) {
             setError(t('apiKeyForm.errors.required'));
             return;
         }
         setIsLoading(true);
         saveApiKey('google_sheet', apiKey);
         saveApiKey('spreadsheet_id', spreadsheetId);
-        await onSubmit(apiKey, spreadsheetId);
+        saveApiKey('sheet_name', sheetName);
+        await onSubmit(apiKey, spreadsheetId, sheetName);
         setIsLoading(false);
         navigate('/settings');
     };
@@ -55,7 +59,7 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         disabled={isLoading}
                     />
                 </div>
-                <div className="mb-6">
+                <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('apiKeyForm.labels.spreadsheetId')}</label>
                     <input
                         type="text"
@@ -63,6 +67,17 @@ export default function ApiKeyForm({ onSubmit }: ApiKeyFormProps) {
                         onChange={(e) => setSpreadsheetId(e.target.value)}
                         className={classInput}
                         placeholder={t('apiKeyForm.placeholders.spreadsheetId')}
+                        disabled={isLoading}
+                    />
+                </div>
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('apiKeyForm.labels.sheetName')}</label>
+                    <input
+                        type="text"
+                        value={sheetName}
+                        onChange={(e) => setSheetName(e.target.value)}
+                        className={classInput}
+                        placeholder={t('apiKeyForm.placeholders.sheetName')}
                         disabled={isLoading}
                     />
                 </div>
