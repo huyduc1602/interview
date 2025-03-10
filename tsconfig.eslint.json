@@ -6,7 +6,10 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "vite.config.ts",
-    "src/services/aiServices/chatgptService.d.ts"
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.d.ts",
+    "postcss.config.js"
   ],
   "exclude": ["node_modules", "dist"]
 }
