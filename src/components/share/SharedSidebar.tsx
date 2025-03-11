@@ -122,7 +122,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
         <>
             <div className="sticky top-0 bg-white z-10 pb-4 pr-6 pl-6">
                 <div className="space-y-4 mb-4">
-                    <h2 className="text-xl font-semibold">{t('interviewQuestions.title')}</h2>
+                    <h2 className="text-xl font-semibold pt-2">{t('interviewQuestions.title')}</h2>
                     <div className="flex items-center justify-between">
                         <Tooltip content={t('interviewQuestions.tooltips.search')}>
                             <div>
