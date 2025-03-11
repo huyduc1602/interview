@@ -9,6 +9,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { Badge } from '@/components/ui/badge';
+import Spinner from '@/components/ui/spinner';
 
 interface SharedSidebarProps {
     questions: SharedCategory[];
@@ -24,6 +25,7 @@ interface SharedSidebarProps {
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
     renderCategoryTags: () => JSX.Element;
+    loading: boolean;
 }
 
 const SharedSidebar: React.FC<SharedSidebarProps> = ({
@@ -38,7 +40,8 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     shuffleQuestions,
     shuffledQuestions,
     selectedCategories,
-    renderCategoryTags
+    renderCategoryTags,
+    loading
 }) => {
     const { t } = useTranslation();
 
@@ -50,9 +53,8 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     };
 
     const renderShuffledQuestions = () => {
-        console.log(shuffledQuestions);
-        return shuffledQuestions.map((sQuestion) => {
-            return (<button
+        return shuffledQuestions.map((sQuestion) => (
+            <button
                 key={sQuestion.rowIndex}
                 onClick={() => handleQuestionClick(sQuestion, sQuestion.category)}
                 className={cn(
@@ -69,9 +71,8 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                 )}
                 <Badge className="mt-2 block bg-gray-200 max-w-fit">{sQuestion.category}</Badge>
             </button>
-            )
-        });
-    }
+        ));
+    };
 
     const renderQuestions = () => {
         return questions.map((category, categoryIndex) => {
@@ -79,42 +80,43 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
             const filteredItems = filterQuestions(items, searchQuery);
             if (filteredItems.length === 0 && searchQuery) return null;
 
-            return (<div key={categoryIndex} className="space-y-2">
-                <CategoryHeader
-                    isExpanded={expandedCategories[categoryIndex]}
-                    title={category.category}
-                    itemCount={filteredItems.length}
-                    onClick={() => toggleCategory(categoryIndex)}
-                />
-                {expandedCategories[categoryIndex] && (
-                    <div className="ml-6 space-y-1">
-                        {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
-                            <button
-                                key={itemIndex}
-                                onClick={() => handleQuestionClick(item, category.category)}
-                                className={cn(
-                                    "w-full text-left px-2 py-1 rounded text-sm",
-                                    selectedQuestion?.question === item.question
-                                        ? "bg-purple-100 text-purple-900"
-                                        : "hover:bg-gray-100"
-                                )}
-                            >
-                                {searchQuery ? (
-                                    <HighlightText
-                                        text={item.question}
-                                        search={searchQuery}
-                                    />
-                                ) : (
-                                    item.question
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
+            return (
+                <div key={categoryIndex} className="space-y-2">
+                    <CategoryHeader
+                        isExpanded={expandedCategories[categoryIndex]}
+                        title={category.category}
+                        itemCount={filteredItems.length}
+                        onClick={() => toggleCategory(categoryIndex)}
+                    />
+                    {expandedCategories[categoryIndex] && (
+                        <div className="ml-6 space-y-1">
+                            {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
+                                <button
+                                    key={itemIndex}
+                                    onClick={() => handleQuestionClick(item, category.category)}
+                                    className={cn(
+                                        "w-full text-left px-2 py-1 rounded text-sm",
+                                        selectedQuestion?.question === item.question
+                                            ? "bg-purple-100 text-purple-900"
+                                            : "hover:bg-gray-100"
+                                    )}
+                                >
+                                    {searchQuery ? (
+                                        <HighlightText
+                                            text={item.question}
+                                            search={searchQuery}
+                                        />
+                                    ) : (
+                                        item.question
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             );
-        })
-    }
+        });
+    };
 
     return (
         <>
@@ -122,36 +124,44 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                 <div className="space-y-4 mb-4">
                     <h2 className="text-xl font-semibold">{t('interviewQuestions.title')}</h2>
                     <div className="flex items-center justify-between">
-                            <Tooltip content={t('interviewQuestions.tooltips.search')}>
-                                <div>
-                                    <SearchInput
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder={t('interviewQuestions.searchPlaceholder')}
-                                    />
-                                </div>
-                            </Tooltip>
-                            <Tooltip content={t('interviewQuestions.tooltips.shuffle')} className="bg-gray-800 text-white">
-                                <span>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={shuffleQuestions}
-                                        disabled={selectedCategories.length === 0}
-                                        className="ml-2"
-                                    >
-                                        <Shuffle className="h-4 w-4" />
-                                    </Button>
-                                </span>
-                            </Tooltip>
+                        <Tooltip content={t('interviewQuestions.tooltips.search')}>
+                            <div>
+                                <SearchInput
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder={t('interviewQuestions.searchPlaceholder')}
+                                />
+                            </div>
+                        </Tooltip>
+                        <Tooltip content={t('interviewQuestions.tooltips.shuffle')} className="bg-gray-800 text-white">
+                            <span>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={shuffleQuestions}
+                                    disabled={selectedCategories.length === 0}
+                                    className="ml-2"
+                                >
+                                    <Shuffle className="h-4 w-4" />
+                                </Button>
+                            </span>
+                        </Tooltip>
                     </div>
                     {renderCategoryTags()}
                 </div>
             </div>
 
             <div className="space-y-4">
-                {shuffledQuestions.length > 0 && renderShuffledQuestions()}
-                {shuffledQuestions.length === 0 && renderQuestions()}
+                {loading ? (
+                    <div className="flex justify-center items-center h-full">
+                        <Spinner />
+                    </div>
+                ) : (
+                    <>
+                        {shuffledQuestions.length > 0 && renderShuffledQuestions()}
+                        {shuffledQuestions.length === 0 && renderQuestions()}
+                    </>
+                )}
             </div>
         </>
     );
