@@ -81,7 +81,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
             if (filteredItems.length === 0 && searchQuery) return null;
 
             return (
-                <div key={categoryIndex} className="space-y-2">
+                <div key={categoryIndex} className="space-y-2 min-w-min">
                     <CategoryHeader
                         isExpanded={expandedCategories[categoryIndex]}
                         title={category.category}
@@ -95,7 +95,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                                     key={itemIndex}
                                     onClick={() => handleQuestionClick(item, category.category)}
                                     className={cn(
-                                        "w-full text-left px-2 py-1 rounded text-sm",
+                                        "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
                                         selectedQuestion?.question === item.question
                                             ? "bg-purple-100 text-purple-900"
                                             : "hover:bg-gray-100"

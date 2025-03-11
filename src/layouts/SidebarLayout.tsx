@@ -9,7 +9,7 @@ interface SidebarLayoutProps {
   className?: string;
 }
 
-export function SidebarLayout({ sidebar, content, className}: SidebarLayoutProps) {
+export function SidebarLayout({ sidebar, content, className }: SidebarLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
     <div className={cn("container-fluid h-[calc(100vh-4rem)]", className)}>
@@ -19,10 +19,18 @@ export function SidebarLayout({ sidebar, content, className}: SidebarLayoutProps
           border-r border-gray-200 dark:border-gray-800
           bg-gray-50 dark:bg-gray-900
           overflow-y-auto
+          overflow-x-hidden
           transition-all duration-300 ease-in-out
           scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700
           scrollbar-track-transparent hover:scrollbar-thumb-gray-400
           shadow-sm dark:shadow-gray-800/30
+          [&::-webkit-scrollbar]:w-2
+          [&::-webkit-scrollbar-track]:rounded-full
+          [&::-webkit-scrollbar-track]:bg-gray-100
+          [&::-webkit-scrollbar-thumb]:rounded-full
+          [&::-webkit-scrollbar-thumb]:bg-gray-300
+          dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+          dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500",
           ${sidebarOpen ? "d-block" : "hidden"}
         `)}>
           <div className="h-full y-4 space-y-4 position-relative">
