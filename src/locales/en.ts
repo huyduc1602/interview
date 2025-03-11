@@ -25,7 +25,7 @@ export default {
     home: 'Interview Hub',
     knowledgeBase: '📚 Knowledge Base',
     interviewQuestions: '❓ Interview Questions',
-    chat: 'Chat with AI',
+    chat: '🤖 Chat with AI',
     settings: 'Setting',
   },
   home: {

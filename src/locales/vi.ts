@@ -25,7 +25,7 @@ export default {
     home: 'Trung tâm Phỏng vấn',
     knowledgeBase: '📚 Cơ sở Kiến Thức',
     interviewQuestions: '❓ Câu hỏi Phỏng vấn',
-    chat: 'Trò chuyện với AI',
+    chat: '🤖 Trò chuyện với AI',
     settings: 'Cài đặt',
   },
   home: {
