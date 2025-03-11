@@ -289,36 +289,78 @@ export default {
   apiKeyGuide: {
     title: "Hướng dẫn API Key",
     googleSheet: {
-      title: "Khóa API Google Sheet",
-      description: "Thực hiện các bước sau để lấy khóa API Google Sheet:",
+      title: "Google Sheet API Key",
+      description: "Thực hiện theo các bước sau để lấy Google Sheet API key của bạn:",
       steps: {
-        "1": "Truy cập Google Cloud Console.",
-        "2": "Tạo một dự án mới hoặc chọn một dự án hiện có.",
-        "3": "Đi đến mục 'APIs & Services' và bật Google Sheets API.",
-        "4": "Tạo thông tin xác thực cho API và sao chép khóa API."
+        1: "Truy cập Google Cloud Console.",
+        2: "Tạo dự án mới hoặc chọn dự án hiện có.",
+        3: "Điều hướng đến phần 'API & Dịch vụ' và bật Google Sheets API.",
+        4: "Tạo thông tin xác thực cho API và sao chép khóa API."
       },
       link: "Google Cloud Console"
     },
     openai: {
-      title: "Khóa API OpenAI",
-      description: "Thực hiện các bước sau để lấy khóa API OpenAI:",
+      title: "OpenAI API Key",
+      description: "Thực hiện theo các bước sau để lấy OpenAI API key của bạn:",
       steps: {
-        "1": "Truy cập trang web OpenAI và đăng nhập vào tài khoản của bạn.",
-        "2": "Đi đến mục API.",
-        "3": "Tạo một khóa API mới và sao chép nó."
+        1: "Truy cập trang web OpenAI và đăng nhập vào tài khoản của bạn.",
+        2: "Điều hướng đến phần API.",
+        3: "Tạo khóa API mới và sao chép khóa đó."
       },
       link: "Đăng ký OpenAI"
     },
     googleClient: {
-      title: "ID và Bí mật khách hàng của Google",
-      description: "Thực hiện các bước sau để lấy ID và Bí mật khách hàng của Google:",
+      title: "Google Client ID và Bí mật",
+      description: "Thực hiện theo các bước sau để lấy Google Client ID và Bí mật của bạn:",
       steps: {
-        "1": "Truy cập Google Cloud Console.",
-        "2": "Tạo một dự án mới hoặc chọn một dự án hiện có.",
-        "3": "Đi đến mục 'APIs & Services' và bật Google OAuth 2.0 API.",
-        "4": "Tạo thông tin xác thực OAuth 2.0 và sao chép ID khách hàng và bí mật."
+        1: "Truy cập Google Cloud Console.",
+        2: "Tạo dự án mới hoặc chọn dự án hiện có.",
+        3: "Điều hướng đến phần 'API & Dịch vụ' và bật Google OAuth 2.0 API.",
+        4: "Tạo thông tin xác thực OAuth 2.0 và sao chép Client ID và Bí mật."
       },
       link: "Thông tin xác thực Google Cloud Console"
+    },
+    googleGemini: {
+      title: "Google Gemini API Key",
+      description: "Thực hiện theo các bước sau để lấy Google Gemini API key.",
+      steps: {
+        1: "Truy cập Google Cloud Console.",
+        2: "Tạo dự án mới hoặc chọn dự án hiện có.",
+        3: "Bật Google Gemini API.",
+        4: "Tạo thông tin xác thực cho khóa API."
+
+      },
+      link: "Đi tới Google Cloud Console"
+    },
+    mistral: {
+      title: "Mistral API Key",
+      description: "Thực hiện theo các bước sau để lấy khóa API Mistral của bạn.",
+      steps: {
+        1: "Truy cập trang web Mistral API.",
+        2: "Đăng ký tài khoản.",
+        3: "Tạo khóa API mới."
+      },
+      link: "Truy cập Mistral API"
+    },
+    openChat: {
+      title: "OpenChat API Key",
+      description: "Thực hiện theo các bước sau để lấy khóa API OpenChat của bạn.",
+      steps: {
+        1: "Truy cập trang web OpenChat.",
+        2: "Đăng ký tài khoản.",
+        3: "Tạo khóa API mới."
+      },
+      link: "Truy cập OpenChat"
+    },
+    spreadsheetId: {
+      title: "ID bảng tính",
+      description: "Thực hiện theo các bước sau để lấy ID bảng tính Google của bạn.",
+      steps: {
+        1: "Mở bảng tính Google của bạn",
+        2: "Xem URL trong trình duyệt của bạn",
+        3: "ID bảng tính là chuỗi dài trong URL giữa '/d/' và '/edit'"
+      },
+      link: "Đi tới Google Trang tính"
     }
   },
   notFound: {
