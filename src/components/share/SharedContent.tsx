@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus } from 'lucide-react';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
-import type { InterviewQuestion } from '@/types/interview';
+import { SharedCategoryShuffled, SharedItem } from '@/types/common';
 
 interface InterviewQuestionsContentProps {
-  selectedQuestion: InterviewQuestion | null;
+  selectedQuestion: SharedItem | SharedCategoryShuffled | null;
   user: any;
   saveItem: (item: any) => void;
   selectedModel: string;
