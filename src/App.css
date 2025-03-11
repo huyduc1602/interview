@@ -40,3 +40,9 @@
 .read-the-docs {
   color: #888;
 }
+
+@layer utilities {
+  .fill-available {
+    width: -webkit-fill-available;
+  }
+}
