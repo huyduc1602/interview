@@ -1,10 +1,10 @@
-import React, { JSX } from 'react';
+import React, { JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Shuffle } from 'lucide-react';
+import { Shuffle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
 import type { ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
@@ -41,7 +41,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     shuffledQuestions,
     selectedCategories,
     renderCategoryTags,
-    loading
+    loading,
 }) => {
     const { t } = useTranslation();
 
@@ -120,9 +120,11 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
 
     return (
         <>
-            <div className="sticky top-0 bg-white z-10 pb-4 pr-6 pl-6">
+            <div className={cn("sticky top-0 z-10 pb-4 px-4 bg-white dark:bg-gray-900 w-100")}>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className={cn("text-xl font-semibold pt-2")}>{t('interviewQuestions.title')}</h2>
+                </div>
                 <div className="space-y-4 mb-4">
-                    <h2 className="text-xl font-semibold pt-2">{t('interviewQuestions.title')}</h2>
                     <div className="flex items-center justify-between">
                         <Tooltip content={t('interviewQuestions.tooltips.search')}>
                             <div>
@@ -151,7 +153,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className={cn("space-y-4")}>
                 {loading ? (
                     <div className="flex justify-center items-center h-full">
                         <Spinner />

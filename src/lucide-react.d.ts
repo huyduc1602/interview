@@ -30,6 +30,7 @@ declare module 'lucide-react' {
   export const Search: React.FC<LucideProps>;
   export const BookmarkPlus: React.FC<LucideProps>;
   export const ChevronRight: React.FC<LucideProps>;
+  export const ChevronLeft: React.FC<LucideProps>;
   export const Shuffle: React.FC<LucideProps>;
   export const Tag: React.FC<LucideProps>;
   export const Eye: React.FC<LucideProps>;
