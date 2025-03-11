@@ -193,6 +193,24 @@ export default {
       inputPlaceholder: "Đặt câu hỏi về chủ đề này..."
     }
   },
+  interview: {
+    title: "Câu hỏi phỏng vấn",
+    searchPlaceholder: "Tìm kiếm câu hỏi...",
+    selectQuestion: "Chọn một câu hỏi từ danh sách để xem câu trả lời được gợi ý.",
+    messages: {
+      selectFromSidebar: "Vui lòng chọn một câu hỏi từ thanh bên"
+    },
+    categories: {
+      select: "Chọn danh mục",
+      selectCount: "{{selected}}/{{total}} danh mục",
+      more: "more"
+    },
+    tooltips: {
+      search: "Tìm kiếm câu hỏi",
+      shuffle: "Xáo trộn các danh mục đã chọn",
+      collapse: "Thu gọn các danh mục"
+    }
+  },
   auth: {
     login: "Đăng nhập",
     loginTitle: "Chào mừng trở lại!",
