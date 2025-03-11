@@ -292,10 +292,10 @@ export default {
       title: "Google Sheet API Key",
       description: "Follow these steps to obtain your Google Sheet API key:",
       steps: {
-        "1": "Go to the Google Cloud Console.",
-        "2": "Create a new project or select an existing project.",
-        "3": "Navigate to the 'APIs & Services' section and enable the Google Sheets API.",
-        "4": "Create credentials for the API and copy the API key."
+        1: "Go to the Google Cloud Console.",
+        2: "Create a new project or select an existing project.",
+        3: "Navigate to the 'APIs & Services' section and enable the Google Sheets API.",
+        4: "Create credentials for the API and copy the API key."
       },
       link: "Google Cloud Console"
     },
@@ -303,9 +303,9 @@ export default {
       title: "OpenAI API Key",
       description: "Follow these steps to obtain your OpenAI API key:",
       steps: {
-        "1": "Go to the OpenAI website and sign in to your account.",
-        "2": "Navigate to the API section.",
-        "3": "Generate a new API key and copy it."
+        1: "Go to the OpenAI website and sign in to your account.",
+        2: "Navigate to the API section.",
+        3: "Generate a new API key and copy it."
       },
       link: "OpenAI Signup"
     },
@@ -313,12 +313,53 @@ export default {
       title: "Google Client ID and Secret",
       description: "Follow these steps to obtain your Google Client ID and Secret:",
       steps: {
-        "1": "Go to the Google Cloud Console.",
-        "2": "Create a new project or select an existing project.",
-        "3": "Navigate to the 'APIs & Services' section and enable the Google OAuth 2.0 API.",
-        "4": "Create OAuth 2.0 credentials and copy the Client ID and Secret."
+        1: "Go to the Google Cloud Console.",
+        2: "Create a new project or select an existing project.",
+        3: "Navigate to the 'APIs & Services' section and enable the Google OAuth 2.0 API.",
+        4: "Create OAuth 2.0 credentials and copy the Client ID and Secret."
       },
       link: "Google Cloud Console Credentials"
+    },
+    googleGemini: {
+      title: "Google Gemini API Key",
+      description: "Follow these steps to obtain your Google Gemini API key.",
+      steps: {
+        1: "Go to the Google Cloud Console.",
+        2: "Create a new project or select an existing project.",
+        3: "Enable the Google Gemini API.",
+        4: "Create credentials for the API key."
+      },
+      link: "Go to Google Cloud Console"
+    },
+    mistral: {
+      title: "Mistral API Key",
+      description: "Follow these steps to obtain your Mistral API key.",
+      steps: {
+        1: "Go to the Mistral API website.",
+        2: "Sign up for an account.",
+        3: "Generate a new API key."
+      },
+      link: "Go to Mistral API"
+    },
+    openChat: {
+      title: "OpenChat API Key",
+      description: "Follow these steps to obtain your OpenChat API key.",
+      steps: {
+        1: "Go to the OpenChat website.",
+        2: "Sign up for an account.",
+        3: "Generate a new API key."
+      },
+      link: "Go to OpenChat"
+    },
+    spreadsheetId: {
+      title: "Spreadsheet ID",
+      description: "Follow these steps to obtain your Google Spreadsheet ID.",
+      steps: {
+        1: "Open your Google Spreadsheet.",
+        2: "Look at the URL in your browser.",
+        3: "The Spreadsheet ID is the long string in the URL between '/d/' and '/edit'."
+      },
+      link: "Go to Google Sheets"
     }
   },
   notFound: {
