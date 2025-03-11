@@ -141,7 +141,7 @@ export default function KnowledgeBase() {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleItemClick = async (item: SharedItem | SharedCategoryShuffled, _category?: string) => {
-        setSelectedItem({ ...item, answer: null });
+        setSelectedItem({ ...item, answer: null, type: item.type as "knowledge" | "interview" });
 
         try {
             const answer = await handleGenerateAnswer(item.question);

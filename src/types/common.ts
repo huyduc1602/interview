@@ -34,11 +34,12 @@ export interface SharedCategoryShuffled {
     answer?: string | null;
     orderNumber?: number;
     rowIndex?: number;
+    type?: string;
 }
 
 export interface SharedItem extends BaseItem {
     category: string;
     question: string;
     answer: string | null;
-    order? : number
+    order? : number;
 }

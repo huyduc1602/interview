@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Shuffle } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
-import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
+import type { ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { Badge } from '@/components/ui/badge';
 import Spinner from '@/components/ui/spinner';
@@ -15,7 +15,7 @@ interface SharedSidebarProps {
     questions: SharedCategory[];
     expandedCategories: ExpandedCategories;
     searchQuery: string;
-    selectedQuestion: InterviewQuestion | null;
+    selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
     handleQuestionClick: (question: SharedItem | SharedCategoryShuffled, category?: string) => void;
     filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[];
