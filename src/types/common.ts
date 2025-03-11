@@ -1,5 +1,3 @@
-import { InterviewQuestion } from './interview';
-import { KnowledgeItem } from './knowledge';
 export interface BaseItem {
     id?: string;
     category?: string;
@@ -27,7 +25,7 @@ export interface User {
 
 export interface SharedCategory {
     category: string;
-    items: KnowledgeItem[] | InterviewQuestion[];
+    items: SharedItem[];
 }
 
 export interface SharedCategoryShuffled {
@@ -36,4 +34,11 @@ export interface SharedCategoryShuffled {
     answer?: string | null;
     orderNumber?: number;
     rowIndex?: number;
+}
+
+export interface SharedItem extends BaseItem {
+    category: string;
+    question: string;
+    answer: string | null;
+    order? : number
 }

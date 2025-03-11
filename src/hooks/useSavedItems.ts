@@ -23,7 +23,12 @@ export function useSavedItems() {
     const newItem: SavedItem = {
       ...item,
       id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      type: item.type,
+      category: item.category || '',
+      question: item.question,
+      answer: item.answer,
+      model: item.model
     };
 
     setSavedItems(prev => {

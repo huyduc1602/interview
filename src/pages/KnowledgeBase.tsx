@@ -1,47 +1,49 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDataRequest } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
-import { Layout, SidebarLayout, CategoryHeader } from '@/layouts';
-import { SearchInput, HighlightText } from '@/components/ui';
-import { cn } from "@/lib/utils";
-import { Search, Send } from "lucide-react";
-import { ModelSelector } from '@/components/ui/model-selector';
-import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
+import { Layout, SidebarLayout } from '@/layouts';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
-import { Button } from '@/components/ui/button';
-import { BookmarkPlus } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import SettingsButton from '@/components/ui/SettingsButton';
+import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
+import SharedSidebar from '@/components/share/SharedSidebar';
+import SharedContent from '@/components/share/SharedContent';
+import { ModelSelector } from "@/components/ui/model-selector";
+import { SharedCategoryShuffled, SharedItem } from "@/types/common";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, Tag, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
-type KnowledgeBaseProps = object
-
-// eslint-disable-next-line no-empty-pattern
-export default function KnowledgeBase({ }: KnowledgeBaseProps) {
-    const { t } = useTranslation();
+export default function KnowledgeBase() {
     const { user } = useAuth();
     const dispatch = useDispatch();
     const { questions } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
-    const [chatInput, setChatInput] = useState('');
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
+    const { saveItem } = useSavedItems();
     const { getApiKey } = useApiKeys();
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
+    const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const { t } = useTranslation();
 
     const {
         loading,
         selectedModel,
         setSelectedModel,
-        generateAnswer
+        generateAnswer,
+        setAnswer
     } = useChat({ type: 'knowledge' }, user);
 
     const {
@@ -129,14 +131,15 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         }));
     };
 
-    const filterItems = (items: KnowledgeItem[], query: string): KnowledgeItem[] => {
+    const filterItems = (items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
         if (!query) return items;
         return items.filter(item =>
             item.question.toLowerCase().includes(query.toLowerCase())
         );
     };
 
-    const handleItemClick = async (item: KnowledgeItem): Promise<void> => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled, _category?: string) => {
         setSelectedItem({ ...item, answer: null });
 
         try {
@@ -159,264 +162,164 @@ export default function KnowledgeBase({ }: KnowledgeBaseProps) {
         }
     };
 
-    const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-        e.preventDefault();
-        if (!chatInput.trim() || !selectedItem) return;
+    const handleShuffleQuestions = () => {
+        const allQuestions = questions
+            .filter(category => selectedCategories.includes(category.category))
+            .flatMap(category =>
+                category.items.map((item: unknown) => ({
+                    ...(item as SharedItem),
+                    category: category.category
+                }))
+            );
 
-        const question = chatInput.trim();
-        setChatInput('');
-
-        try {
-            setChatHistory(prev => ({
-                ...prev,
-                [selectedItem.question]: [
-                    ...(prev[selectedItem.question] || []),
-                    { role: 'user', content: question, timestamp: Date.now() }
-                ]
+        const shuffled = [...allQuestions]
+            .sort(() => Math.random() - 0.5)
+            .map((question, index) => ({
+                ...question,
+                question: question.question,
+                orderNumber: index + 1
             }));
+        console.log(shuffled);
+        setShuffledQuestions(shuffled);
+        setSelectedItem(null);
+        setAnswer("");
+    };
 
-            const contextualQuestion = `Based on the topic "${selectedItem.question}" and its explanation, please answer this follow-up question: ${question}`;
-            const answer = await generateAnswer(contextualQuestion);
-
-            setChatHistory(prev => ({
-                ...prev,
-                [selectedItem.question]: [
-                    ...(prev[selectedItem.question] || []),
-                    { role: 'assistant', content: answer, timestamp: Date.now() }
-                ]
-            }));
-
-            if (user && selectedItem) {
-                const savedItem = savedItems.find(
-                    item => item.question === selectedItem.question
-                );
-
-                if (savedItem) {
-                    addFollowUpQuestion(savedItem.id, question, answer);
-                }
+    const handleCategorySelect = (category: string) => {
+        setSelectedCategories(prev => {
+            const isSelected = prev.includes(category);
+            if (isSelected) {
+                return prev.filter(c => c !== category);
             }
-        } catch (error) {
-            console.error('Failed to get follow-up answer:', error);
-            setChatHistory(prev => ({
-                ...prev,
-                [selectedItem.question]: [
-                    ...(prev[selectedItem.question] || []),
-                    {
-                        role: 'assistant',
-                        content: t('common.errors.failedToGetAnswer'),
-                        isError: true,
-                        timestamp: Date.now()
-                    }
-                ]
-            }));
-        }
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setChatInput(e.target.value);
-    };
-
-    const handleSaveItem = (item: KnowledgeItem, model: string) => {
-        if (!item.answer) return;
-
-        saveItem({
-            type: 'knowledge',
-            category: item.category || '',
-            question: item.question,
-            answer: item.answer,
-            model: model
+            return [...prev, category];
         });
     };
 
-    const renderModelSelector = () => (
-        <ModelSelector
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-            onRegenerate={handleRegenerateAnswer}
-            loading={loading}
-            disabled={!selectedItem}
-            type="knowledge"
-        />
-    );
+    const renderCategoryTags = () => {
+        const selectedCount = selectedCategories.length;
+        const totalCount = questions.length;
 
-    const renderSidebar = () => (
-        <>
-            <div className="sticky top-0 bg-white z-10 pb-4 pr-6 pl-6">
-                <div className="space-y-2 mb-4">
-                    <h2 className="text-xl font-semibold">
-                        {t('knowledgeBase.title')}
-                    </h2>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                        <SearchInput
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={t('knowledgeBase.searchPlaceholder')}
-                            className="pl-10"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                {questions.map((category, categoryIndex) => {
-                    const filteredItems = filterItems((category.items as KnowledgeItem[] || []) as KnowledgeItem[], searchQuery);
-                    if (filteredItems.length === 0 && searchQuery) return null;
-                    return (
-                        <div key={categoryIndex} className="space-y-2">
-                            <CategoryHeader
-                                isExpanded={expandedCategories[categoryIndex]}
-                                title={category.category}
-                                itemCount={filteredItems.length}
-                                onClick={() => toggleCategory(categoryIndex)}
-                            />
-                            {expandedCategories[categoryIndex] && (
-                                <div className="ml-6 space-y-1">
-                                    {filteredItems.map((item, itemIndex) => (
-                                        <button
-                                            key={itemIndex}
-                                            onClick={() => handleItemClick(item)}
-                                            className={cn(
-                                                "w-full text-left px-2 py-1 rounded text-sm",
-                                                selectedItem?.question === item.question
-                                                    ? "bg-purple-100 text-purple-900"
-                                                    : "hover:bg-gray-100"
-                                            )}
-                                        >
-                                            {searchQuery ? (
-                                                <HighlightText
-                                                    text={item.question}
-                                                    search={searchQuery}
-                                                />
-                                            ) : (
-                                                item.question
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </>
-    );
-
-    const renderContent = () => (
-        <div className="py-6 overflow-y-auto">
-            {selectedItem ? (
-                <div className="space-y-6">
-                    <div className="border-b pb-4">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-semibold">
-                                {selectedItem.question}
-                            </h1>
-                            {user && selectedItem.answer && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleSaveItem(selectedItem, selectedModel)}
-                                >
-                                    <BookmarkPlus className="w-4 h-4 mr-2" />
-                                    {t('common.save')}
-                                </Button>
-                            )}
-                        </div>
-                        {renderModelSelector()}
-                    </div>
-                    <div className="space-y-6 border-b pb-6">
-                        <div className="rounded-lg bg-white shadow">
-                            <AIResponseDisplay
-                                loading={loading}
-                                content={selectedItem?.answer}
-                                error={error}
-                                emptyMessage={loading ? undefined : t('knowledge.selectTopic')}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Follow-up Questions Section */}
-                    {selectedItem.answer && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">
-                                {t('knowledge.followUp.title')}
-                            </h2>
-
-                            {/* Item-specific Chat History */}
-                            {chatHistory[selectedItem.question]?.length > 0 && (
-                                <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
-                                    {chatHistory[selectedItem.question].map((message, index) => (
-                                        <div
-                                            key={index}
-                                            className={cn(
-                                                "rounded-lg p-4",
-                                                message.role === 'user'
-                                                    ? "bg-white border ml-4"
-                                                    : message.isError
-                                                        ? "bg-red-50 mr-4"
-                                                        : "bg-purple-50 mr-4"
-                                            )}
-                                        >
-                                            <div className="text-xs text-gray-500 mb-1">
-                                                {message.role === 'user' ? t('common.you') : t('common.assistant')}
-                                            </div>
-                                            <AIResponseDisplay
-                                                content={message.content}
-                                                loading={false}
-                                                error={message.isError ? message.content : null}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Question Input */}
-                            <form onSubmit={handleFollowUpQuestion} className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={chatInput}
-                                    onChange={handleInputChange}
-                                    placeholder={t('knowledge.followUp.inputPlaceholder')}
-                                    className="flex-1 px-4 py-2 ms-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={loading || !chatInput.trim()}
-                                    className={cn(
-                                        "px-4 py-2 rounded-lg",
-                                        "bg-purple-600 text-white",
-                                        "hover:bg-purple-700",
-                                        "disabled:opacity-50 disabled:cursor-not-allowed",
-                                        "flex items-center gap-2"
-                                    )}
-                                >
-                                    <Send className="w-4 h-4" />
-                                    {t('common.send')}
-                                </button>
-                            </form>
-                        </div>
+        if (!isTagsExpanded) {
+            return (
+                <div className="flex items-center gap-2">
+                    {selectedCategories.slice(0, 2).map((category, index) => (
+                        <Badge
+                            key={index}
+                            variant="secondary"
+                            className="cursor-pointer hover:bg-gray-200"
+                            onClick={() => handleCategorySelect(category)}
+                        >
+                            {category} ×
+                        </Badge>
+                    ))}
+                    {selectedCount > 2 && (
+                        <Badge variant="outline">
+                            +{selectedCount - 2} {t('interviewQuestions.categories.more')}
+                        </Badge>
                     )}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto"
+                        onClick={() => setIsTagsExpanded(true)}
+                    >
+                        <Tag className="h-4 w-4 mr-2" />
+                        {t('interviewQuestions.categories.selectCount', { selected: selectedCount, total: totalCount })}
+                    </Button>
                 </div>
-            ) : (
-                <div className="text-center text-gray-500">
-                    <p>{t('knowledgeBase.messages.selectFromSidebar')}</p>
+            );
+        }
+
+        return (
+            <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                        {t('interviewQuestions.categories.select')} ({selectedCount}/{totalCount})
+                    </span>
+                    <Tooltip content={t('interviewQuestions.tooltips.collapse')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsTagsExpanded(false)}
+                        >
+                            <ChevronUp className="h-4 w-4" />
+                        </Button>
+                    </Tooltip>
                 </div>
-            )}
-        </div>
-    );
+                <div className="flex flex-wrap gap-2">
+                    {questions.map((category, index) => (
+                        <Badge
+                            key={index}
+                            variant={selectedCategories.includes(category.category) ? "default" : "outline"}
+                            className={cn(
+                                "cursor-pointer transition-colors",
+                                selectedCategories.includes(category.category)
+                                    ? "hover:bg-primary/80"
+                                    : "hover:bg-gray-100"
+                            )}
+                            onClick={() => handleCategorySelect(category.category)}
+                        >
+                            {category.category}
+                            {selectedCategories.includes(category.category) && (
+                                <X className="h-3 w-3 ml-1 inline-block" />
+                            )}
+                        </Badge>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     if (!user) {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
 
     return (
-        <Layout>
-            <SidebarLayout
-                sidebar={renderSidebar()}
-                content={renderContent()}
-            />
-            <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE} isLoading={isLoading} />
-        </Layout>
+        <TooltipProvider>
+            <Layout>
+                <SidebarLayout
+                    sidebar={
+                        <SharedSidebar
+                            questions={questions}
+                            expandedCategories={expandedCategories}
+                            searchQuery={searchQuery}
+                            selectedQuestion={selectedItem}
+                            toggleCategory={toggleCategory}
+                            handleQuestionClick={handleItemClick}
+                            filterQuestions={filterItems}
+                            setSearchQuery={setSearchQuery}
+                            shuffleQuestions={handleShuffleQuestions}
+                            shuffledQuestions={shuffledQuestions}
+                            selectedCategories={selectedCategories}
+                            handleCategorySelect={handleCategorySelect}
+                            renderCategoryTags={renderCategoryTags}
+                        />
+                    }
+                    content={
+                        <SharedContent
+                            selectedQuestion={selectedItem}
+                            user={user}
+                            saveItem={saveItem}
+                            selectedModel={selectedModel}
+                            setSelectedModel={setSelectedModel}
+                            handleRegenerateAnswer={handleRegenerateAnswer}
+                            loading={loading}
+                            error={error}
+                            renderModelSelector={() => (
+                                <ModelSelector
+                                    selectedModel={selectedModel}
+                                    onModelChange={setSelectedModel}
+                                    onRegenerate={handleRegenerateAnswer}
+                                    loading={loading}
+                                    disabled={!selectedItem}
+                                    type="knowledge"
+                                />
+                            )}
+                        />
+                    }
+                />
+                <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE} isLoading={isLoading} />
+            </Layout>
+        </TooltipProvider>
     );
 }
