@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/SettingsButton';
 import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
-import type { SharedCategoryShuffled } from '@/types/common';
+import type { SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { RootState } from "@/store/types";
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
@@ -108,7 +108,7 @@ export default function InterviewQuestions() {
         });
     };
 
-    const filterQuestions = (items: InterviewQuestion[], query: string): InterviewQuestion[] => {
+    const filterQuestions = (items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
         if (!query) return items;
         return items.filter(item =>
             item.question.toLowerCase().includes(query.toLowerCase())

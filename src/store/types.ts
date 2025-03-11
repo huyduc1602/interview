@@ -1,5 +1,4 @@
-import { KnowledgeCategory } from '@/types/knowledge';
-import { InterviewCategory } from '@/types/interview';
+import { SharedCategory } from '@/types/common';
 
 export interface KnowledgeItem {
     id: string;
@@ -14,7 +13,7 @@ export interface InterviewQuestion {
 }
 
 export interface InterviewState {
-    questions: (KnowledgeCategory | InterviewCategory)[];
+    questions: SharedCategory[];
     loading: boolean;
     error: string | null;
 }
