@@ -37,6 +37,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -166,13 +167,17 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => saveItem({
-                    type: 'interview',
-                    category: selectedQuestion.category || '',
-                    question: selectedQuestion.question,
-                    answer: selectedQuestion.answer || '',
-                    model: selectedModel
-                  })}
+                  onClick={() => {
+                    saveItem({
+                      type: selectedQuestion.type,
+                      category: selectedQuestion.category || '',
+                      question: selectedQuestion.question,
+                      answer: selectedQuestion.answer || '',
+                      model: selectedModel
+                    });
+                    setIsSaved(true);
+                  }}
+                  className={isSaved ? 'bg-green-100' : ''}
                 >
                   <BookmarkPlus className="w-4 h-4 mr-2" />
                   {t('common.save')}
