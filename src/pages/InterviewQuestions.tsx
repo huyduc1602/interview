@@ -28,7 +28,7 @@ export default function InterviewQuestions() {
     const { questions } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null);
+    const [selectedQuestion, setSelectedQuestion] = useState<SharedItem | SharedCategoryShuffled | null>(null);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
@@ -123,7 +123,7 @@ export default function InterviewQuestions() {
         );
     };
 
-    const handleQuestionClick = async (question: InterviewQuestion, category?: string) => {
+    const handleQuestionClick = async (question: SharedItem | SharedCategoryShuffled, category?: string) => {
         setSelectedQuestion({
             ...question,
             category: category || question.category || ''
