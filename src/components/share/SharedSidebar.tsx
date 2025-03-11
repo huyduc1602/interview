@@ -10,6 +10,7 @@ import type { ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { Badge } from '@/components/ui/badge';
 import Spinner from '@/components/ui/spinner';
+import { KnowledgeItem } from '@/types/knowledge';
 
 interface SharedSidebarProps {
     questions: SharedCategory[];
@@ -17,14 +18,15 @@ interface SharedSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (question: SharedItem | SharedCategoryShuffled, category?: string) => void;
-    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[];
+    handleQuestionClick: (question: SharedItem | SharedCategoryShuffled | KnowledgeItem, category?: string) => void | Promise<void>;
+    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
     shuffledQuestions: SharedCategoryShuffled[];
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
     renderCategoryTags: () => JSX.Element;
+    type: "knowledge" | "interview";
     loading: boolean;
 }
 
@@ -41,6 +43,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     shuffledQuestions,
     selectedCategories,
     renderCategoryTags,
+    type,
     loading,
 }) => {
     const { t } = useTranslation();
@@ -75,47 +78,95 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     };
 
     const renderQuestions = () => {
-        return questions.map((category, categoryIndex) => {
-            const items = getItems(category);
-            const filteredItems = filterQuestions(items, searchQuery);
-            if (filteredItems.length === 0 && searchQuery) return null;
+        if (type == 'interview') {
+            return questions.map((category, categoryIndex) => {
+                const items = getItems(category);
+                const filteredItems = filterQuestions(items, searchQuery) as SharedItem[] | SharedCategoryShuffled[];
+                if (filteredItems.length === 0 && searchQuery) return null;
 
-            return (
-                <div key={categoryIndex} className="space-y-2 min-w-min">
-                    <CategoryHeader
-                        isExpanded={expandedCategories[categoryIndex]}
-                        title={category.category}
-                        itemCount={filteredItems.length}
-                        onClick={() => toggleCategory(categoryIndex)}
-                    />
-                    {expandedCategories[categoryIndex] && (
-                        <div className="ml-6 space-y-1">
-                            {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
-                                <button
-                                    key={itemIndex}
-                                    onClick={() => handleQuestionClick(item, category.category)}
-                                    className={cn(
-                                        "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
-                                        selectedQuestion?.question === item.question
-                                            ? "bg-purple-100 text-purple-900"
-                                            : "hover:bg-gray-100"
-                                    )}
-                                >
-                                    {searchQuery ? (
-                                        <HighlightText
-                                            text={item.question}
-                                            search={searchQuery}
-                                        />
-                                    ) : (
-                                        item.question
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            );
-        });
+                return (
+                    <div key={categoryIndex} className="space-y-2 min-w-min">
+                        <CategoryHeader
+                            isExpanded={expandedCategories[categoryIndex]}
+                            title={category.category}
+                            itemCount={filteredItems.length}
+                            onClick={() => toggleCategory(categoryIndex)}
+                        />
+                        {expandedCategories[categoryIndex] && (
+                            <div className="ml-6 space-y-1">
+                                {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
+                                    <button
+                                        key={itemIndex}
+                                        onClick={() => handleQuestionClick(item, category.category)}
+                                        className={cn(
+                                            "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
+                                            selectedQuestion?.question === item.question
+                                                ? "bg-purple-100 text-purple-900"
+                                                : "hover:bg-gray-100"
+                                        )}
+                                    >
+                                        {searchQuery ? (
+                                            <HighlightText
+                                                text={item.question}
+                                                search={searchQuery}
+                                            />
+                                        ) : (
+                                            item.question
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            });
+        }
+
+        if (type == 'knowledge') {
+            return questions.map((kCategory, categoryIndex) => {
+                const items = getItems(kCategory);
+                const filteredItems = filterQuestions(items, searchQuery) as KnowledgeItem[];
+                if (filteredItems.length === 0 && searchQuery) return null;
+
+                return (
+                    <div key={categoryIndex} className="space-y-2 min-w-min">
+                        <CategoryHeader
+                            isExpanded={expandedCategories[categoryIndex]}
+                            title={kCategory.category}
+                            itemCount={filteredItems.length}
+                            onClick={() => toggleCategory(categoryIndex)}
+                        />
+                        {expandedCategories[categoryIndex] && (
+                            <div className="ml-6 space-y-1">
+                                {filteredItems.map((item: KnowledgeItem, itemIndex: number) => (
+                                    <button
+                                        key={itemIndex}
+                                        onClick={() => handleQuestionClick(item, kCategory.category)}
+                                        className={cn(
+                                            "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
+                                            selectedQuestion?.question === item.content
+                                                ? "bg-purple-100 text-purple-900"
+                                                : "hover:bg-gray-100"
+                                        )}
+                                    >
+                                        {searchQuery ? (
+                                            <HighlightText
+                                                text={item.content}
+                                                search={searchQuery}
+                                            />
+                                        ) : (
+                                            item.content
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            });
+        }
+
+        return null;
     };
 
     return (
