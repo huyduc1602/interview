@@ -15,6 +15,7 @@ import {
   isOpenChatResponse
 } from '@/services/aiServices/types';
 import { User } from '@/types/common';
+import { useTranslation } from 'react-i18next';
 
 interface UseChatOptions {
   type: 'knowledge' | 'interview' | 'chat';
@@ -39,17 +40,19 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
   const [answer, setAnswer] = useState<string | null>(null);
   const [isFirstQuestion, setIsFirstQuestion] = useState(true);
   const [error] = useState<string | null>(null);
+  const { i18n } = useTranslation();
+  const language = i18n.language;
 
   const getSystemContext = useCallback(() => {
     switch (type) {
       case 'chat':
-        return 'You are a helpful AI assistant.';
+        return language === 'vi' ? 'Bạn là một trợ lý AI hữu ích ' : 'You are a helpful AI assistant ';
       case 'interview':
-        return 'You are an interview preparation assistant.';
+        return language === 'vi' ? 'Hãy trả lời cho câu hỏi phỏng vấn sau: ' : 'Please answer the following interview question: ';
       case 'knowledge':
-        return 'You are a knowledge base assistant.';
+        return language === 'vi' ? 'Bạn là trợ lý cơ sở kiến ​​thức, hãy tìm kiến thức về: ' : 'You are a knowledge base assistant, find out about: ';
       default:
-        return 'You are a helpful AI assistant.';
+        return language === 'vi' ? 'Bạn là một trợ lý AI hữu ích' : 'You are a helpful AI assistant ';
     }
   }, [type]);
 
@@ -57,9 +60,14 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
     try {
       setLoading(true);
 
-      const finalInput = isFirstQuestion
-        ? `${getSystemContext()}\n\n${input}`
-        : input;
+      const suggestAnswerByLanguage = language === 'vi'
+        ? `.Hãy trả lời bằng tiếng Việt`
+        : `.Please answer in English`
+      // const finalInput = (isFirstQuestion
+      //   ? `${getSystemContext()}\n\n${input}`
+      //   : input )+ suggestAnswerByLanguage;
+
+      const finalInput = `${getSystemContext()}\n\n${input}` + suggestAnswerByLanguage;
 
       let response: AIResponse;
 
