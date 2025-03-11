@@ -68,6 +68,7 @@ export default function KnowledgeBase() {
     const prevSheetNameRef = useRef<string | null>(null);
 
     useEffect(() => {
+        if (!questions || questions.length === 0) setIsLoading(true); else setIsLoading(false);
         setExpandedCategories(questions.reduce((acc, category, index) => {
             acc[index] = category.items.length > 0;
             return acc;
@@ -293,6 +294,7 @@ export default function KnowledgeBase() {
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             renderCategoryTags={renderCategoryTags}
+                            loading={isLoading}
                         />
                     }
                     content={
