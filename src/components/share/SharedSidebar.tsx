@@ -1,10 +1,10 @@
-import React, { JSX, useState } from 'react';
+import React, { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Shuffle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
 import type { ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
