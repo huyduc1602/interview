@@ -10,7 +10,7 @@ import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/SettingsButton';
 import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
 import type { SharedCategoryShuffled, SharedItem } from '@/types/common';
-import { RootState } from "@/store/types";
+import {RootState } from "@/store/types";
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import SharedSidebar from '@/components/share/SharedSidebar';
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, Tag, X } from "lucide-react";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import type { KnowledgeItem } from '@/types/knowledge';
 
 export default function InterviewQuestions() {
     const dispatch = useDispatch();
@@ -124,11 +125,12 @@ export default function InterviewQuestions() {
         );
     };
 
-    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled, _category?: string) => {
-        setSelectedItem({ ...item, answer: null });
+    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem, _category?: string) => {
+        const questionItem = item as SharedItem | SharedCategoryShuffled;
+        setSelectedItem({ ...questionItem, answer: null });
 
         try {
-            const answer = await handleGenerateAnswer(item.question);
+            const answer = await handleGenerateAnswer(questionItem.question);
             setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to generate answer:', error);
@@ -287,6 +289,7 @@ export default function InterviewQuestions() {
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             renderCategoryTags={renderCategoryTags}
+                            type="interview"
                             loading={isLoading}
                         />
                     }

@@ -1,9 +1,12 @@
 import { BaseItem } from './common';
 
 export interface KnowledgeItem extends BaseItem {
-    category: string;
-    question: string;
-    answer: string | null;
+    answer?: string;
+    content: string;
+    notes: string;
+    order: string;
+    rowIndex: number;
+    status: boolean;
 }
 
 export interface SavedItem {

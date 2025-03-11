@@ -25,7 +25,7 @@ import { useTranslation } from "react-i18next";
 export default function KnowledgeBase() {
     const { user } = useAuth();
     const dispatch = useDispatch();
-    const { questions } = useSelector((state: RootState) => state.interview);
+    const { knowledge } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
@@ -68,12 +68,12 @@ export default function KnowledgeBase() {
     const prevSheetNameRef = useRef<string | null>(null);
 
     useEffect(() => {
-        if (!questions || questions.length === 0) setIsLoading(true); else setIsLoading(false);
-        setExpandedCategories(questions.reduce((acc, category, index) => {
-            acc[index] = category.items.length > 0;
+        if (!knowledge || knowledge.length === 0) setIsLoading(true); else setIsLoading(false);
+        setExpandedCategories(knowledge.reduce((acc, kCategory, index) => {
+            acc[index] = kCategory.category.length > 0;
             return acc;
         }, {} as ExpandedCategories));
-    }, [questions]);
+    }, [knowledge]);
 
     useEffect(() => {
         // Skip if no user
@@ -139,12 +139,21 @@ export default function KnowledgeBase() {
         );
     };
 
+    const convertToSharedItem = (item: KnowledgeItem | null): SharedItem => {
+       return {
+            question: item?.content || '',
+            category: item?.category || '',
+            answer: item?.answer || ''
+        };
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled, _category?: string) => {
-        setSelectedItem({ ...item, answer: null, type: item.type as "knowledge" | "interview" });
+    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem, _category?: string) => {
+        const knowledgeItem = item as KnowledgeItem;
+        setSelectedItem(knowledgeItem);
 
         try {
-            const answer = await handleGenerateAnswer(item.question);
+            const answer = await handleGenerateAnswer(knowledgeItem.content);
             setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to generate answer:', error);
@@ -156,7 +165,7 @@ export default function KnowledgeBase() {
         if (!selectedItem) return;
 
         try {
-            const answer = await generateAnswer(selectedItem.question);
+            const answer = await generateAnswer(selectedItem.content);
             setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to regenerate answer:', error);
@@ -164,23 +173,22 @@ export default function KnowledgeBase() {
     };
 
     const handleShuffleQuestions = () => {
-        const allQuestions = questions
-            .filter(category => selectedCategories.includes(category.category))
-            .flatMap(category =>
-                category.items.map((item: unknown) => ({
+        const allQuestions = knowledge
+            .filter(kCategory => selectedCategories.includes(kCategory.category))
+            .flatMap(kCategory =>
+                kCategory.items.map((item: unknown) => ({
                     ...(item as SharedItem),
-                    category: category.category
+                    category: kCategory.category
                 }))
             );
 
         const shuffled = [...allQuestions]
             .sort(() => Math.random() - 0.5)
-            .map((question, index) => ({
-                ...question,
-                question: question.question,
+            .map((knowledgeItem, index) => ({
+                ...knowledgeItem,
+                question: knowledgeItem.question,
                 orderNumber: index + 1
             }));
-        console.log(shuffled);
         setShuffledQuestions(shuffled);
         setSelectedItem(null);
         setAnswer("");
@@ -198,7 +206,7 @@ export default function KnowledgeBase() {
 
     const renderCategoryTags = () => {
         const selectedCount = selectedCategories.length;
-        const totalCount = questions.length;
+        const totalCount = knowledge.length;
 
         if (!isTagsExpanded) {
             return (
@@ -248,7 +256,7 @@ export default function KnowledgeBase() {
                     </Tooltip>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    {questions.map((category, index) => (
+                    {knowledge.map((category, index) => (
                         <Badge
                             key={index}
                             variant={selectedCategories.includes(category.category) ? "default" : "outline"}
@@ -282,7 +290,7 @@ export default function KnowledgeBase() {
                 }}
                 loading={loading}
                 disabled={!selectedItem}
-                type="questions"
+                type="knowledge"
             />
         );
 
@@ -296,10 +304,10 @@ export default function KnowledgeBase() {
                 <SidebarLayout
                     sidebar={
                         <SharedSidebar
-                            questions={questions}
+                            questions={knowledge}
                             expandedCategories={expandedCategories}
                             searchQuery={searchQuery}
-                            selectedQuestion={selectedItem}
+                            selectedQuestion={convertToSharedItem(selectedItem)}
                             toggleCategory={toggleCategory}
                             handleQuestionClick={handleItemClick}
                             filterQuestions={filterItems}
@@ -309,12 +317,13 @@ export default function KnowledgeBase() {
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             renderCategoryTags={renderCategoryTags}
+                            type="knowledge"
                             loading={isLoading}
                         />
                     }
                     content={
                         <SharedContent
-                            selectedQuestion={selectedItem}
+                            selectedQuestion={convertToSharedItem(selectedItem)}
                             user={user}
                             saveItem={saveItem}
                             selectedModel={selectedModel}
