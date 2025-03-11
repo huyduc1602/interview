@@ -28,7 +28,7 @@ export default function InterviewQuestions() {
     const { questions } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedQuestion, setSelectedQuestion] = useState<SharedItem | SharedCategoryShuffled | null>(null);
+    const [selectedItem, setSelectedItem] = useState<SharedItem | SharedCategoryShuffled | null>(null);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
@@ -56,12 +56,12 @@ export default function InterviewQuestions() {
     } = useAIResponse({
         generateAnswer,
         onSuccess: (content) => {
-            if (selectedQuestion) {
-                setSelectedQuestion({ ...selectedQuestion, answer: content });
+            if (selectedItem) {
+                setSelectedItem({ ...selectedItem, answer: content });
             }
         },
         onError: () => {
-            setSelectedQuestion(null);
+            setSelectedItem(null);
         }
     });
 
@@ -124,15 +124,15 @@ export default function InterviewQuestions() {
         );
     };
 
-    const handleQuestionClick = async (question: SharedItem | SharedCategoryShuffled, category?: string) => {
-        setSelectedQuestion({
-            ...question,
-            category: category || question.category || ''
-        });
+    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled, _category?: string) => {
+        setSelectedItem({ ...item, answer: null });
+
         try {
-            await handleGenerateAnswer(question.question);
+            const answer = await handleGenerateAnswer(item.question);
+            setSelectedItem(prev => prev ? { ...prev, answer } : null);
         } catch (error) {
             console.error('Failed to generate answer:', error);
+            setSelectedItem(null);
         }
     };
 
@@ -165,13 +165,13 @@ export default function InterviewQuestions() {
             }));
         console.log(shuffled);
         setShuffledQuestions(shuffled);
-        setSelectedQuestion(null);
+        setSelectedItem(null);
         setAnswer("");
     };
 
     const handleRegenerateAnswer = async () => {
-        if (!selectedQuestion) return;
-        await generateAnswer(selectedQuestion.question);
+        if (!selectedItem) return;
+        await generateAnswer(selectedItem.question);
     };
 
     const renderModelSelector = () => (
@@ -184,7 +184,7 @@ export default function InterviewQuestions() {
                 setAnswer("");
             }}
             loading={loading}
-            disabled={!selectedQuestion}
+            disabled={!selectedItem}
             type="questions"
         />
     );
@@ -277,9 +277,9 @@ export default function InterviewQuestions() {
                             questions={questions}
                             expandedCategories={expandedCategories}
                             searchQuery={searchQuery}
-                            selectedQuestion={selectedQuestion}
+                            selectedQuestion={selectedItem}
                             toggleCategory={toggleCategory}
-                            handleQuestionClick={handleQuestionClick}
+                            handleQuestionClick={handleItemClick}
                             filterQuestions={filterQuestions}
                             setSearchQuery={setSearchQuery}
                             shuffleQuestions={handleShuffleQuestions}
@@ -292,7 +292,7 @@ export default function InterviewQuestions() {
                     }
                     content={
                         <SharedContent
-                            selectedQuestion={selectedQuestion}
+                            selectedQuestion={selectedItem}
                             user={user}
                             saveItem={saveItem}
                             selectedModel={selectedModel}
