@@ -5,12 +5,12 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
-// Thêm các language supports nếu cần thiết
+// Add language supports if needed
 import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
 
-// Đăng ký ngôn ngữ 
+// Register languages
 SyntaxHighlighter.registerLanguage('jsx', jsx);
 SyntaxHighlighter.registerLanguage('typescript', typescript);
 SyntaxHighlighter.registerLanguage('javascript', javascript);
@@ -91,6 +91,13 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                             </code>
                         );
                     },
+                    p({ node, children }) {
+                        // Check if the paragraph contains only a code block
+                        if (node && node.children.length === 1 && 'tagName' in node.children[0] && node.children[0].tagName === 'code') {
+                            return <div>{children}</div>;
+                        }
+                        return <p>{children}</p>;
+                    }
                 }}
             >
                 {content}
