@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import CountUp from 'react-countup';
 
 const StatsSection: React.FC = () => {
     const { t } = useTranslation();
@@ -9,7 +10,7 @@ const StatsSection: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 border-t">
                 <div className="text-center">
                     <div className="text-4xl font-bold text-gray-900">
-                        {t('home.stats.knowledgeTopics.value')}
+                        <CountUp end={parseInt(t('home.stats.knowledgeTopics.value'), 10)} duration={2.5} /> +
                     </div>
                     <div className="text-sm text-gray-600">
                         {t('home.stats.knowledgeTopics.label')}
@@ -17,7 +18,7 @@ const StatsSection: React.FC = () => {
                 </div>
                 <div className="text-center">
                     <div className="text-4xl font-bold text-gray-900">
-                        {t('home.stats.questions.value')}
+                        <CountUp end={parseInt(t('home.stats.questions.value'), 10)} duration={2.5} /> +
                     </div>
                     <div className="text-sm text-gray-600">
                         {t('home.stats.questions.label')}
