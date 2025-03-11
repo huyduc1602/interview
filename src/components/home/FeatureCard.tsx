@@ -28,14 +28,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     return (
         <Link
             to={to}
-            className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1"
+            className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between"
         >
             <div className="flex items-start gap-6">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-full ${bgColor}`}>
                     <div className={`h-6 w-6 ${iconColor}`}>{icon}</div>
                 </div>
                 <div className="flex flex-col justify-between flex-1">
-                    <div className="space-y-2 min-h-52">
+                    <div className="space-y-2">
                         <h3 className={`text-2xl font-semibold ${textColor}`}>
                             {title}
                         </h3>
@@ -43,11 +43,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
                             {description}
                         </p>
                     </div>
-                    <div className={`flex items-center ${hoverTextColor} absolute bottom-8`}>
-                        {action}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </div>
                 </div>
+            </div>
+            <div className={`flex items-center ${hoverTextColor} mt-4`}>
+                {action}
+                <ArrowRight className="ml-2 h-4 w-4" />
             </div>
         </Link>
     );
