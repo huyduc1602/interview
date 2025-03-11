@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDataRequest } from '@/store/interview/slice';
+import { clearCachedAnswers, fetchDataRequest } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
@@ -30,7 +30,7 @@ export default function KnowledgeBase() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-    const { saveItem } = useSavedItems();
+    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
     const { getApiKey } = useApiKeys();
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
@@ -271,6 +271,21 @@ export default function KnowledgeBase() {
         );
     };
 
+     const renderModelSelector = () => (
+            <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                onRegenerate={handleRegenerateAnswer}
+                onClearCache={() => {
+                    dispatch(clearCachedAnswers());
+                    setAnswer("");
+                }}
+                loading={loading}
+                disabled={!selectedItem}
+                type="questions"
+            />
+        );
+
     if (!user) {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
@@ -307,16 +322,10 @@ export default function KnowledgeBase() {
                             handleRegenerateAnswer={handleRegenerateAnswer}
                             loading={loading}
                             error={error}
-                            renderModelSelector={() => (
-                                <ModelSelector
-                                    selectedModel={selectedModel}
-                                    onModelChange={setSelectedModel}
-                                    onRegenerate={handleRegenerateAnswer}
-                                    loading={loading}
-                                    disabled={!selectedItem}
-                                    type="knowledge"
-                                />
-                            )}
+                            renderModelSelector={renderModelSelector}
+                            savedItems={savedItems}
+                            addFollowUpQuestion={addFollowUpQuestion}
+                            generateAnswer={generateAnswer}
                         />
                     }
                 />

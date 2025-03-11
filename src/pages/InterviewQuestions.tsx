@@ -33,7 +33,7 @@ export default function InterviewQuestions() {
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const { user } = useAuth();
-    const { saveItem } = useSavedItems();
+    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
     const { getApiKey } = useApiKeys();
     const fetchedRef = useRef(false);
     const prevApiKeyRef = useRef('');
@@ -41,6 +41,7 @@ export default function InterviewQuestions() {
     const prevSheetNameRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    
     const {
         loading,
         selectedModel,
@@ -300,7 +301,10 @@ export default function InterviewQuestions() {
                             loading={loading}
                             error={error}
                             renderModelSelector={renderModelSelector}
-                        />
+                            savedItems={savedItems}
+                            addFollowUpQuestion={addFollowUpQuestion}
+                            generateAnswer={generateAnswer}
+                      />
                     }
                 />
                 <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS} isLoading={isLoading} />
