@@ -21,9 +21,12 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, sheetName, is
                     variant="outline"
                     size="sm"
                     onClick={() => setIsApiKeyFormVisible(!isApiKeyFormVisible)}
+                    className="group flex items-center"
                 >
                     <Settings className="w-4 h-4 mr-2" />
-                    {t('common.settings')}
+                    <span className="group-hover:inline-block hidden">
+                        {t('common.settings')}
+                    </span>
                 </Button>
             </div>
             {isApiKeyFormVisible && (
