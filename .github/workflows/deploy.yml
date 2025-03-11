@@ -52,10 +52,12 @@ jobs:
           allow_empty_commit: true
           keep_files: true
 
-      # - name: Notify deployment status
-      #   if: always()
-      #   run: |
-      #     curl -X POST -H 'Content-type: application/json' --data '{
-      #       "text": "Deployment ${{ job.status }}",
-      #       "title": "Deploy Interview App"
-      #     }' ${{ secrets.ZALO_WEBHOOK }}
+      - name: Send Telegram Message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+                  "text": "🚀 CI/CD chạy xong!\n📝 Commit: ${{ github.event.head_commit.message }}\n🔗 Repo: ${{ github.repository }}",
+                  "parse_mode": "Markdown"
+                }'
