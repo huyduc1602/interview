@@ -33,7 +33,7 @@ export function SidebarLayout({ sidebar, content, className}: SidebarLayoutProps
           size="sm"
           variant="outline"
           onClick={() => setSidebarOpen && setSidebarOpen(!sidebarOpen)}
-          className="position absolute top-52 left-0 z-50"
+          className="position absolute top-52 left-0"
         >
           {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
