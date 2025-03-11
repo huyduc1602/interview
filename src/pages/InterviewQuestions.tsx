@@ -3,24 +3,24 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchDataRequest, clearCachedAnswers } from '@/store/interview/slice';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
-import { Layout, SidebarLayout, CategoryHeader } from '@/layouts';
-import { SearchInput, HighlightText } from '@/components/ui';
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronUp, Shuffle, Tag, X, BookmarkPlus } from "lucide-react";
-import { TooltipProvider, Tooltip } from "@/components/ui/tooltip";
+import { Layout, SidebarLayout } from '@/layouts';
 import { useTranslation } from 'react-i18next';
-import { ModelSelector } from '@/components/ui/model-selector';
-import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/SettingsButton';
-import type { InterviewQuestion, ExpandedCategories, InterviewCategory } from '@/types/interview';
+import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
+import type { SharedCategoryShuffled } from '@/types/common';
 import { RootState } from "@/store/types";
-import { KnowledgeCategory } from "@/types/knowledge";
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
+import SharedSidebar from '@/components/share/SharedSidebar';
+import SharedContent from '@/components/share/SharedContent';
+import { ModelSelector } from "@/components/ui/model-selector";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, Tag, X } from "lucide-react";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export default function InterviewQuestions() {
     const dispatch = useDispatch();
@@ -30,7 +30,7 @@ export default function InterviewQuestions() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [shuffledQuestions, setShuffledQuestions] = useState<InterviewQuestion[]>([]);
+    const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const { user } = useAuth();
     const { saveItem } = useSavedItems();
@@ -137,7 +137,7 @@ export default function InterviewQuestions() {
         });
     };
 
-    const shuffleQuestions = () => {
+    const handleShuffleQuestions = () => {
         const allQuestions = questions
             .filter(category => selectedCategories.includes(category.category))
             .flatMap(category =>
@@ -154,7 +154,7 @@ export default function InterviewQuestions() {
                 question: question.question,
                 orderNumber: index + 1
             }));
-
+        console.log(shuffled);
         setShuffledQuestions(shuffled);
         setSelectedQuestion(null);
         setAnswer("");
@@ -255,169 +255,6 @@ export default function InterviewQuestions() {
         );
     };
 
-    const renderSidebar = () => (
-        <>
-            <div className="sticky top-0 bg-white z-10 pb-4 pr-6 pl-6">
-                <div className="space-y-4 mb-4">
-                    <h2 className="text-xl font-semibold">{t('interviewQuestions.title')}</h2>
-                    <div className="flex items-center justify-between">
-                        <Tooltip content={t('interviewQuestions.tooltips.search')}>
-                            <div>
-                                <SearchInput
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder={t('interviewQuestions.searchPlaceholder')}
-                                />
-                            </div>
-                        </Tooltip>
-                        <Tooltip content={t('interviewQuestions.tooltips.shuffle')}>
-                            <span>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={shuffleQuestions}
-                                    disabled={selectedCategories.length === 0}
-                                    className="ml-2"
-                                >
-                                    <Shuffle className="h-4 w-4" />
-                                </Button>
-                            </span>
-                        </Tooltip>
-                    </div>
-                    {renderCategoryTags()}
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                {shuffledQuestions.length > 0 ? (
-                    <div className="space-y-2">
-                        {shuffledQuestions.map((item, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleQuestionClick(item)}
-                                className={cn(
-                                    "w-full text-left px-4 py-2 rounded text-sm",
-                                    selectedQuestion?.question === item.question
-                                        ? "bg-purple-100 text-purple-900"
-                                        : "hover:bg-gray-100"
-                                )}
-                            >
-                                <div className="flex items-start gap-2">
-                                    <span className="font-medium text-gray-500">
-                                        {item.orderNumber}.
-                                    </span>
-                                    {searchQuery ? (
-                                        <HighlightText
-                                            text={item.question}
-                                            search={searchQuery}
-                                        />
-                                    ) : (
-                                        item.question
-                                    )}
-                                </div>
-                                <div className="mt-1 text-xs text-gray-500">
-                                    {item.category}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {questions.map((category: (KnowledgeCategory | InterviewCategory), categoryIndex: number) => {
-                            const items = (category.items as InterviewQuestion[])?.map((item: unknown) => ({
-                                ...(item as InterviewQuestion),
-                                question: (item as InterviewQuestion).question || (item as InterviewQuestion).question
-                            })) || [];
-                            const filteredItems = filterQuestions(items, searchQuery);
-                            if (filteredItems.length === 0 && searchQuery) return null;
-
-                            return (
-                                <div key={categoryIndex} className="space-y-2">
-                                    <CategoryHeader
-                                        isExpanded={expandedCategories[categoryIndex]}
-                                        title={category.category}
-                                        itemCount={filteredItems.length}
-                                        onClick={() => toggleCategory(categoryIndex)}
-                                    />
-                                    {expandedCategories[categoryIndex] && (
-                                        <div className="ml-6 space-y-1">
-                                            {filteredItems.map((item: InterviewQuestion, itemIndex: number) => (
-                                                <button
-                                                    key={itemIndex}
-                                                    onClick={() => handleQuestionClick(item, category.category)}
-                                                    className={cn(
-                                                        "w-full text-left px-2 py-1 rounded text-sm",
-                                                        selectedQuestion?.question === item.question
-                                                            ? "bg-purple-100 text-purple-900"
-                                                            : "hover:bg-gray-100"
-                                                    )}
-                                                >
-                                                    {searchQuery ? (
-                                                        <HighlightText
-                                                            text={item.question}
-                                                            search={searchQuery}
-                                                        />
-                                                    ) : (
-                                                        item.question
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </>
-    );
-
-    const renderContent = () => (
-        <div className="py-6 overflow-y-auto">
-            {selectedQuestion ? (
-                <div className="space-y-6">
-                    <div className="border-b pb-4">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-semibold">
-                                {selectedQuestion.question}
-                            </h1>
-                            {user && selectedQuestion.answer && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => saveItem({
-                                        type: 'interview',
-                                        category: selectedQuestion.category || '',
-                                        question: selectedQuestion.question,
-                                        answer: selectedQuestion.answer || '',
-                                        model: selectedModel
-                                    })}
-                                >
-                                    <BookmarkPlus className="w-4 h-4 mr-2" />
-                                    {t('common.save')}
-                                </Button>
-                            )}
-                        </div>
-                        {renderModelSelector()}
-                    </div>
-                    <div className="rounded-lg bg-white shadow">
-                        <AIResponseDisplay
-                            loading={loading}
-                            content={selectedQuestion?.answer || null}
-                            error={error}
-                            emptyMessage={t('interview.selectQuestion')}
-                        />
-                    </div>
-                </div>
-            ) : (
-                <div className="text-center text-gray-500">
-                    <p>{t('interviewQuestions.messages.selectFromSidebar')}</p>
-                </div>
-            )}
-        </div>
-    );
-
     if (!user) {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
@@ -426,8 +263,36 @@ export default function InterviewQuestions() {
         <TooltipProvider>
             <Layout>
                 <SidebarLayout
-                    sidebar={renderSidebar()}
-                    content={renderContent()}
+                    sidebar={
+                        <SharedSidebar
+                            questions={questions}
+                            expandedCategories={expandedCategories}
+                            searchQuery={searchQuery}
+                            selectedQuestion={selectedQuestion}
+                            toggleCategory={toggleCategory}
+                            handleQuestionClick={handleQuestionClick}
+                            filterQuestions={filterQuestions}
+                            setSearchQuery={setSearchQuery}
+                            shuffleQuestions={handleShuffleQuestions}
+                            shuffledQuestions={shuffledQuestions}
+                            selectedCategories={selectedCategories}
+                            handleCategorySelect={handleCategorySelect}
+                            renderCategoryTags={renderCategoryTags}
+                        />
+                    }
+                    content={
+                        <SharedContent
+                            selectedQuestion={selectedQuestion}
+                            user={user}
+                            saveItem={saveItem}
+                            selectedModel={selectedModel}
+                            setSelectedModel={setSelectedModel}
+                            handleRegenerateAnswer={handleRegenerateAnswer}
+                            loading={loading}
+                            error={error}
+                            renderModelSelector={renderModelSelector}
+                        />
+                    }
                 />
                 <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS} isLoading={isLoading} />
             </Layout>
