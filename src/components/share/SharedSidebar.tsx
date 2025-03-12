@@ -59,7 +59,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
         return shuffledQuestions.map((sQuestion) => (
             <button
                 key={sQuestion.rowIndex}
-                onClick={() => handleQuestionClick(sQuestion, sQuestion.category)}
+                onClick={() => handleQuestionClick(sQuestion)}
                 className={cn(
                     "w-full text-left px-2 py-1 rounded text-sm",
                     selectedQuestion?.question === sQuestion.question

@@ -8,9 +8,9 @@ export interface BaseItem {
 
 export interface SavedItem {
     id: string;
-    timestamp: number;
+    user_id: string;
+    created_at: string;
     followUpQuestions?: { question: string; answer: string; timestamp: number }[];
-    type: string;
     category: string;
     question: string;
     answer: string;
@@ -21,6 +21,7 @@ export interface User {
     id: string;
     name: string;
     email: string;
+    [key: string]: unknown;
 }
 
 export interface SharedCategory {
@@ -42,4 +43,15 @@ export interface SharedItem extends BaseItem {
     question: string;
     answer: string | null;
     order? : number;
+}
+
+export enum ItemTypeSaved {
+    KnowledgeAnswers = 'knowledge_answers',
+    InterviewAnswers = 'interview_answers'
+}
+
+export type FollowUpQuestion = {
+    itemId: string;
+    question: string;
+    answer: string
 }
