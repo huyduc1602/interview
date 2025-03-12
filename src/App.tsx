@@ -8,6 +8,7 @@ import Settings from '@/pages/Settings';
 import ApiKeyGuide from '@/pages/ApiKeyGuide';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthProvider';
+import AuthCallback from '@/components/auth/AuthCallback';
 import './i18n';
 
 const App: React.FC = () => {
@@ -23,6 +24,7 @@ const App: React.FC = () => {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/api-key-guide" element={<ApiKeyGuide />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/" element={<HomePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

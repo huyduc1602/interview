@@ -1,15 +1,26 @@
 {
   "version": 2,
+  "buildCommand": "yarn build",
+  "installCommand": "yarn install",
+  "framework": "vite",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/auth/callback",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/index.html"
     }
   ]
 }
