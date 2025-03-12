@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "buildCommand": "yarn build",
+  "installCommand": "yarn install",
+  "framework": "vite",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "package.json",
