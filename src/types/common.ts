@@ -30,6 +30,7 @@ export interface SharedCategory {
 }
 
 export interface SharedCategoryShuffled {
+    id: string;
     category: string;
     question: string;
     answer?: string | null;
@@ -39,6 +40,7 @@ export interface SharedCategoryShuffled {
 }
 
 export interface SharedItem extends BaseItem {
+    id: string;
     category: string;
     question: string;
     answer: string | null;
@@ -54,4 +56,14 @@ export type FollowUpQuestion = {
     itemId: string;
     question: string;
     answer: string
+}
+
+export interface ResponseAnswer {
+    id: string;
+    user_id: string;
+    category?: string;
+    question: string;
+    answer: string;
+    created_at: string;
+    model: string
 }
