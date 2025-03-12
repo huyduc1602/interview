@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, X } from 'lucide-react';
-import ApiKeyForm from '@/components/ApiKeyForm';
+import ApiKeyForm from '@/components/apiKeyForm';
 import { useTranslation } from 'react-i18next';
 
 interface SettingsButtonProps {

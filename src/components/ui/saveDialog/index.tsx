@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '../button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../select';
-import { Category } from '@/services/googleSheetService.d'; // Make sure to import from .d.ts file
+import { Category } from '@/services/googleSheetService.d';
 import { RootState } from '@/store';
 
 interface SaveDialogProps {
