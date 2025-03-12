@@ -50,25 +50,83 @@ export function useSavedItems(type: ItemTypeSaved) {
   const saveItem = async (item: Omit<SavedItem, 'id' | 'timestamp'>) => {
     if (!user) return;
 
-    const newItem: SavedItem = {
-      ...item,
-      id: generateId(),
-      created_at: new Date().toISOString(),
-      category: item.category || '',
-      question: item.question,
-      answer: item.answer,
-      model: item.model
-    };
+    // Check if an item with the same question already exists
+    const existingItemIndex = savedItems.findIndex(
+      savedItem => savedItem.question === item.question &&
+        savedItem.user_id === user.id
+    );
 
-    setSavedItems(prev => {
-      const updated = [...prev, newItem];
-      if (isGoogleUser()) {
-        saveData(type, { ...newItem, user_id: user.id });
-      } else {
-        localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
-      }
-      return updated;
-    });
+    if (existingItemIndex !== -1) {
+      // Item already exists - update it
+      const existingItem = savedItems[existingItemIndex];
+
+      const updatedItem: SavedItem = {
+        ...existingItem,
+        ...item,
+        answer: item.answer,
+        model: item.model,
+        created_at: new Date().toISOString()
+      };
+
+      setSavedItems(prev => {
+        const updated = [...prev];
+        updated[existingItemIndex] = updatedItem;
+
+        if (isGoogleUser()) {
+          // Update in Supabase
+          supabase
+            .from(type)
+            .update({
+              answer: item.answer,
+              model: item.model,
+              created_at: updatedItem.created_at,
+              category: item.category || existingItem.category
+            })
+            .eq('id', existingItem.id)
+            .eq('user_id', user.id)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error updating item in Supabase:', error);
+              }
+            });
+        } else {
+          // Update in localStorage
+          localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+
+      return existingItem.id; // Return the ID of the updated item
+    } else {
+      // Item doesn't exist - create a new one
+      const newItem: SavedItem = {
+        ...item,
+        id: generateId(),
+        user_id: user.id, // Explicitly add user_id to the item
+        created_at: new Date().toISOString(),
+        category: item.category || '',
+        question: item.question,
+        answer: item.answer,
+        model: item.model
+      };
+
+      setSavedItems(prev => {
+        const updated = [...prev, newItem];
+
+        if (isGoogleUser()) {
+          // Save to Supabase
+          saveData(type, newItem);
+        } else {
+          // Save to localStorage
+          localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+
+      return newItem.id; // Return the ID of the new item
+    }
   };
 
   // Add follow-up question
@@ -103,19 +161,37 @@ export function useSavedItems(type: ItemTypeSaved) {
   const deleteItem = async (itemId: string) => {
     if (!user) return;
 
-    setSavedItems(prev => {
-      const updated = prev.filter(item => item.id !== itemId);
+    try {
+      // For Google users, delete from Supabase first
       if (isGoogleUser()) {
-        supabase
+        const { error, data } = await supabase
           .from(type)
           .delete()
           .eq('id', itemId)
           .eq('user_id', user.id);
-      } else {
-        localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
+
+        if (error) {
+          console.error('Error deleting item from Supabase:', error);
+          return; // Don't update local state if the remote delete failed
+        }
+
+        console.info('Successfully deleted from Supabase:', data);
       }
-      return updated;
-    });
+
+      // Update local state after successful remote delete (or for local storage users)
+      setSavedItems(prev => {
+        const updated = prev.filter(item => item.id !== itemId);
+
+        // For non-Google users, update localStorage
+        if (!isGoogleUser()) {
+          localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+    } catch (error) {
+      console.error('Unexpected error during item deletion:', error);
+    }
   };
 
   return {

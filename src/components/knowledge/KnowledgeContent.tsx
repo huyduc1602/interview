@@ -1,7 +1,7 @@
 import SharedContent from '@/components/share/SharedContent';
 import { ModelSelector } from "@/components/ui/model-selector";
 import { clearCachedAnswers } from '@/store/interview/slice';
-import { SharedItem, SharedCategoryShuffled, User, SavedItem, FollowUpQuestion } from '@/types/common';
+import { SharedItem, SharedCategoryShuffled, User, SavedItem, FollowUpQuestion, ItemTypeSaved } from '@/types/common';
 import { useDispatch } from 'react-redux';
 import { Dispatch, SetStateAction } from 'react';
 import { AIModelType } from '@/services/aiServices';
@@ -19,6 +19,9 @@ interface KnowledgeContentProps {
     addFollowUpQuestion: (item: FollowUpQuestion) => void;
     generateAnswer: (prompt: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
+    isSavedAnswer: boolean;
+    existingSavedItem: SavedItem | null;
+    typeSavedItem: ItemTypeSaved;
 }
 
 export default function KnowledgeContent({
@@ -33,7 +36,10 @@ export default function KnowledgeContent({
     savedItems,
     addFollowUpQuestion,
     generateAnswer,
-    setAnswer
+    setAnswer,
+    isSavedAnswer,
+    existingSavedItem,
+    typeSavedItem
 }: KnowledgeContentProps) {
     const dispatch = useDispatch();
 
@@ -66,6 +72,9 @@ export default function KnowledgeContent({
             savedItems={savedItems}
             addFollowUpQuestion={addFollowUpQuestion}
             generateAnswer={generateAnswer}
+            isSavedAnswer={isSavedAnswer}
+            existingSavedItem={existingSavedItem}
+            typeSavedItem={typeSavedItem}
         />
     );
 }

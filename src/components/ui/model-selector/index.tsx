@@ -106,15 +106,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       >
         <RefreshCw className={cn("h-4 w-4", props.loading && "animate-spin")} />
       </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={props.onClearCache}
-        className="h-10 w-10"
-        title={t(`${props.type}.actions.clearCache`)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
     </div>
   );
 };
