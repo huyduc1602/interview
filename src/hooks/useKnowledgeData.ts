@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
-import { fetchKnowledgeDataFromSupabase } from '@/utils/supabaseUtils';
+import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
 import { User } from '@/types/common';
 
 interface KnowledgeCategory {
@@ -20,7 +20,7 @@ export function useKnowledgeData(
     const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
     const dataLoadedRef = useRef(false);
-    const userIdRef = useRef<number | null>(null);
+    const userIdRef = useRef<string | null>(null);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -34,7 +34,7 @@ export function useKnowledgeData(
 
             // For Google users, fetch answers from Supabase and merge with knowledge data
             if (isGoogle) {
-                const answers = await fetchKnowledgeDataFromSupabase(user?.id ?? 0);
+                const answers = await fetchKnowledgeDataFromSupabase(user?.id ?? generateId());
 
                 if (answers && answers.length > 0 && knowledge && knowledge.length > 0) {
                     // Create a map of question -> answer for quick lookup
