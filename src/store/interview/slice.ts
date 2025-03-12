@@ -42,7 +42,7 @@ const interviewSlice = createSlice({
   reducers: {
     // Data fetching actions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchDataRequest: (state, _action: PayloadAction<{ apiKey: string; spreadsheetId: string, user: User| null }>) => {
+    fetchDataRequest: (state, _action: PayloadAction<{ apiKey: string; spreadsheetId: string, user: User | null }>) => {
       state.loading = true;
     },
     fetchDataSuccess: (state, action) => {
@@ -87,14 +87,14 @@ const interviewSlice = createSlice({
         [key: string]: unknown;
       }
 
-            state.knowledge = (state.knowledge as KnowledgeCategory[]).map((category: KnowledgeCategory) => ({
-              ...category,
-              items: category.items.map((item: KnowledgeItem) =>
-                item.rowIndex === rowIndex
-                  ? { ...item, status }
-                  : item
-              )
-            }));
+      state.knowledge = (state.knowledge as KnowledgeCategory[]).map((category: KnowledgeCategory) => ({
+        ...category,
+        items: category.items.map((item: KnowledgeItem) =>
+          item.rowIndex === rowIndex
+            ? { ...item, status }
+            : item
+        )
+      }));
     },
     updateKnowledgeStatusFailure: (state, action) => {
       state.loading = false;

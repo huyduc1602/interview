@@ -20,6 +20,7 @@ interface KnowledgeContentProps {
     generateAnswer: (prompt: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
     isSavedAnswer: boolean;
+    setIsSavedAnswer: (isSaved: boolean) => void;
     existingSavedItem: SavedItem | null;
     typeSavedItem: ItemTypeSaved;
 }
@@ -38,6 +39,7 @@ export default function KnowledgeContent({
     generateAnswer,
     setAnswer,
     isSavedAnswer,
+    setIsSavedAnswer,
     existingSavedItem,
     typeSavedItem
 }: KnowledgeContentProps) {
@@ -73,6 +75,7 @@ export default function KnowledgeContent({
             addFollowUpQuestion={addFollowUpQuestion}
             generateAnswer={generateAnswer}
             isSavedAnswer={isSavedAnswer}
+            setIsSavedAnswer={setIsSavedAnswer}
             existingSavedItem={existingSavedItem}
             typeSavedItem={typeSavedItem}
         />
