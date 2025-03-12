@@ -20,7 +20,7 @@ interface APIKeys {
   sheetNameKnowledgeBase?: string;
   sheetNameInterviewQuestions?: string;
 }
-
+//TODO: Thực hiện chức năng lưu các API Key vào localstorage hoặc supabase
 export default function Settings() {
   const { t } = useTranslation();
   const { user } = useAuth();

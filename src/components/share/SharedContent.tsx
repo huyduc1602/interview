@@ -1,4 +1,4 @@
-import React, { JSX, useState } from 'react';
+import React, { JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus, Send } from 'lucide-react';
@@ -24,10 +24,12 @@ interface InterviewQuestionsContentProps {
   addFollowUpQuestion: (item: FollowUpQuestion) => void;
   generateAnswer: (prompt: string) => Promise<string>;
   isSavedAnswer: boolean;
+  setIsSavedAnswer: (isSaved: boolean) => void;
   existingSavedItem: SavedItem | null;
   typeSavedItem: ItemTypeSaved;
 }
 
+//FIXME: Chat history chưa được lưu, hãy tạo table Chat history với id được liên kết với 2 table trước
 const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   selectedQuestion,
   user,
@@ -40,14 +42,21 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   addFollowUpQuestion,
   generateAnswer,
   isSavedAnswer,
+  setIsSavedAnswer,
   existingSavedItem,
   typeSavedItem
 }) => {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-  const [isSaved, setIsSaved] = useState(isSavedAnswer);
   const { deleteItem } = useSavedItems(typeSavedItem);
+
+  // Save chat history to localStorage when it changes
+  useEffect(() => {
+    if (!user || Object.keys(chatHistory).length === 0) return;
+
+    localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(chatHistory));
+  }, [chatHistory, user]);
 
   const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -107,12 +116,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   };
 
   const handleSaveOrDeleteItem = () => {
-    if (isSaved) {
+    if (isSavedAnswer) {
       if (existingSavedItem) deleteItem(existingSavedItem.id);
     } else {
       if (selectedQuestion) {
         const itemSaved: SavedItem = {
-          id: generateId(),
+          id: selectedQuestion.id ?? generateId(),
           user_id: user?.id ?? generateId(),
           category: selectedQuestion.category || '',
           question: selectedQuestion.question,
@@ -120,11 +129,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
           model: selectedModel,
           created_at: new Date().toISOString()
         }
+        console.trace('handleSaveOrDeleteItem - saveItem', itemSaved);
         saveItem(itemSaved);
       }
     }
 
-    setIsSaved(!isSaved);
+    setIsSavedAnswer(!isSavedAnswer);
   };
 
   const renderChatHistory = () => {
@@ -194,12 +204,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
               <h1 className="text-2xl font-semibold">
                 {selectedQuestion.question}
               </h1>
-              {user && selectedQuestion.answer && (
+              {user && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSaveOrDeleteItem}
-                  className={isSaved ? 'bg-green-100' : ''}
+                  className={isSavedAnswer ? 'bg-green-100' : ''}
                 >
                   <BookmarkPlus className="w-4 h-4 mr-2" />
                   {t('common.save')}
