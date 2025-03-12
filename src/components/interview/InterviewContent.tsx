@@ -1,5 +1,5 @@
 import SharedContent from '@/components/share/SharedContent';
-import { ModelSelector } from "@/components/ui/model-selector";
+import { ModelSelector } from "@/components/ui/modelSelector";
 import { clearCachedAnswers } from '@/store/interview/slice';
 import { ItemTypeSaved, SharedItem, SharedCategoryShuffled, SavedItem, User, FollowUpQuestion } from '@/types/common';
 import { useDispatch } from 'react-redux';
