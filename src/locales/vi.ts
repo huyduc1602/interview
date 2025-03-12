@@ -21,6 +21,9 @@ export default {
     },
     settings: "Cài đặt"
   },
+  login: {
+    google: "Đăng nhập với Google"
+  },
   nav: {
     home: 'Trung tâm Phỏng vấn',
     knowledgeBase: '📚 Cơ sở Kiến Thức',

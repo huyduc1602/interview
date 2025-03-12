@@ -7,9 +7,10 @@ export interface KnowledgeItem extends BaseItem {
     order: string;
     rowIndex: number;
     status: boolean;
+    category: string;
 }
 
-export interface SavedItem {
+export interface SavedItemKnowledge {
     id: string;
     type: 'knowledge';
     category?: string;
