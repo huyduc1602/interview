@@ -177,7 +177,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                 </div>
                 <div className="space-y-4 mb-4">
                     <div className="flex items-center justify-between">
-                        <Tooltip content={t('interviewQuestions.tooltips.search')}>
+                        <Tooltip content={t('interviewQuestions.tooltips.search')} className="bg-gray-800 text-white">
                             <div>
                                 <SearchInput
                                     value={searchQuery}
