@@ -15,7 +15,7 @@ interface InterviewContentProps {
     loading: boolean;
     error: string | null;
     savedItems: SavedItem[];
-     addFollowUpQuestion: (item: FollowUpQuestion) => void;
+    addFollowUpQuestion: (item: FollowUpQuestion) => void;
     generateAnswer: (question: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
     isSavedAnswer?: boolean;

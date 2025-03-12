@@ -241,6 +241,7 @@ export function useSavedItems(type: ItemTypeSaved) {
 
         return updated;
       });
+      console.log('deleteItem - saveItem',saveItem);
     } catch (error) {
       console.error('Unexpected error during item deletion:', error);
     }
