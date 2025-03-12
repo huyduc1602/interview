@@ -16,7 +16,6 @@ import { AIModel } from "@/services/aiServices/types";
 
 interface ModelSelectorProps {
   selectedModel: string;
-  // eslint-disable-next-line no-unused-vars
   onModelChange: (model: AIModel) => void;
   onRegenerate?: () => void;
   onClearCache?: () => void;

@@ -9,7 +9,7 @@ import { MessageItem } from '@/components/chat/message-item';
 import { SendHorizontal, AlertCircle, Sparkles } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
-import { AIModel, TokenUsage } from '../services/aiServices/types';
+import { AIModel, AIModelType, TokenUsage } from '../services/aiServices/types';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -19,13 +19,11 @@ interface Message {
 }
 
 interface ChatPageProps {
-  // eslint-disable-next-line no-unused-vars
-  onModelChange?: (model: AIModel) => void;
+  onModelChange?: (model: AIModelType) => void;
   tokenUsage?: TokenUsage;
 }
 
-export const ChatPage: React.FC<ChatPageProps> = ({
-  onModelChange }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({ onModelChange }) => {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -34,7 +32,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
- 
+
   const {
     loading,
     selectedModel: selectedModelString,
@@ -46,7 +44,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   const selectedModel = selectedModelString as AIModel;
 
   // Update parent component when model changes
-  const setSelectedModel = (model: AIModel) => {
+  const setSelectedModel = (model: AIModelType) => {
     setModel(model);
     if (onModelChange) {  // Check if callback exists
       onModelChange(model);

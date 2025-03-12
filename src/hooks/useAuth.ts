@@ -31,7 +31,7 @@ export function useAuth() {
 
     const login = (email: string) => {
         const user = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).substring(2, 9),
             name: email.split('@')[0],
             email
         };
@@ -49,5 +49,9 @@ export function useAuth() {
         localStorage.removeItem('current_user');
     };
 
-    return { user, login, loginWithGoogle, logout };
+    const isGoogleUser = () => {
+        return user && user.email && user.email.endsWith('@gmail.com');
+    };
+
+    return { user, login, loginWithGoogle, logout, isGoogleUser };
 }

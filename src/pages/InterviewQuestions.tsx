@@ -1,16 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDataRequest, clearCachedAnswers } from '@/store/interview/slice';
+import { clearCachedAnswers, fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
+import type { RootState } from '@/store/types';
+import { useAuth } from '@/hooks/useAuth';
+import { fetchInterviewQuestionDataFromSupabase } from '@/utils/supabaseUtils';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
 import { Layout, SidebarLayout } from '@/layouts';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/SettingsButton';
 import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
 import type { SharedCategoryShuffled, SharedItem } from '@/types/common';
-import {RootState } from "@/store/types";
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import SharedSidebar from '@/components/share/SharedSidebar';
@@ -21,9 +22,12 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, Tag, X } from "lucide-react";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { saveData } from '@/utils/supabaseStorage'; // Import saveData function
 import type { KnowledgeItem } from '@/types/knowledge';
+import { ItemTypeSaved } from '../types/common';
 
 export default function InterviewQuestions() {
+    const { user, isGoogleUser } = useAuth();
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const { questions } = useSelector((state: RootState) => state.interview);
@@ -33,8 +37,7 @@ export default function InterviewQuestions() {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
-    const { user } = useAuth();
-    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
+    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems(ItemTypeSaved.InterviewAnswers);
     const { getApiKey } = useApiKeys();
     const fetchedRef = useRef(false);
     const prevApiKeyRef = useRef('');
@@ -42,7 +45,6 @@ export default function InterviewQuestions() {
     const prevSheetNameRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    
     const {
         loading,
         selectedModel,
@@ -59,6 +61,7 @@ export default function InterviewQuestions() {
         onSuccess: (content) => {
             if (selectedItem) {
                 setSelectedItem({ ...selectedItem, answer: content });
+                saveData(ItemTypeSaved.InterviewAnswers, { user_id: user?.id, question: selectedItem.question, answer: content });
             }
         },
         onError: () => {
@@ -67,12 +70,56 @@ export default function InterviewQuestions() {
     });
 
     useEffect(() => {
-            if (!questions || questions.length === 0) setIsLoading(true); else setIsLoading(false);
-            setExpandedCategories(questions.reduce((acc, category, index) => {
-                acc[index] = category.items.length > 0;
-                return acc;
-            }, {} as ExpandedCategories));
-        }, [questions]);
+        const fetchKnowledgeData = async () => {
+            if (user && isGoogleUser()) {
+                const data = await fetchInterviewQuestionDataFromSupabase(user.id);
+                if (data) {
+                    // Assuming the knowledge data structure matches the expected format
+                    dispatch(fetchDataSuccess({ questions: data }));
+                }
+            } else {
+                fetchNonGoogleUserData();
+            }
+        };
+
+        fetchKnowledgeData();
+    }, [user, isGoogleUser, dispatch]);
+
+    // Function to fetch data for non-Google users
+    const fetchNonGoogleUserData = async () => {
+        const apiKey = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY);
+        const spreadsheetId = getApiKey(ApiKeyService.SPREADSHEET_ID);
+        const sheetName = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
+
+        // Only fetch if we haven't fetched yet or if keys have changed
+        if (
+            !fetchedRef.current ||
+            apiKey !== prevApiKeyRef.current ||
+            spreadsheetId !== prevSpreadsheetIdRef.current ||
+            sheetName !== prevSheetNameRef.current
+        ) {
+            // Save current values for comparison on next render
+            prevApiKeyRef.current = apiKey;
+            prevSpreadsheetIdRef.current = spreadsheetId;
+            prevSheetNameRef.current = sheetName;
+            fetchedRef.current = true;
+
+            if (apiKey && spreadsheetId && sheetName) {
+                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (!questions || questions.length === 0) {
+            setIsLoading(true);
+            return;
+        } else setIsLoading(false);
+        setExpandedCategories(questions.reduce((acc, category, index) => {
+            acc[index] = category.items.length > 0;
+            return acc;
+        }, {} as ExpandedCategories));
+    }, [questions]);
 
     useEffect(() => {
         // Skip if no user
@@ -125,7 +172,7 @@ export default function InterviewQuestions() {
         );
     };
 
-    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem, _category?: string) => {
+    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
         const questionItem = item as SharedItem | SharedCategoryShuffled;
         setSelectedItem({ ...questionItem, answer: null });
 
@@ -307,7 +354,7 @@ export default function InterviewQuestions() {
                             savedItems={savedItems}
                             addFollowUpQuestion={addFollowUpQuestion}
                             generateAnswer={generateAnswer}
-                      />
+                        />
                     }
                 />
                 <SettingsButton onSubmit={handleApiKeySubmit} sheetName={ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS} isLoading={isLoading} />
