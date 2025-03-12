@@ -7,6 +7,7 @@ import { FollowUpQuestion, SavedItem, SharedCategoryShuffled, SharedItem, User }
 import { cn } from '@/lib/utils';
 import { ChatHistory } from '@/types/knowledge';
 import { AIModelType } from '@/services/aiServices';
+import { generateId } from '@/utils/supabaseUtils';
 
 interface InterviewQuestionsContentProps {
   selectedQuestion: SharedItem | SharedCategoryShuffled | null;
@@ -100,13 +101,13 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   const handleSaveItem = () => {
     if (selectedQuestion) {
       const itemSaved: SavedItem = {
-        id: Math.random().toString(36).substring(2, 9),
-        user_id: user?.id ?? 0,
+        id: generateId(),
+        user_id: user?.id ?? generateId(),
         category: selectedQuestion.category || '',
         question: selectedQuestion.question,
         answer: selectedQuestion.answer || '',
         model: selectedModel,
-        created_at: Date.now()
+        created_at: new Date().toISOString()
       }
       saveItem(itemSaved);
       setIsSaved(true);

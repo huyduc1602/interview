@@ -4,7 +4,7 @@ declare global {
     }
 }
 
-export const getApiKey = (service: string, userId: number): string => {
+export const getApiKey = (service: string, userId: string): string => {
     // Check localStorage first
     const savedKeys = localStorage.getItem(`api_keys_${userId}`);
     if (savedKeys) {

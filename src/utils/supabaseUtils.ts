@@ -1,7 +1,8 @@
 import { supabase } from '@/supabaseClient';
 import { ItemTypeSaved } from '@/types/common';
+import { v4 as uuidv4 } from 'uuid';
 
-export const fetchKnowledgeDataFromSupabase = async (userId: number) => {
+export const fetchKnowledgeDataFromSupabase = async (userId: string) => {
     try {
         const { data, error } = await supabase
             .from(ItemTypeSaved.KnowledgeAnswers)
@@ -20,7 +21,7 @@ export const fetchKnowledgeDataFromSupabase = async (userId: number) => {
     }
 };
 
-export const fetchInterviewQuestionDataFromSupabase = async (userId: number) => {
+export const fetchInterviewQuestionDataFromSupabase = async (userId: string) => {
     try {
         const { data, error } = await supabase
             .from(ItemTypeSaved.InterviewAnswers)
@@ -37,4 +38,8 @@ export const fetchInterviewQuestionDataFromSupabase = async (userId: number) => 
         console.error('Unexpected error fetching interview question data:', error);
         return null;
     }
+};
+
+export const generateId = () : string => {
+    return uuidv4();
 };

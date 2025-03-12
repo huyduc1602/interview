@@ -4,17 +4,18 @@ import { saveData } from '@/utils/supabaseStorage';
 import { supabase } from '@/supabaseClient';
 import { debounce } from 'lodash';
 import type { FollowUpQuestion, ItemTypeSaved, SavedItem } from '@/types/common';
+import { generateId } from '@/utils/supabaseUtils';
 
 export function useSavedItems(type: ItemTypeSaved) {
   const { user, isGoogleUser } = useAuth();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
 
   // Store user ID in a ref to avoid unnecessary effect triggers
-  const userIdRef = useRef<number | null>(null);
+  const userIdRef = useRef<string | null>(null);
 
   // Create a stable debounce function outside of useCallback
   const stableDebouncedLoad = useRef(
-    debounce(async (userId: number, isGoogle: boolean, itemType: string) => {
+    debounce(async (userId: string, isGoogle: boolean, itemType: string) => {
       if (isGoogle) {
         const { data, error } = await supabase
           .from(itemType)
@@ -51,8 +52,8 @@ export function useSavedItems(type: ItemTypeSaved) {
 
     const newItem: SavedItem = {
       ...item,
-      id: Math.random().toString(36).substring(2, 9),
-      created_at: Date.now(),
+      id: generateId(),
+      created_at: new Date().toISOString(),
       category: item.category || '',
       question: item.question,
       answer: item.answer,
@@ -71,7 +72,7 @@ export function useSavedItems(type: ItemTypeSaved) {
   };
 
   // Add follow-up question
-  const addFollowUpQuestion = async ({itemId, question, answer}: FollowUpQuestion) => {
+  const addFollowUpQuestion = async ({ itemId, question, answer }: FollowUpQuestion) => {
     if (!user) return;
 
     setSavedItems(prev => {
