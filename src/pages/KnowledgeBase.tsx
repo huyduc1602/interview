@@ -13,7 +13,7 @@ import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { saveData } from '@/utils/supabaseStorage';
+import { saveDataSupabase } from '@/utils/supabaseStorage';
 import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
 import KnowledgeSidebar from '@/components/knowledge/KnowledgeSidebar';
 import KnowledgeContent from '@/components/knowledge/KnowledgeContent';
@@ -66,7 +66,7 @@ export default function KnowledgeBase() {
         if (selectedItem) {
             setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
             if (user) {
-                saveData(ItemTypeSaved.KnowledgeAnswers, {
+                saveDataSupabase(ItemTypeSaved.KnowledgeAnswers, {
                     user_id: user.id,
                     question: selectedItem.content,
                     answer: content,
@@ -202,6 +202,7 @@ export default function KnowledgeBase() {
 
     const convertToSharedItem = useCallback((item: KnowledgeItem | null): SharedItem => {
         return {
+            id: item?.id ?? generateId(),
             question: item?.content || '',
             category: item?.category || '',
             answer: item?.answer || ''
@@ -248,6 +249,12 @@ export default function KnowledgeBase() {
 
     }, [savedItems, fetchData]);
 
+    useEffect(() => {
+        if (existingSavedItem && existingSavedItem.id == selectedItem?.id) {
+            setIsSavedAnswer(true);
+        }
+    }, [existingSavedItem]);
+
     const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
         if (!selectedItem) return;
 
@@ -273,6 +280,7 @@ export default function KnowledgeBase() {
             .sort(() => Math.random() - 0.5)
             .map((knowledgeItem, index) => ({
                 ...knowledgeItem,
+                id: knowledgeItem.id ?? generateId(),
                 question: knowledgeItem.question,
                 orderNumber: index + 1
             }));
@@ -336,6 +344,7 @@ export default function KnowledgeBase() {
                             generateAnswer={generateAnswer}
                             setAnswer={setAnswer}
                             isSavedAnswer={isSavedAnswer}
+                            setIsSavedAnswer={setIsSavedAnswer}
                             existingSavedItem={existingSavedItem}
                             typeSavedItem={ItemTypeSaved.KnowledgeAnswers}
                         />

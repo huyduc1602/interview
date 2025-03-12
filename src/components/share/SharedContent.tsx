@@ -24,10 +24,12 @@ interface InterviewQuestionsContentProps {
   addFollowUpQuestion: (item: FollowUpQuestion) => void;
   generateAnswer: (prompt: string) => Promise<string>;
   isSavedAnswer: boolean;
+  setIsSavedAnswer: (isSaved: boolean) => void;
   existingSavedItem: SavedItem | null;
   typeSavedItem: ItemTypeSaved;
 }
 
+//FIXME: Sửa button lưu đang tự động active dù chưa có dữ liệu trên supabase
 const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   selectedQuestion,
   user,
@@ -40,14 +42,15 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   addFollowUpQuestion,
   generateAnswer,
   isSavedAnswer,
+  setIsSavedAnswer,
   existingSavedItem,
   typeSavedItem
 }) => {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-  const [isSaved, setIsSaved] = useState(isSavedAnswer);
   const { deleteItem } = useSavedItems(typeSavedItem);
+  console.log('SharedContent - isSavedAnswer', isSavedAnswer);
 
   const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -107,12 +110,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   };
 
   const handleSaveOrDeleteItem = () => {
-    if (isSaved) {
+    if (isSavedAnswer) {
       if (existingSavedItem) deleteItem(existingSavedItem.id);
     } else {
       if (selectedQuestion) {
         const itemSaved: SavedItem = {
-          id: generateId(),
+          id: selectedQuestion.id ?? generateId(),
           user_id: user?.id ?? generateId(),
           category: selectedQuestion.category || '',
           question: selectedQuestion.question,
@@ -120,11 +123,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
           model: selectedModel,
           created_at: new Date().toISOString()
         }
+        console.trace('handleSaveOrDeleteItem - saveItem', itemSaved);
         saveItem(itemSaved);
       }
     }
 
-    setIsSaved(!isSaved);
+    setIsSavedAnswer(!isSavedAnswer);
   };
 
   const renderChatHistory = () => {
@@ -194,12 +198,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
               <h1 className="text-2xl font-semibold">
                 {selectedQuestion.question}
               </h1>
-              {user && selectedQuestion.answer && (
+              {user && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSaveOrDeleteItem}
-                  className={isSaved ? 'bg-green-100' : ''}
+                  className={isSavedAnswer ? 'bg-green-100' : ''}
                 >
                   <BookmarkPlus className="w-4 h-4 mr-2" />
                   {t('common.save')}
