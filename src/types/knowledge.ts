@@ -9,7 +9,7 @@ export interface KnowledgeItem extends BaseItem {
     status: boolean;
 }
 
-export interface SavedItem {
+export interface SavedItemKnowledge {
     id: string;
     type: 'knowledge';
     category?: string;

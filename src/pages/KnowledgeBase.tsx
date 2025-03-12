@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearCachedAnswers, fetchDataRequest } from '@/store/interview/slice';
+import { fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
@@ -13,31 +13,36 @@ import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import SharedSidebar from '@/components/share/SharedSidebar';
 import SharedContent from '@/components/share/SharedContent';
-import { ModelSelector } from "@/components/ui/model-selector";
-import { SharedCategoryShuffled, SharedItem } from "@/types/common";
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { ChevronUp, Tag, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+import { ItemTypeSaved, SharedCategoryShuffled, SharedItem } from "@/types/common";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { saveData } from '@/utils/supabaseStorage';
+import { fetchKnowledgeDataFromSupabase } from '@/utils/supabaseUtils';
+import CategoryTags from '@/components/knowledge/CategoryTags';
+import KnowledgeModelSelector from '@/components/knowledge/KnowledgeModelSelector';
 
 export default function KnowledgeBase() {
-    const { user } = useAuth();
+    // Track renders for debugging
+    const renderCountRef = useRef(0);
+    renderCountRef.current++;
+
+    const { user, isGoogleUser } = useAuth();
     const dispatch = useDispatch();
     const { knowledge } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItem, setSelectedItem] = useState<KnowledgeItem | null>(null);
     const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems();
+    const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems(ItemTypeSaved.KnowledgeAnswers);
     const { getApiKey } = useApiKeys();
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { t } = useTranslation();
+
+    // Track if initial data load has happened
+    const dataLoadedRef = useRef(false);
+    // Track user ID to detect actual user changes
+    const userIdRef = useRef<number | null>(null);
 
     const {
         loading,
@@ -47,110 +52,159 @@ export default function KnowledgeBase() {
         setAnswer
     } = useChat({ type: 'knowledge' }, user);
 
+    // Memoize API keys to prevent recreation
+    const apiKey = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKey]);
+    const spreadsheetId = useMemo(() => getApiKey(ApiKeyService.SPREADSHEET_ID), [getApiKey]);
+    const sheetName = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE), [getApiKey]);
+
+    // Memoize isGoogle check to maintain stable reference
+    const isGoogle = useMemo(() => isGoogleUser(), [isGoogleUser]);
+
+    // Memoize onSuccess callback
+    const handleSuccess = useCallback((content: string) => {
+        if (selectedItem) {
+            setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
+            if (user) {
+                saveData(ItemTypeSaved.KnowledgeAnswers, {
+                    user_id: user.id,
+                    question: selectedItem.content,
+                    answer: content
+                });
+            }
+        }
+    }, [selectedItem, user]);
+
+    // Memoize onError callback
+    const handleError = useCallback(() => {
+        setSelectedItem(null);
+    }, []);
+
     const {
         handleGenerateAnswer,
         error
     } = useAIResponse({
         generateAnswer,
-        onSuccess: useCallback((content: string) => {
-            if (selectedItem) {
-                setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
-                saveData('knowledge_answers', { user_id: user?.id, question: selectedItem.content, answer: content });
-            }
-        }, [selectedItem]),
-        onError: useCallback(() => {
-            setSelectedItem(null);
-        }, [])
+        onSuccess: handleSuccess,
+        onError: handleError
     });
 
-    // Add these refs to track fetch status and previous values
-    const fetchedRef = useRef(false);
-    const prevApiKeyRef = useRef('');
-    const prevSpreadsheetIdRef = useRef('');
-    const prevSheetNameRef = useRef<string | null>(null);
-
-    useEffect(() => {
-        if (!knowledge || knowledge.length === 0) setIsLoading(true); else setIsLoading(false);
-        setExpandedCategories(knowledge.reduce((acc, kCategory, index) => {
-            acc[index] = kCategory.category.length > 0;
-            return acc;
-        }, {} as ExpandedCategories));
-    }, [knowledge]);
-
+    // CONSOLIDATED DATA LOADING EFFECT
+    // This single effect handles all data loading scenarios
     useEffect(() => {
         // Skip if no user
         if (!user) return;
 
-        const apiKey = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY);
-        const spreadsheetId = getApiKey(ApiKeyService.SPREADSHEET_ID);
-        const sheetName = getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE);
-
-        // Only fetch if we haven't fetched yet or if keys have changed
-        if (
-            !fetchedRef.current ||
-            apiKey !== prevApiKeyRef.current ||
-            spreadsheetId !== prevSpreadsheetIdRef.current ||
-            sheetName !== prevSheetNameRef.current
-        ) {
-            // Save current values for comparison on next render
-            prevApiKeyRef.current = apiKey;
-            prevSpreadsheetIdRef.current = spreadsheetId;
-            prevSheetNameRef.current = sheetName;
-            fetchedRef.current = true;
-
-            if (apiKey && spreadsheetId && sheetName) {
-                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
-            }
+        // Only run if user has changed or this is first load
+        if (user.id !== userIdRef.current || !dataLoadedRef.current) {
+            userIdRef.current = user.id;
+            loadData();
         }
-    }, [dispatch, getApiKey, user]);
+    }, [apiKey, dispatch, user]);
 
-    // Load chat history from localStorage on component mount
+    // Update expanded categories when knowledge changes
     useEffect(() => {
-        if (user) {
-            const savedHistory = localStorage.getItem(`chat_history_${user.id}`);
-            if (savedHistory) {
-                setChatHistory(JSON.parse(savedHistory));
-            }
-        }
-    }, [user]);
+        if (!knowledge || knowledge.length === 0) return;
+
+        setExpandedCategories(knowledge.reduce((acc, kCategory, index) => {
+            acc[index] = kCategory.category.length > 0;
+            return acc;
+        }, {} as ExpandedCategories));
+
+        if (isLoading) setIsLoading(false);
+    }, [knowledge, isLoading]);
 
     // Save chat history to localStorage when it changes
     useEffect(() => {
-        if (user && Object.keys(chatHistory).length > 0) {
-            localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(chatHistory));
-        }
+        if (!user || Object.keys(chatHistory).length === 0) return;
+
+        localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(chatHistory));
     }, [chatHistory, user]);
 
-    const handleApiKeySubmit = async (apiKey: string, spreadsheetId: string) => {
+
+    const loadData = async () => {
+        setIsLoading(true);
+
+        try {
+            // Always load from Google Sheets first (for all users)
+            if (apiKey && spreadsheetId && sheetName) {
+                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+            }
+
+            // For Google users, fetch answers from Supabase and merge with knowledge data
+            if (isGoogle) {
+                const answers = await fetchKnowledgeDataFromSupabase(user?.id ?? 0);
+
+                if (answers && answers.length > 0 && knowledge && knowledge.length > 0) {
+
+                    // Create a map of question -> answer for quick lookup
+                    const answersMap = new Map();
+                    answers.forEach(item => {
+                        if (item.question && item.answer) {
+                            answersMap.set(item.question, item.answer);
+                        }
+                    });
+
+                    // Clone and update knowledge data with answers
+                    const updatedKnowledge = knowledge.map(category => ({
+                        ...category,
+                        items: category.items.map(item => {
+                            const answer = answersMap.get(item.answer);
+                            if (answer) {
+                                return { ...item, answer };
+                            }
+                            return item;
+                        })
+                    }));
+
+                    // Update Redux store with merged data
+                    dispatch(fetchDataSuccess({ knowledge: updatedKnowledge }));
+                }
+            }
+
+            // Load chat history from localStorage
+            const savedHistory = localStorage.getItem(`chat_history_${user?.id}`);
+            if (savedHistory) {
+                setChatHistory(JSON.parse(savedHistory));
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+        } finally {
+            setIsLoading(false);
+            dataLoadedRef.current = true;
+        }
+    };
+
+    const handleApiKeySubmit = useCallback(async (apiKey: string, spreadsheetId: string) => {
+        if (!user) return;
+
         setIsLoading(true);
         await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
         setIsLoading(false);
-    };
+    }, [dispatch, user]);
 
-    const toggleCategory = (categoryIndex: number): void => {
+    const toggleCategory = useCallback((categoryIndex: number): void => {
         setExpandedCategories(prev => ({
             ...prev,
             [categoryIndex]: !prev[categoryIndex]
         }));
-    };
+    }, []);
 
-    const filterItems = (items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
+    const filterItems = useCallback((items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
         if (!query) return items;
         return items.filter(item =>
             item.question.toLowerCase().includes(query.toLowerCase())
         );
-    };
+    }, []);
 
-    const convertToSharedItem = (item: KnowledgeItem | null): SharedItem => {
-       return {
+    const convertToSharedItem = useCallback((item: KnowledgeItem | null): SharedItem => {
+        return {
             question: item?.content || '',
             category: item?.category || '',
             answer: item?.answer || ''
         };
-    }
+    }, []);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem, _category?: string) => {
+    const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
         const knowledgeItem = item as KnowledgeItem;
         setSelectedItem(knowledgeItem);
 
@@ -161,20 +215,20 @@ export default function KnowledgeBase() {
             console.error('Failed to generate answer:', error);
             setSelectedItem(null);
         }
-    };
+    }, [handleGenerateAnswer]);
 
-    const handleRegenerateAnswer = async (): Promise<void> => {
+    const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
         if (!selectedItem) return;
 
         try {
             const answer = await generateAnswer(selectedItem.content);
-            setSelectedItem(prev => prev ? { ...prev, answer } : null);
+            setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {
             console.error('Failed to regenerate answer:', error);
         }
-    };
+    }, [selectedItem, generateAnswer]);
 
-    const handleShuffleQuestions = () => {
+    const handleShuffleQuestions = useCallback(() => {
         const allQuestions = knowledge
             .filter(kCategory => selectedCategories.includes(kCategory.category))
             .flatMap(kCategory =>
@@ -194,9 +248,9 @@ export default function KnowledgeBase() {
         setShuffledQuestions(shuffled);
         setSelectedItem(null);
         setAnswer("");
-    };
+    }, [knowledge, selectedCategories, setAnswer]);
 
-    const handleCategorySelect = (category: string) => {
+    const handleCategorySelect = useCallback((category: string) => {
         setSelectedCategories(prev => {
             const isSelected = prev.includes(category);
             if (isSelected) {
@@ -204,97 +258,7 @@ export default function KnowledgeBase() {
             }
             return [...prev, category];
         });
-    };
-
-    const renderCategoryTags = () => {
-        const selectedCount = selectedCategories.length;
-        const totalCount = knowledge.length;
-
-        if (!isTagsExpanded) {
-            return (
-                <div className="flex items-center gap-2">
-                    {selectedCategories.slice(0, 2).map((category, index) => (
-                        <Badge
-                            key={index}
-                            variant="secondary"
-                            className="cursor-pointer hover:bg-gray-200"
-                            onClick={() => handleCategorySelect(category)}
-                        >
-                            {category} ×
-                        </Badge>
-                    ))}
-                    {selectedCount > 2 && (
-                        <Badge variant="outline">
-                            +{selectedCount - 2} {t('interviewQuestions.categories.more')}
-                        </Badge>
-                    )}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-auto"
-                        onClick={() => setIsTagsExpanded(true)}
-                    >
-                        <Tag className="h-4 w-4 mr-2" />
-                        {t('interviewQuestions.categories.selectCount', { selected: selectedCount, total: totalCount })}
-                    </Button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                        {t('interviewQuestions.categories.select')} ({selectedCount}/{totalCount})
-                    </span>
-                    <Tooltip content={t('interviewQuestions.tooltips.collapse')}>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsTagsExpanded(false)}
-                        >
-                            <ChevronUp className="h-4 w-4" />
-                        </Button>
-                    </Tooltip>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {knowledge.map((category, index) => (
-                        <Badge
-                            key={index}
-                            variant={selectedCategories.includes(category.category) ? "default" : "outline"}
-                            className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedCategories.includes(category.category)
-                                    ? "hover:bg-primary/80"
-                                    : "hover:bg-gray-100"
-                            )}
-                            onClick={() => handleCategorySelect(category.category)}
-                        >
-                            {category.category}
-                            {selectedCategories.includes(category.category) && (
-                                <X className="h-3 w-3 ml-1 inline-block" />
-                            )}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
-     const renderModelSelector = () => (
-            <ModelSelector
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-                onRegenerate={handleRegenerateAnswer}
-                onClearCache={() => {
-                    dispatch(clearCachedAnswers());
-                    setAnswer("");
-                }}
-                loading={loading}
-                disabled={!selectedItem}
-                type="knowledge"
-            />
-        );
+    }, []);
 
     if (!user) {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
@@ -318,7 +282,15 @@ export default function KnowledgeBase() {
                             shuffledQuestions={shuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
-                            renderCategoryTags={renderCategoryTags}
+                            renderCategoryTags={() => (
+                                <CategoryTags
+                                    selectedCategories={selectedCategories}
+                                    isTagsExpanded={isTagsExpanded}
+                                    setIsTagsExpanded={setIsTagsExpanded}
+                                    handleCategorySelect={handleCategorySelect}
+                                    knowledge={knowledge}
+                                />
+                            )}
                             type="knowledge"
                             loading={isLoading}
                         />
@@ -333,7 +305,16 @@ export default function KnowledgeBase() {
                             handleRegenerateAnswer={handleRegenerateAnswer}
                             loading={loading}
                             error={error}
-                            renderModelSelector={renderModelSelector}
+                            renderModelSelector={() => (
+                                <KnowledgeModelSelector
+                                    selectedModel={selectedModel}
+                                    setSelectedModel={setSelectedModel}
+                                    handleRegenerateAnswer={handleRegenerateAnswer}
+                                    loading={loading}
+                                    selectedItem={selectedItem}
+                                    setAnswer={setAnswer}
+                                />
+                            )}
                             savedItems={savedItems}
                             addFollowUpQuestion={addFollowUpQuestion}
                             generateAnswer={generateAnswer}

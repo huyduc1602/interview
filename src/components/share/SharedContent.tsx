@@ -3,22 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus, Send } from 'lucide-react';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
-import { SavedItem, SharedCategoryShuffled, SharedItem } from '@/types/common';
+import { FollowUpQuestion, SavedItem, SharedCategoryShuffled, SharedItem, User } from '@/types/common';
 import { cn } from '@/lib/utils';
 import { ChatHistory } from '@/types/knowledge';
+import { AIModelType } from '@/services/aiServices';
 
 interface InterviewQuestionsContentProps {
   selectedQuestion: SharedItem | SharedCategoryShuffled | null;
-  user: any;
-  saveItem: (item: any) => void;
+  user: User | null;
+  saveItem: (item: SavedItem) => void;
   selectedModel: string;
-  setSelectedModel: (model: string) => void;
+  setSelectedModel: (model: AIModelType) => void;
   handleRegenerateAnswer: () => void;
   loading: boolean;
   error: string | null;
   renderModelSelector: () => JSX.Element;
   savedItems: SavedItem[];
-  addFollowUpQuestion: (itemId: string, question: string, answer: string) => void;
+  addFollowUpQuestion: (item: FollowUpQuestion) => void;
   generateAnswer: (prompt: string) => Promise<string>;
 }
 
@@ -72,7 +73,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
         );
 
         if (savedItem) {
-          addFollowUpQuestion(savedItem.id, question, answer);
+          addFollowUpQuestion({ itemId: savedItem.id, question, answer });
         }
       }
     } catch (error) {
@@ -94,6 +95,22 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChatInput(e.target.value);
+  };
+
+  const handleSaveItem = () => {
+    if (selectedQuestion) {
+      const itemSaved: SavedItem = {
+        id: Math.random().toString(36).substring(2, 9),
+        user_id: user?.id ?? 0,
+        category: selectedQuestion.category || '',
+        question: selectedQuestion.question,
+        answer: selectedQuestion.answer || '',
+        model: selectedModel,
+        created_at: Date.now()
+      }
+      saveItem(itemSaved);
+      setIsSaved(true);
+    }
   };
 
   const renderChatHistory = () => {
@@ -167,16 +184,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    saveItem({
-                      type: selectedQuestion.type,
-                      category: selectedQuestion.category || '',
-                      question: selectedQuestion.question,
-                      answer: selectedQuestion.answer || '',
-                      model: selectedModel
-                    });
-                    setIsSaved(true);
-                  }}
+                  onClick={handleSaveItem}
                   className={isSaved ? 'bg-green-100' : ''}
                 >
                   <BookmarkPlus className="w-4 h-4 mr-2" />

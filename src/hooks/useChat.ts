@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
 import { fetchChatGPTAnswer } from '@/services/aiServices/chatgptService';
 import { generateGeminiResponse } from '@/services/aiServices/geminiService';
@@ -24,7 +23,7 @@ interface UseChatOptions {
 interface UseChatReturn {
   loading: boolean;
   selectedModel: string;
-  setSelectedModel: Dispatch<SetStateAction<string>>;
+  setSelectedModel: Dispatch<SetStateAction<AIModelType>>;
   generateAnswer: (input: string) => Promise<string>;
   answer: string | null;
   setAnswer: Dispatch<SetStateAction<string | null>>;
