@@ -372,5 +372,30 @@ export default {
     title: "Page Not Found",
     message: "Sorry, the page you are looking for does not exist.",
     homeLink: "Go to Home"
-  }
+  },
+  models: {
+    groups: {
+      openai: "OpenAI",
+      free: "Free Alternatives"
+    },
+    openai: {
+      gpt35: "GPT-3.5 Turbo",
+      gpt4: "GPT-4 Turbo"
+    },
+    google: {
+      gemini: "Gemini Pro"
+    },
+    mistral: {
+      small: "Mistral Small"
+    },
+    openchat: {
+      35: "OpenChat 3.5"
+    },
+    badges: {
+      premium: "Premium",
+      google: "Google",
+      mistral: "Mistral",
+      free: "Free"
+    }
+  },
 }
