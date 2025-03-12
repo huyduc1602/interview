@@ -16,7 +16,7 @@ import SharedContent from '@/components/share/SharedContent';
 import { ItemTypeSaved, SharedCategoryShuffled, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { saveData } from '@/utils/supabaseStorage';
-import { fetchKnowledgeDataFromSupabase } from '@/utils/supabaseUtils';
+import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
 import CategoryTags from '@/components/knowledge/CategoryTags';
 import KnowledgeModelSelector from '@/components/knowledge/KnowledgeModelSelector';
 
@@ -42,7 +42,7 @@ export default function KnowledgeBase() {
     // Track if initial data load has happened
     const dataLoadedRef = useRef(false);
     // Track user ID to detect actual user changes
-    const userIdRef = useRef<number | null>(null);
+    const userIdRef = useRef<string | null>(null);
 
     const {
         loading,
@@ -68,7 +68,8 @@ export default function KnowledgeBase() {
                 saveData(ItemTypeSaved.KnowledgeAnswers, {
                     user_id: user.id,
                     question: selectedItem.content,
-                    answer: content
+                    answer: content,
+                    category: selectedItem.category
                 });
             }
         }
@@ -132,7 +133,7 @@ export default function KnowledgeBase() {
 
             // For Google users, fetch answers from Supabase and merge with knowledge data
             if (isGoogle) {
-                const answers = await fetchKnowledgeDataFromSupabase(user?.id ?? 0);
+                const answers = await fetchKnowledgeDataFromSupabase(user?.id ?? generateId());
 
                 if (answers && answers.length > 0 && knowledge && knowledge.length > 0) {
 

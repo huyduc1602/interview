@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
+import { generateId } from '@/utils/supabaseUtils';
 
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
@@ -31,7 +32,7 @@ export function useAuth() {
 
     const login = (email: string) => {
         const user = {
-            id: Math.random().toString(36).substring(2, 9),
+            id: generateId(),
             name: email.split('@')[0],
             email
         };

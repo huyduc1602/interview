@@ -8,8 +8,8 @@ export interface BaseItem {
 
 export interface SavedItem {
     id: string;
-    user_id: number;
-    created_at: number;
+    user_id: string;
+    created_at: string;
     followUpQuestions?: { question: string; answer: string; timestamp: number }[];
     category: string;
     question: string;
@@ -18,7 +18,7 @@ export interface SavedItem {
 }
 
 export interface User {
-    id: number;
+    id: string;
     name: string;
     email: string;
     [key: string]: unknown;
