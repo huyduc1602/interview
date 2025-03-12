@@ -36,7 +36,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-2 mb-4">
+    <div className="flex items-center gap-2 mb-4 mt-2 px-1">
       <Select
         value={selectedModel}
         defaultValue={AIModel.GPT35_0125}
@@ -101,7 +101,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         size="icon"
         onClick={props.onRegenerate}
         disabled={props.disabled || props.loading}
-        className="h-10 w-10"
+        className="h-10 w-10 px-3 py-2"
         title={t(`${props.type}.actions.regenerate`)}
       >
         <RefreshCw className={cn("h-4 w-4", props.loading && "animate-spin")} />
