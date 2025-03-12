@@ -29,6 +29,8 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
     const dataLoadedRef = useRef(false);
     // Track user ID to detect actual user changes
     const userIdRef = useRef<string | null>(null);
+    // Track page reloads
+    const pageLoadIdRef = useRef<string | null>(null);
 
     // Memoize API keys to prevent recreation
     const apiKey = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKey]);
@@ -43,17 +45,42 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
     // Memoize isGoogle check to maintain stable reference
     const isGoogle = useMemo(() => isGoogleUser(), [isGoogleUser]);
 
+    // Setup page reload detection 
+    useEffect(() => {
+        // Generate a unique ID for this page load/session
+        const currentLoadId = `page_load_${Date.now()}`;
+
+        // Check if this is a new page load
+        const isNewPageLoad = pageLoadIdRef.current !== currentLoadId;
+
+        // Store the current page load ID
+        pageLoadIdRef.current = currentLoadId;
+
+        // Persist to sessionStorage to detect page reloads
+        const previousLoadId = sessionStorage.getItem('page_load_id');
+        sessionStorage.setItem('page_load_id', currentLoadId);
+
+        // If user exists and this is a new page load, force data reload
+        if (user && (isNewPageLoad || previousLoadId !== currentLoadId)) {
+            console.log('Page reload detected, forcing data reload');
+            dataLoadedRef.current = false; // Reset data loaded flag to force reload
+        }
+    }, [user]); // Only re-run when user changes
+
+    // Main effect for loading data
     useEffect(() => {
         // Skip if no user
         if (!user) return;
 
-        // Only run if user has changed or this is first load
+        // Load data if:
+        // 1. User has changed, OR
+        // 2. First load, OR
+        // 3. Data not yet loaded
         if (user.id !== userIdRef.current || !dataLoadedRef.current) {
             userIdRef.current = user.id;
-            console.log('useDataManagement.ts - [loadData()]')
             loadData();
         }
-    }, [apiKey, dispatch, user]);
+    }, [apiKey, dispatch, user, data?.length]); // Added data?.length to dependencies
 
     // Update expanded categories when data changes
     useEffect(() => {
@@ -69,6 +96,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
 
     const loadData = async () => {
         setIsLoading(true);
+        console.log(`Loading ${dataType} data...`);
 
         try {
             // Always load from Google Sheets first (for all users)
@@ -110,13 +138,21 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
                     dispatch(fetchDataSuccess({ [field]: updatedData }));
                 }
             }
+
+            console.log(`${dataType} data loaded successfully`);
         } catch (error) {
-            console.error('Error loading data:', error);
+            console.error(`Error loading ${dataType} data:`, error);
         } finally {
             setIsLoading(false);
             dataLoadedRef.current = true;
         }
     };
+
+    // Force reload data function that can be called from outside
+    const forceReloadData = useCallback(() => {
+        dataLoadedRef.current = false;
+        loadData();
+    }, []);
 
     const toggleCategory = useCallback((categoryIndex: number): void => {
         setExpandedCategories(prev => ({
@@ -193,6 +229,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         handleCategorySelect,
         handleShuffleQuestions,
         handleApiKeySubmit,
-        loadData
+        loadData,
+        forceReloadData // Expose method to force data reload
     };
 }

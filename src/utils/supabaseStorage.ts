@@ -8,7 +8,6 @@ import { SavedItem } from '@/types/common';
  * @returns Promise with the response or error
  */
 export const saveDataSupabase = async (table: string, data: SavedItem) => {
-    console.trace('supabaseStorage.ts - [table] - data', table, data);
     try {
         const { data: response, error } = await supabase
             .from(table)
