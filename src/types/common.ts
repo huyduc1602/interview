@@ -57,3 +57,13 @@ export type FollowUpQuestion = {
     question: string;
     answer: string
 }
+
+export interface ResponseAnswer {
+    id: string;
+    user_id: string;
+    category?: string;
+    question: string;
+    answer: string;
+    created_at: string;
+    model: string
+}
