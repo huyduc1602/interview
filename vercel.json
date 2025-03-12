@@ -3,13 +3,20 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/auth/callback",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/index.html"
     }
   ]
 }
