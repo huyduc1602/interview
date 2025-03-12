@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isLoginGoogle, setIsLoginGoogle] = useState(true);
 
     useEffect(() => {
         // Load user from localStorage on mount
@@ -12,6 +16,8 @@ export function useAuth() {
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
+
+        if (!isLoginGoogle) return;
 
         // Check if user is logged in with Supabase
         const fetchSession = async () => {
@@ -35,15 +41,12 @@ export function useAuth() {
         const { data: authListener } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (event === 'SIGNED_IN' && session?.user) {
-                    const authUser = {
-                        id: session.user.id,
-                        name: session.user.user_metadata.full_name ||
-                            session.user.email?.split('@')[0] ||
-                            'User',
-                        email: session.user.email
-                    } as User;
+                    setLoading(true);
+                    const authUser = convertSupabaseUserToUser(session.user);
                     setUser(authUser);
+                    setSession(session);
                     localStorage.setItem('current_user', JSON.stringify(authUser));
+                    setLoading(false);
                 }
 
                 if (event === 'SIGNED_OUT') {
@@ -59,14 +62,29 @@ export function useAuth() {
         };
     }, []);
 
+    const convertSupabaseUserToUser = (supabaseUser: SupabaseUser): User | null => {
+        return supabaseUser ? {
+            id: supabaseUser?.id,
+            name: supabaseUser.user_metadata?.full_name || supabaseUser?.email?.split('@')[0] || 'User',
+            email: supabaseUser?.email || ''
+        } : null
+    }
+
     const login = (email: string) => {
-        const user = {
-            id: generateId(),
-            name: email.split('@')[0],
-            email
-        };
-        setUser(user);
-        localStorage.setItem('current_user', JSON.stringify(user));
+        const currentUserExist = localStorage.getItem('current_user');
+        const currentUserExistObject: User | null = currentUserExist ? JSON.parse(currentUserExist) : null
+
+        if (currentUserExistObject?.email == email) {
+            setUser(currentUserExistObject);
+        } else {
+            const user = {
+                id: generateId(),
+                name: email.split('@')[0],
+                email
+            };
+            setUser(user);
+            localStorage.setItem('current_user', JSON.stringify(user));
+        }
     };
 
     const loginWithGoogle = async () => {
@@ -76,17 +94,18 @@ export function useAuth() {
                 redirectTo: window.location.origin + '/auth/callback'
             }
         });
+        setIsLoginGoogle(true);
     };
 
     const logout = async () => {
         await supabase.auth.signOut();
         setUser(null);
-        localStorage.removeItem('current_user');
     };
 
-    const isGoogleUser = () => {
-        return user && user.email && user.email.endsWith('@gmail.com');
+    const isGoogleUser = (): boolean => {
+        if (user && user.email && user.email.endsWith('@gmail.com')) return true
+        return false;
     };
 
-    return { user, login, loginWithGoogle, logout, isGoogleUser };
+    return { user, session, loading, login, loginWithGoogle, logout, isGoogleUser };
 }

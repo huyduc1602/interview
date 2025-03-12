@@ -19,6 +19,7 @@ interface InterviewContentProps {
     generateAnswer: (question: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
     isSavedAnswer?: boolean;
+    setIsSavedAnswer: (isSaved: boolean) => void;
     existingSavedItem?: SavedItem | null;
     typeSavedItem?: ItemTypeSaved;
 }
@@ -37,6 +38,7 @@ export default function InterviewContent({
     generateAnswer,
     setAnswer,
     isSavedAnswer = false,
+    setIsSavedAnswer,
     existingSavedItem = null,
     typeSavedItem = ItemTypeSaved.InterviewAnswers,
 }: InterviewContentProps) {
@@ -72,6 +74,7 @@ export default function InterviewContent({
             addFollowUpQuestion={addFollowUpQuestion}
             generateAnswer={generateAnswer}
             isSavedAnswer={isSavedAnswer}
+            setIsSavedAnswer={setIsSavedAnswer}
             existingSavedItem={existingSavedItem}
             typeSavedItem={typeSavedItem}
         />

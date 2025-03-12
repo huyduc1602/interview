@@ -14,7 +14,7 @@ import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem } from "@/types/common";
-import { saveData } from '@/utils/supabaseStorage';
+import { saveDataSupabase } from '@/utils/supabaseStorage';
 import type { KnowledgeItem } from '@/types/knowledge';
 import InterviewSidebar from '@/components/interview/InterviewSidebar';
 import InterviewContent from '@/components/interview/InterviewContent';
@@ -66,17 +66,6 @@ export default function InterviewQuestions() {
     const handleSuccess = useCallback((content: string) => {
         if (selectedItem) {
             setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
-            if (user) {
-                saveData(ItemTypeSaved.InterviewAnswers, {
-                    user_id: user.id,
-                    question: selectedItem.question,
-                    answer: content,
-                    category: selectedItem.category || '',
-                    id: generateId(),
-                    created_at: new Date().toISOString(),
-                    model: selectedItem.model ?? AIModel.GPT35_0125
-                });
-            }
         }
     }, [selectedItem, user]);
 
@@ -224,6 +213,9 @@ export default function InterviewQuestions() {
 
         // Update state for use in other components
         setExistingSavedItem(existingSaved || null);
+        if (existingSaved && existingSaved.id == selectedItem?.id) {
+            setIsSavedAnswer(true);
+        }
 
         // Now fetch data with the found saved item
         await fetchData(questionItem, existingSaved || null);
@@ -255,6 +247,7 @@ export default function InterviewQuestions() {
             .sort(() => Math.random() - 0.5)
             .map((question, index) => ({
                 ...question,
+                id: question.id ?? generateId(),
                 question: question.question,
                 orderNumber: index + 1
             }));
@@ -280,6 +273,7 @@ export default function InterviewQuestions() {
 
     // Convert InterviewQuestion to SharedItem
     const sharedQuestion: SharedItem | null = selectedItem ? {
+        id: selectedItem.id,
         question: selectedItem.question,
         category: selectedItem.category,
         answer: selectedItem.answer || null
@@ -323,6 +317,7 @@ export default function InterviewQuestions() {
                             generateAnswer={generateAnswer}
                             setAnswer={setAnswer}
                             isSavedAnswer={isSavedAnswer}
+                            setIsSavedAnswer={setIsSavedAnswer}
                             existingSavedItem={existingSavedItem}
                             typeSavedItem={ItemTypeSaved.InterviewAnswers}
                         />

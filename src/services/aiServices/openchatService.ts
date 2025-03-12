@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { OpenChatResponse } from './types';
 import { handleAPIError } from './utils';
-import { getApiKey } from '../../utils/apiKeys';
+import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 

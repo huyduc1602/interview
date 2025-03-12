@@ -5,7 +5,7 @@ import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtil
 import { User } from '@/types/common';
 
 interface KnowledgeCategory {
-    items: { content: string; [key: string]: unknown }[];
+    items: { content: string;[key: string]: unknown }[];
     [key: string]: unknown;
 }
 
