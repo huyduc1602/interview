@@ -1,49 +1,50 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearCachedAnswers, fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
+import { fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
 import type { RootState } from '@/store/types';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInterviewQuestionDataFromSupabase } from '@/utils/supabaseUtils';
 import { useChat } from '@/hooks/useChat';
 import { useAIResponse } from '@/hooks/useAIResponse';
 import { Layout, SidebarLayout } from '@/layouts';
-import { useTranslation } from 'react-i18next';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/SettingsButton';
-import type { InterviewQuestion, ExpandedCategories } from '@/types/interview';
-import type { SharedCategoryShuffled, SharedItem } from '@/types/common';
+import { InterviewQuestion, ExpandedCategories } from '@/types/interview';
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
-import SharedSidebar from '@/components/share/SharedSidebar';
-import SharedContent from '@/components/share/SharedContent';
-import { ModelSelector } from "@/components/ui/model-selector";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronUp, Tag, X } from "lucide-react";
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { saveData } from '@/utils/supabaseStorage'; // Import saveData function
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem } from "@/types/common";
+import { saveData } from '@/utils/supabaseStorage';
 import type { KnowledgeItem } from '@/types/knowledge';
-import { ItemTypeSaved } from '../types/common';
+import InterviewSidebar from '@/components/interview/InterviewSidebar';
+import InterviewContent from '@/components/interview/InterviewContent';
+import { generateId } from '@/utils/supabaseUtils';
+import { AIModel } from "@/services/aiServices";
 
 export default function InterviewQuestions() {
+    // Track renders for debugging
+    const renderCountRef = useRef(0);
+    renderCountRef.current++;
+
     const { user, isGoogleUser } = useAuth();
     const dispatch = useDispatch();
-    const { t } = useTranslation();
     const { questions } = useSelector((state: RootState) => state.interview);
     const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedItem, setSelectedItem] = useState<SharedItem | SharedCategoryShuffled | null>(null);
+    const [selectedItem, setSelectedItem] = useState<InterviewQuestion | null>(null);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems(ItemTypeSaved.InterviewAnswers);
     const { getApiKey } = useApiKeys();
-    const fetchedRef = useRef(false);
-    const prevApiKeyRef = useRef('');
-    const prevSpreadsheetIdRef = useRef('');
-    const prevSheetNameRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavedAnswer, setIsSavedAnswer] = useState(false);
+    const [existingSavedItem, setExistingSavedItem] = useState<SavedItem | null>(null);
+
+    // Track if initial data load has happened
+    const dataLoadedRef = useRef(false);
+    // Track user ID to detect actual user changes
+    const userIdRef = useRef<string | null>(null);
 
     const {
         loading,
@@ -53,108 +54,125 @@ export default function InterviewQuestions() {
         setAnswer
     } = useChat({ type: 'interview' }, user);
 
+    // Memoize API keys to prevent recreation
+    const apiKey = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKey]);
+    const spreadsheetId = useMemo(() => getApiKey(ApiKeyService.SPREADSHEET_ID), [getApiKey]);
+    const sheetName = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS), [getApiKey]);
+
+    // Memoize isGoogle check to maintain stable reference
+    const isGoogle = useMemo(() => isGoogleUser(), [isGoogleUser]);
+
+    // Memoize onSuccess callback
+    const handleSuccess = useCallback((content: string) => {
+        if (selectedItem) {
+            setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
+            if (user) {
+                saveData(ItemTypeSaved.InterviewAnswers, {
+                    user_id: user.id,
+                    question: selectedItem.question,
+                    answer: content,
+                    category: selectedItem.category || '',
+                    id: generateId(),
+                    created_at: new Date().toISOString(),
+                    model: selectedItem.model ?? AIModel.GPT35_0125
+                });
+            }
+        }
+    }, [selectedItem, user]);
+
+    // Memoize onError callback
+    const handleError = useCallback(() => {
+        setSelectedItem(null);
+    }, []);
+
     const {
         handleGenerateAnswer,
         error
     } = useAIResponse({
         generateAnswer,
-        onSuccess: (content) => {
-            if (selectedItem) {
-                setSelectedItem({ ...selectedItem, answer: content });
-                saveData(ItemTypeSaved.InterviewAnswers, { user_id: user?.id, question: selectedItem.question, answer: content });
-            }
-        },
-        onError: () => {
-            setSelectedItem(null);
-        }
+        onSuccess: handleSuccess,
+        onError: handleError
     });
 
-    useEffect(() => {
-        const fetchKnowledgeData = async () => {
-            if (user && isGoogleUser()) {
-                const data = await fetchInterviewQuestionDataFromSupabase(user.id);
-                if (data) {
-                    // Assuming the knowledge data structure matches the expected format
-                    dispatch(fetchDataSuccess({ questions: data }));
-                }
-            } else {
-                fetchNonGoogleUserData();
-            }
-        };
-
-        fetchKnowledgeData();
-    }, [user, isGoogleUser, dispatch]);
-
-    // Function to fetch data for non-Google users
-    const fetchNonGoogleUserData = async () => {
-        const apiKey = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY);
-        const spreadsheetId = getApiKey(ApiKeyService.SPREADSHEET_ID);
-        const sheetName = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
-
-        // Only fetch if we haven't fetched yet or if keys have changed
-        if (
-            !fetchedRef.current ||
-            apiKey !== prevApiKeyRef.current ||
-            spreadsheetId !== prevSpreadsheetIdRef.current ||
-            sheetName !== prevSheetNameRef.current
-        ) {
-            // Save current values for comparison on next render
-            prevApiKeyRef.current = apiKey;
-            prevSpreadsheetIdRef.current = spreadsheetId;
-            prevSheetNameRef.current = sheetName;
-            fetchedRef.current = true;
-
-            if (apiKey && spreadsheetId && sheetName) {
-                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
-            }
-        }
-    };
-
-    useEffect(() => {
-        if (!questions || questions.length === 0) {
-            setIsLoading(true);
-            return;
-        } else setIsLoading(false);
-        setExpandedCategories(questions.reduce((acc, category, index) => {
-            acc[index] = category.items.length > 0;
-            return acc;
-        }, {} as ExpandedCategories));
-    }, [questions]);
-
+    // CONSOLIDATED DATA LOADING EFFECT
     useEffect(() => {
         // Skip if no user
         if (!user) return;
 
-        const apiKey = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY);
-        const spreadsheetId = getApiKey(ApiKeyService.SPREADSHEET_ID);
-        const sheetName = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
+        // Only run if user has changed or this is first load
+        if (user.id !== userIdRef.current || !dataLoadedRef.current) {
+            userIdRef.current = user.id;
+            loadData();
+        }
+    }, [apiKey, dispatch, user]);
 
-        // Only fetch if we haven't fetched yet or if keys have changed
-        if (
-            !fetchedRef.current ||
-            apiKey !== prevApiKeyRef.current ||
-            spreadsheetId !== prevSpreadsheetIdRef.current ||
-            sheetName !== prevSheetNameRef.current
-        ) {
-            // Save current values for comparison on next render
-            prevApiKeyRef.current = apiKey;
-            prevSpreadsheetIdRef.current = spreadsheetId;
-            prevSheetNameRef.current = sheetName;
-            fetchedRef.current = true;
+    // Update expanded categories when questions changes
+    useEffect(() => {
+        if (!questions || questions.length === 0) return;
 
+        setExpandedCategories(questions.reduce((acc, category, index) => {
+            acc[index] = category.items.length > 0;
+            return acc;
+        }, {} as ExpandedCategories));
+
+        if (isLoading) setIsLoading(false);
+    }, [questions, isLoading]);
+
+    const loadData = async () => {
+        setIsLoading(true);
+
+        try {
+            // Always load from Google Sheets first (for all users)
             if (apiKey && spreadsheetId && sheetName) {
                 dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
             }
-        }
-    }, [dispatch, getApiKey, user]);
 
-    const handleApiKeySubmit = async (apiKey: string, spreadsheetId: string) => {
+            // For Google users, fetch answers from Supabase and merge with question data
+            if (isGoogle) {
+                const answers = await fetchInterviewQuestionDataFromSupabase(user?.id ?? generateId());
+
+                if (answers && answers.length > 0 && questions && questions.length > 0) {
+                    // Create a map of question -> answer for quick lookup
+                    const answersMap = new Map();
+                    answers.forEach(item => {
+                        if (item.question && item.answer) {
+                            answersMap.set(item.question, item.answer);
+                        }
+                    });
+
+                    // Clone and update question data with answers
+                    const updatedQuestions = questions.map(category => ({
+                        ...category,
+                        items: category.items.map(item => {
+                            const answer = answersMap.get(item.question);
+                            if (answer) {
+                                return { ...item, answer };
+                            }
+                            return item;
+                        })
+                    }));
+
+                    // Update Redux store with merged data
+                    dispatch(fetchDataSuccess({ questions: updatedQuestions }));
+                }
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+        } finally {
+            setIsLoading(false);
+            dataLoadedRef.current = true;
+        }
+    };
+
+    const handleApiKeySubmit = useCallback(async (apiKey: string, spreadsheetId: string) => {
+        if (!user) return;
+
         setIsLoading(true);
         await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
         setIsLoading(false);
-    };
+    }, [dispatch, user]);
 
-    const toggleCategory = (categoryIndex: number) => {
+    const toggleCategory = useCallback((categoryIndex: number) => {
         setExpandedCategories(prev => {
             const newExpandedCategories: ExpandedCategories = {};
             Object.keys(prev).forEach(key => {
@@ -163,39 +181,67 @@ export default function InterviewQuestions() {
             newExpandedCategories[categoryIndex] = !prev[categoryIndex];
             return newExpandedCategories;
         });
-    };
+    }, []);
 
-    const filterQuestions = (items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
+    const filterQuestions = useCallback((items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
         if (!query) return items;
         return items.filter(item =>
             item.question.toLowerCase().includes(query.toLowerCase())
         );
-    };
+    }, []);
 
-    const handleItemClick = async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
-        const questionItem = item as SharedItem | SharedCategoryShuffled;
-        setSelectedItem({ ...questionItem, answer: null });
+    // Convert fetchData to a useCallback that takes an interviewQuestion and potentially existing saved item
+    const fetchData = useCallback(async (interviewQuestion: InterviewQuestion, existingSaved: SavedItem | null) => {
+        if (existingSaved?.answer) {
+            console.info('Using saved answer from previous session');
+            setIsSavedAnswer(true);
+            // Use existing answer from savedItems
+            setSelectedItem(prev => prev ? { ...prev, answer: existingSaved.answer } : null);
+        } else {
+            setIsSavedAnswer(false);
+            try {
+                console.info('Generating new answer');
+                // No saved answer found, generate a new one
+                const answer = await handleGenerateAnswer(interviewQuestion.question);
+                setSelectedItem(prev => prev ? { ...prev, answer } : null);
+            } catch (error) {
+                console.error('Failed to generate answer:', error);
+                setSelectedItem(null);
+            }
+        }
+    }, [handleGenerateAnswer]);
+
+    const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
+        const questionItem = item as InterviewQuestion;
+
+        // First set the selected item (to display immediately even without an answer)
+        setSelectedItem(questionItem);
+
+        // Check if this item already has an answer in savedItems
+        const existingSaved = savedItems.find(savedItem =>
+            savedItem.question === questionItem.question
+        );
+
+        // Update state for use in other components
+        setExistingSavedItem(existingSaved || null);
+
+        // Now fetch data with the found saved item
+        await fetchData(questionItem, existingSaved || null);
+
+    }, [savedItems, fetchData]);
+
+    const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
+        if (!selectedItem) return;
 
         try {
-            const answer = await handleGenerateAnswer(questionItem.question);
-            setSelectedItem(prev => prev ? { ...prev, answer } : null);
+            const answer = await generateAnswer(selectedItem.question);
+            setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {
-            console.error('Failed to generate answer:', error);
-            setSelectedItem(null);
+            console.error('Failed to regenerate answer:', error);
         }
-    };
+    }, [selectedItem, generateAnswer]);
 
-    const handleCategorySelect = (category: string) => {
-        setSelectedCategories(prev => {
-            const isSelected = prev.includes(category);
-            if (isSelected) {
-                return prev.filter(c => c !== category);
-            }
-            return [...prev, category];
-        });
-    };
-
-    const handleShuffleQuestions = () => {
+    const handleShuffleQuestions = useCallback(() => {
         const allQuestions = questions
             .filter(category => selectedCategories.includes(category.category))
             .flatMap(category =>
@@ -212,121 +258,43 @@ export default function InterviewQuestions() {
                 question: question.question,
                 orderNumber: index + 1
             }));
-        console.log(shuffled);
+
         setShuffledQuestions(shuffled);
         setSelectedItem(null);
         setAnswer("");
-    };
+    }, [questions, selectedCategories, setAnswer]);
 
-    const handleRegenerateAnswer = async () => {
-        if (!selectedItem) return;
-        await generateAnswer(selectedItem.question);
-    };
-
-    const renderModelSelector = () => (
-        <ModelSelector
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-            onRegenerate={handleRegenerateAnswer}
-            onClearCache={() => {
-                dispatch(clearCachedAnswers());
-                setAnswer("");
-            }}
-            loading={loading}
-            disabled={!selectedItem}
-            type="questions"
-        />
-    );
-
-    const renderCategoryTags = () => {
-        const selectedCount = selectedCategories.length;
-        const totalCount = questions.length;
-
-        if (!isTagsExpanded) {
-            return (
-                <div className="flex items-center gap-2">
-                    {selectedCategories.slice(0, 2).map((category, index) => (
-                        <Badge
-                            key={index}
-                            variant="secondary"
-                            className="cursor-pointer hover:bg-gray-200"
-                            onClick={() => handleCategorySelect(category)}
-                        >
-                            {category} ×
-                        </Badge>
-                    ))}
-                    {selectedCount > 2 && (
-                        <Badge variant="outline">
-                            +{selectedCount - 2} {t('interviewQuestions.categories.more')}
-                        </Badge>
-                    )}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-auto"
-                        onClick={() => setIsTagsExpanded(true)}
-                    >
-                        <Tag className="h-4 w-4 mr-2" />
-                        {t('interviewQuestions.categories.selectCount', { selected: selectedCount, total: totalCount })}
-                    </Button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                        {t('interviewQuestions.categories.select')} ({selectedCount}/{totalCount})
-                    </span>
-                    <Tooltip content={t('interviewQuestions.tooltips.collapse')}>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsTagsExpanded(false)}
-                        >
-                            <ChevronUp className="h-4 w-4" />
-                        </Button>
-                    </Tooltip>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {questions.map((category, index) => (
-                        <Badge
-                            key={index}
-                            variant={selectedCategories.includes(category.category) ? "default" : "outline"}
-                            className={cn(
-                                "cursor-pointer transition-colors",
-                                selectedCategories.includes(category.category)
-                                    ? "hover:bg-primary/80"
-                                    : "hover:bg-gray-100"
-                            )}
-                            onClick={() => handleCategorySelect(category.category)}
-                        >
-                            {category.category}
-                            {selectedCategories.includes(category.category) && (
-                                <X className="h-3 w-3 ml-1 inline-block" />
-                            )}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-        );
-    };
+    const handleCategorySelect = useCallback((category: string) => {
+        setSelectedCategories(prev => {
+            const isSelected = prev.includes(category);
+            if (isSelected) {
+                return prev.filter(c => c !== category);
+            }
+            return [...prev, category];
+        });
+    }, []);
 
     if (!user) {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
+
+    // Convert InterviewQuestion to SharedItem
+    const sharedQuestion: SharedItem | null = selectedItem ? {
+        question: selectedItem.question,
+        category: selectedItem.category,
+        answer: selectedItem.answer || null
+    } as SharedItem : null;
 
     return (
         <TooltipProvider>
             <Layout>
                 <SidebarLayout
                     sidebar={
-                        <SharedSidebar
+                        <InterviewSidebar
                             questions={questions}
                             expandedCategories={expandedCategories}
                             searchQuery={searchQuery}
-                            selectedQuestion={selectedItem}
+                            selectedQuestion={sharedQuestion}
                             toggleCategory={toggleCategory}
                             handleQuestionClick={handleItemClick}
                             filterQuestions={filterQuestions}
@@ -335,14 +303,14 @@ export default function InterviewQuestions() {
                             shuffledQuestions={shuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
-                            renderCategoryTags={renderCategoryTags}
-                            type="interview"
-                            loading={isLoading}
+                            isTagsExpanded={isTagsExpanded}
+                            setIsTagsExpanded={setIsTagsExpanded}
+                            isLoading={isLoading}
                         />
                     }
                     content={
-                        <SharedContent
-                            selectedQuestion={selectedItem}
+                        <InterviewContent
+                            selectedQuestion={sharedQuestion}
                             user={user}
                             saveItem={saveItem}
                             selectedModel={selectedModel}
@@ -350,10 +318,13 @@ export default function InterviewQuestions() {
                             handleRegenerateAnswer={handleRegenerateAnswer}
                             loading={loading}
                             error={error}
-                            renderModelSelector={renderModelSelector}
                             savedItems={savedItems}
                             addFollowUpQuestion={addFollowUpQuestion}
                             generateAnswer={generateAnswer}
+                            setAnswer={setAnswer}
+                            isSavedAnswer={isSavedAnswer}
+                            existingSavedItem={existingSavedItem}
+                            typeSavedItem={ItemTypeSaved.InterviewAnswers}
                         />
                     }
                 />

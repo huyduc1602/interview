@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, RefreshCw, Trash2, Stars, Bot, Sparkles } from "lucide-react";
+import { Zap, RefreshCw, Stars, Bot, Sparkles } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ interface ModelSelectorProps {
   onClearCache?: () => void;
   loading?: boolean;
   disabled?: boolean;
-  type: 'chat' | 'questions' | 'knowledge';
+  type: 'chat' | 'interview' | 'knowledge';
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
