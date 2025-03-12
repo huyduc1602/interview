@@ -9,7 +9,7 @@ interface KnowledgeSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (question: unknown) => void;
+    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => void;
     filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
