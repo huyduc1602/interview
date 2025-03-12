@@ -17,6 +17,7 @@ import { saveData } from '@/utils/supabaseStorage';
 import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
 import KnowledgeSidebar from '@/components/knowledge/KnowledgeSidebar';
 import KnowledgeContent from '@/components/knowledge/KnowledgeContent';
+import { AIModel } from "@/services/aiServices";
 
 export default function KnowledgeBase() {
     // Track renders for debugging
@@ -69,7 +70,10 @@ export default function KnowledgeBase() {
                     user_id: user.id,
                     question: selectedItem.content,
                     answer: content,
-                    category: selectedItem.category
+                    category: selectedItem.category,
+                    id: generateId(),
+                    created_at: new Date().toISOString(),
+                    model: selectedItem.model ?? AIModel.GPT35_0125
                 });
             }
         }
