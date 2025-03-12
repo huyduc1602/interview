@@ -11,14 +11,12 @@ import SettingsButton from '@/components/ui/SettingsButton';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
-import SharedSidebar from '@/components/share/SharedSidebar';
-import SharedContent from '@/components/share/SharedContent';
 import { ItemTypeSaved, SharedCategoryShuffled, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { saveData } from '@/utils/supabaseStorage';
 import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
-import CategoryTags from '@/components/knowledge/CategoryTags';
-import KnowledgeModelSelector from '@/components/knowledge/KnowledgeModelSelector';
+import KnowledgeSidebar from '@/components/knowledge/KnowledgeSidebar';
+import KnowledgeContent from '@/components/knowledge/KnowledgeContent';
 
 export default function KnowledgeBase() {
     // Track renders for debugging
@@ -90,7 +88,6 @@ export default function KnowledgeBase() {
     });
 
     // CONSOLIDATED DATA LOADING EFFECT
-    // This single effect handles all data loading scenarios
     useEffect(() => {
         // Skip if no user
         if (!user) return;
@@ -265,16 +262,19 @@ export default function KnowledgeBase() {
         return <LoginPrompt onSuccess={() => window.location.reload()} />;
     }
 
+    // Create the shared item for the content component
+    const sharedQuestion = selectedItem ? convertToSharedItem(selectedItem) : null;
+
     return (
         <TooltipProvider>
             <Layout>
                 <SidebarLayout
                     sidebar={
-                        <SharedSidebar
-                            questions={knowledge}
+                        <KnowledgeSidebar
+                            knowledge={knowledge}
                             expandedCategories={expandedCategories}
                             searchQuery={searchQuery}
-                            selectedQuestion={convertToSharedItem(selectedItem)}
+                            selectedQuestion={sharedQuestion}
                             toggleCategory={toggleCategory}
                             handleQuestionClick={handleItemClick}
                             filterQuestions={filterItems}
@@ -283,22 +283,14 @@ export default function KnowledgeBase() {
                             shuffledQuestions={shuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
-                            renderCategoryTags={() => (
-                                <CategoryTags
-                                    selectedCategories={selectedCategories}
-                                    isTagsExpanded={isTagsExpanded}
-                                    setIsTagsExpanded={setIsTagsExpanded}
-                                    handleCategorySelect={handleCategorySelect}
-                                    knowledge={knowledge}
-                                />
-                            )}
-                            type="knowledge"
-                            loading={isLoading}
+                            isTagsExpanded={isTagsExpanded}
+                            setIsTagsExpanded={setIsTagsExpanded}
+                            isLoading={isLoading}
                         />
                     }
                     content={
-                        <SharedContent
-                            selectedQuestion={convertToSharedItem(selectedItem)}
+                        <KnowledgeContent
+                            selectedQuestion={sharedQuestion}
                             user={user}
                             saveItem={saveItem}
                             selectedModel={selectedModel}
@@ -306,19 +298,10 @@ export default function KnowledgeBase() {
                             handleRegenerateAnswer={handleRegenerateAnswer}
                             loading={loading}
                             error={error}
-                            renderModelSelector={() => (
-                                <KnowledgeModelSelector
-                                    selectedModel={selectedModel}
-                                    setSelectedModel={setSelectedModel}
-                                    handleRegenerateAnswer={handleRegenerateAnswer}
-                                    loading={loading}
-                                    selectedItem={selectedItem}
-                                    setAnswer={setAnswer}
-                                />
-                            )}
                             savedItems={savedItems}
                             addFollowUpQuestion={addFollowUpQuestion}
                             generateAnswer={generateAnswer}
+                            setAnswer={setAnswer}
                         />
                     }
                 />

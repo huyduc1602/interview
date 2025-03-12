@@ -9,7 +9,7 @@ import { AIModelType } from '@/services/aiServices';
 interface KnowledgeContentProps {
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     user: User | null;
-    saveItem: (item: unknown) => void;
+    saveItem: (item: SavedItem) => void;
     selectedModel: string;
     setSelectedModel: (model: AIModelType) => void;
     handleRegenerateAnswer: () => void;
