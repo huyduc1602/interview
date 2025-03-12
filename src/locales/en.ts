@@ -212,6 +212,9 @@ export default {
       search: "Search questions",
       shuffle: "Shuffle selected categories",
       collapse: "Collapse categories"
+    },
+    actions: {
+      regenerate: "Refresh answer"
     }
   },
   auth: {

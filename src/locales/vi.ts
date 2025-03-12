@@ -212,6 +212,9 @@ export default {
       search: "Tìm kiếm câu hỏi",
       shuffle: "Xáo trộn các danh mục đã chọn",
       collapse: "Thu gọn các danh mục"
+    },
+    actions: {
+      regenerate: "Làm mới câu trả lời"
     }
   },
   auth: {
