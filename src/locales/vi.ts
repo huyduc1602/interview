@@ -373,5 +373,30 @@ export default {
     title: "Không tìm thấy trang",
     message: "Xin lỗi, trang bạn đang tìm không tồn tại.",
     homeLink: "Về trang chủ"
-  }
+  },
+  models: {
+    groups: {
+      openai: "OpenAI",
+      free: "Các lựa chọn thay thế miễn phí"
+    },
+    openai: {
+      gpt35: "GPT-3.5 Turbo",
+      gpt4: "GPT-4 Turbo"
+    },
+    google: {
+      gemini: "Gemini Pro"
+    },
+    mistral: {
+      small: "Mistral Small"
+    },
+    openchat: {
+      35: "OpenChat 3.5"
+    },
+    badges: {
+      premium: "Cao cấp",
+      google: "Google",
+      mistral: "Mistral",
+      free: "Miễn phí"
+    }
+  },
 };

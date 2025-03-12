@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, RefreshCw, Stars, Bot, Sparkles } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import {
   SelectLabel,
 } from "@/components/ui/select";
 import { AIModel } from "@/services/aiServices/types";
+import { ModelGroup, modelGroups } from "./models";
 
 interface ModelSelectorProps {
   selectedModel: string;
@@ -22,11 +23,13 @@ interface ModelSelectorProps {
   loading?: boolean;
   disabled?: boolean;
   type: 'chat' | 'interview' | 'knowledge';
+  groups?: ModelGroup[]; // Optional prop to override default model groups
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
-  selectedModel = AIModel.GPT35_0125,  // Add default value
+  selectedModel = AIModel.GPT35_0125,
   onModelChange,
+  groups = modelGroups,
   ...props
 }) => {
   const { t } = useTranslation();
@@ -47,53 +50,26 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           <SelectValue placeholder={t(`${props.type}.models.select`)} />
         </SelectTrigger>
         <SelectContent className="bg-white dark:bg-gray-950">
-          {/* OpenAI Models */}
-          <SelectGroup>
-            <SelectLabel className="px-2 py-1.5 text-xs text-muted-foreground">
-              OpenAI
-            </SelectLabel>
-            <SelectItem value={AIModel.GPT35_0125}>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-blue-500" />
-                <span>GPT-3.5 Turbo</span>
-              </div>
-            </SelectItem>
-            <SelectItem value={AIModel.GPT4}>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-blue-500" />
-                <span>GPT-4 Turbo</span>
-                <span className="ml-auto text-xs text-muted-foreground">Premium</span>
-              </div>
-            </SelectItem>
-          </SelectGroup>
-
-          {/* Free Alternative Models */}
-          <SelectGroup>
-            <SelectLabel className="px-2 py-1.5 text-xs text-muted-foreground">
-              Free Alternatives
-            </SelectLabel>
-            <SelectItem value={AIModel.GEMINI}>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-green-500" />
-                <span>Gemini Pro</span>
-                <span className="ml-auto text-xs text-green-500">Google</span>
-              </div>
-            </SelectItem>
-            <SelectItem value={AIModel.MISTRAL}>
-              <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-purple-500" />
-                <span>Mistral Small</span>
-                <span className="ml-auto text-xs text-purple-500">Mistral</span>
-              </div>
-            </SelectItem>
-            <SelectItem value={AIModel.OPENCHAT}>
-              <div className="flex items-center gap-2">
-                <Stars className="w-4 h-4 text-orange-500" />
-                <span>OpenChat 3.5</span>
-                <span className="ml-auto text-xs text-orange-500">Free</span>
-              </div>
-            </SelectItem>
-          </SelectGroup>
+          {groups.map((group, groupIndex) => (
+            <SelectGroup key={`group-${groupIndex}`}>
+              <SelectLabel className="px-2 py-1.5 text-xs text-muted-foreground">
+                {t(group.label)}
+              </SelectLabel>
+              {group.models.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  <div className="flex items-center gap-2">
+                    {model.icon}
+                    <span>{t(model.name)}</span>
+                    {model.badge && (
+                      <span className={`ml-auto text-xs ${model.badge.color}`}>
+                        {t(model.badge.text)}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          ))}
         </SelectContent>
       </Select>
       <Button
