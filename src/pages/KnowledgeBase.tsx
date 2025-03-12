@@ -11,7 +11,7 @@ import SettingsButton from '@/components/ui/SettingsButton';
 import type { KnowledgeItem, ChatHistory, ExpandedCategories } from '@/types/knowledge';
 import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
-import { ItemTypeSaved, SharedCategoryShuffled, SharedItem } from "@/types/common";
+import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { saveData } from '@/utils/supabaseStorage';
 import { fetchKnowledgeDataFromSupabase, generateId } from '@/utils/supabaseUtils';
@@ -36,6 +36,8 @@ export default function KnowledgeBase() {
     const [shuffledQuestions, setShuffledQuestions] = useState<SharedCategoryShuffled[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavedAnswer, setIsSavedAnswer] = useState(false);
+    const [existingSavedItem, setExistingSavedItem] = useState<SavedItem | null>(null);
 
     // Track if initial data load has happened
     const dataLoadedRef = useRef(false);
@@ -202,18 +204,45 @@ export default function KnowledgeBase() {
         };
     }, []);
 
-    const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
-        const knowledgeItem = item as KnowledgeItem;
-        setSelectedItem(knowledgeItem);
-
-        try {
-            const answer = await handleGenerateAnswer(knowledgeItem.content);
-            setSelectedItem(prev => prev ? { ...prev, answer } : null);
-        } catch (error) {
-            console.error('Failed to generate answer:', error);
-            setSelectedItem(null);
+    // Convert fetchData to a useCallback that takes a knowledgeItem and potentially existing saved item
+    const fetchData = useCallback(async (knowledgeItem: KnowledgeItem, existingSaved: SavedItem | null) => {
+        if (existingSaved?.answer) {
+            console.info('Using saved answer from previous session');
+            setIsSavedAnswer(true);
+            // Use existing answer from savedItems
+            setSelectedItem(prev => prev ? { ...prev, answer: existingSaved.answer } : null);
+        } else {
+            setIsSavedAnswer(false);
+            try {
+                console.info('Generating new answer');
+                // No saved answer found, generate a new one
+                const answer = await handleGenerateAnswer(knowledgeItem.content);
+                setSelectedItem(prev => prev ? { ...prev, answer } : null);
+            } catch (error) {
+                console.error('Failed to generate answer:', error);
+                setSelectedItem(null);
+            }
         }
     }, [handleGenerateAnswer]);
+
+    const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => {
+        const knowledgeItem = item as KnowledgeItem;
+
+        // First set the selected item (to display immediately even without an answer)
+        setSelectedItem(knowledgeItem);
+
+        // Check if this item already has an answer in savedItems
+        const existingSaved = savedItems.find(savedItem =>
+            savedItem.question === knowledgeItem.content
+        );
+
+        // Update state for use in other components
+        setExistingSavedItem(existingSaved || null);
+
+        // Now fetch data with the found saved item
+        await fetchData(knowledgeItem, existingSaved || null);
+
+    }, [savedItems, fetchData]);
 
     const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
         if (!selectedItem) return;
@@ -302,6 +331,9 @@ export default function KnowledgeBase() {
                             addFollowUpQuestion={addFollowUpQuestion}
                             generateAnswer={generateAnswer}
                             setAnswer={setAnswer}
+                            isSavedAnswer={isSavedAnswer}
+                            existingSavedItem={existingSavedItem}
+                            typeSavedItem={ItemTypeSaved.KnowledgeAnswers}
                         />
                     }
                 />
