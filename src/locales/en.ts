@@ -21,6 +21,9 @@ export default {
     },
     settings: "Setting"
   },
+  login: {
+    google: "Login with Google"
+  },
   nav: {
     home: 'Interview Hub',
     knowledgeBase: '📚 Knowledge Base',

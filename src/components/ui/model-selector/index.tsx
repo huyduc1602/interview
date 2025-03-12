@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, RefreshCw, Trash2, Stars, Bot, Sparkles } from "lucide-react";
+import { Zap, RefreshCw, Stars, Bot, Sparkles } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,13 +16,12 @@ import { AIModel } from "@/services/aiServices/types";
 
 interface ModelSelectorProps {
   selectedModel: string;
-  // eslint-disable-next-line no-unused-vars
   onModelChange: (model: AIModel) => void;
   onRegenerate?: () => void;
   onClearCache?: () => void;
   loading?: boolean;
   disabled?: boolean;
-  type: 'chat' | 'questions' | 'knowledge';
+  type: 'chat' | 'interview' | 'knowledge';
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
@@ -106,15 +105,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         title={t(`${props.type}.actions.regenerate`)}
       >
         <RefreshCw className={cn("h-4 w-4", props.loading && "animate-spin")} />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={props.onClearCache}
-        className="h-10 w-10"
-        title={t(`${props.type}.actions.clearCache`)}
-      >
-        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
