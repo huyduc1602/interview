@@ -123,7 +123,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
         }
 
         if (type == 'knowledge') {
-            return questions.map((kCategory, categoryIndex) => {
+            return questions?.map((kCategory, categoryIndex) => {
                 const items = getItems(kCategory);
                 const filteredItems = filterQuestions(items, searchQuery) as KnowledgeItem[];
                 if (filteredItems.length === 0 && searchQuery) return null;

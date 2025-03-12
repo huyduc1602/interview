@@ -1,4 +1,4 @@
-import React, { JSX, useState } from 'react';
+import React, { JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus, Send } from 'lucide-react';
@@ -29,7 +29,7 @@ interface InterviewQuestionsContentProps {
   typeSavedItem: ItemTypeSaved;
 }
 
-//FIXME: Sửa button lưu đang tự động active dù chưa có dữ liệu trên supabase
+//FIXME: Chat history chưa được lưu, hãy tạo table Chat history với id được liên kết với 2 table trước
 const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   selectedQuestion,
   user,
@@ -50,7 +50,13 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
   const { deleteItem } = useSavedItems(typeSavedItem);
-  console.log('SharedContent - isSavedAnswer', isSavedAnswer);
+
+  // Save chat history to localStorage when it changes
+  useEffect(() => {
+    if (!user || Object.keys(chatHistory).length === 0) return;
+
+    localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(chatHistory));
+  }, [chatHistory, user]);
 
   const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
