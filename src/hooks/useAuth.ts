@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
 
 export function useAuth() {
@@ -10,6 +11,22 @@ export function useAuth() {
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
+
+        // Check if user is logged in with Google
+        const fetchSession = async () => {
+            const { data: session } = await supabase.auth.getSession();
+            if (session?.session?.user) {
+                const googleUser = {
+                    id: session.session.user.id,
+                    name: session.session.user.user_metadata.full_name,
+                    email: session.session.user.email
+                } as User;
+                setUser(googleUser);
+                localStorage.setItem('current_user', JSON.stringify(googleUser));
+            }
+        };
+
+        fetchSession();
     }, []);
 
     const login = (email: string) => {
@@ -22,10 +39,15 @@ export function useAuth() {
         localStorage.setItem('current_user', JSON.stringify(user));
     };
 
-    const logout = () => {
+    const loginWithGoogle = async () => {
+        await supabase.auth.signInWithOAuth({ provider: 'google' });
+    };
+
+    const logout = async () => {
+        await supabase.auth.signOut();
         setUser(null);
         localStorage.removeItem('current_user');
     };
 
-    return { user, login, logout };
+    return { user, login, loginWithGoogle, logout };
 }

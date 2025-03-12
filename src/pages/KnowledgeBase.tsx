@@ -21,6 +21,7 @@ import { ChevronUp, Tag, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { saveData } from '@/utils/supabaseStorage';
 
 export default function KnowledgeBase() {
     const { user } = useAuth();
@@ -54,6 +55,7 @@ export default function KnowledgeBase() {
         onSuccess: useCallback((content: string) => {
             if (selectedItem) {
                 setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
+                saveData('knowledge_answers', { user_id: user?.id, question: selectedItem.content, answer: content });
             }
         }, [selectedItem]),
         onError: useCallback(() => {
