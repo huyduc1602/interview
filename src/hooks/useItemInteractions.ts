@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react';
 import { SavedItem, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { useAIResponse } from './useAIResponse';
-import { generateId } from '@/utils/supabaseUtils';
 
 interface ItemInteractionsOptions {
     type: 'knowledge' | 'interview';
     generateAnswer: (question: string) => Promise<string>;
     savedItems: SavedItem[];
-    contentField: string; // 'content' for knowledge, 'question' for interview
 }
 
 export function useItemInteractions({
