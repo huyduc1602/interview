@@ -65,7 +65,6 @@ export default function InterviewQuestions() {
         type: 'interview',
         generateAnswer,
         savedItems,
-        contentField: 'question'
     });
 
     // Check for existing saved item

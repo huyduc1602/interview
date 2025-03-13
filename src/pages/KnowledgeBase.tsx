@@ -65,7 +65,6 @@ export default function KnowledgeBase() {
         type: 'knowledge',
         generateAnswer,
         savedItems,
-        contentField: 'content'
     });
 
     // Erase existingSavedAnswer if needed
