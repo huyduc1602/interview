@@ -25,6 +25,10 @@ export interface User {
     [key: string]: unknown;
 }
 
+export interface ExpandedCategories {
+    [key: number]: boolean;
+}
+
 export interface SharedCategory {
     category: string;
     items: SharedItem[];
@@ -46,6 +50,9 @@ export interface SharedItem extends BaseItem {
     question: string;
     answer: string | null;
     order?: number;
+    rowIndex: number;
+    status: string
+    notes: string
 }
 
 export enum ItemTypeSaved {
