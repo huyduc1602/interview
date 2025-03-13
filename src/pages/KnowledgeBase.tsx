@@ -58,7 +58,6 @@ export default function KnowledgeBase() {
         isSavedAnswer,
         setIsSavedAnswer,
         existingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error
@@ -85,7 +84,7 @@ export default function KnowledgeBase() {
     }
 
     // Create the shared item for the content component
-    const sharedQuestion = selectedItem ? convertToSharedItem(selectedItem) : null;
+    const sharedQuestion = selectedItem;
 
     return (
         <TooltipProvider>
