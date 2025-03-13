@@ -1,4 +1,4 @@
-import React, { JSX, useEffect } from 'react';
+import React, { Dispatch, JSX, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
@@ -19,9 +19,14 @@ interface SharedSidebarProps {
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
     handleQuestionClick: (question: SharedItem | SharedCategoryShuffled | KnowledgeItem, category?: string) => void | Promise<void>;
-    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
+    filterQuestions: (
+        items: SharedItem[] | SharedCategoryShuffled[], 
+        query: string,
+        category?: string[]
+    ) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     shuffledQuestions: SharedCategoryShuffled[];
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
@@ -40,6 +45,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     renderCategoryTags,
@@ -53,6 +59,16 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
             return shuffledQuestions as SharedItem[];
         }
         return category.items;
+    };
+
+    const toggleShuffleMode = () => {
+        if (shuffledQuestions.length > 0) {
+            // If we're already in shuffle mode, clear the shuffled questions
+            setShuffledQuestions([]);
+        } else {
+            // If we're not in shuffle mode, shuffle the questions
+            shuffleQuestions();
+        }
     };
 
     const renderShuffledQuestions = () => {
@@ -80,9 +96,19 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     const renderQuestions = () => {
         if (type == 'interview') {
             return questions?.map((category, categoryIndex) => {
+                if (!expandedCategories[categoryIndex] && !selectedCategories.includes(category.category)) return null;
+
                 const items = getItems(category);
-                const filteredItems = filterQuestions(items, searchQuery) as SharedItem[] | SharedCategoryShuffled[];
+                const filteredItems = filterQuestions(
+                    items, searchQuery, selectedCategories.length > 0 ? selectedCategories : undefined
+                ) as SharedItem[] | SharedCategoryShuffled[];
+                
+                // Skip empty categories after filtering
                 if (filteredItems.length === 0 && searchQuery) return null;
+
+                // Don't show categories that have no items and aren't selected
+                if (filteredItems.length === 0 &&
+                    !selectedCategories.includes(category.category)) return null;
 
                 return (
                     <div key={categoryIndex} className="space-y-2 min-w-min">
@@ -186,16 +212,23 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                                 />
                             </div>
                         </Tooltip>
-                        <Tooltip content={t('interviewQuestions.tooltips.shuffle')} className="bg-gray-800 text-white">
+                        <Tooltip
+                            content={
+                                shuffledQuestions.length > 0
+                                    ? t('interviewQuestions.tooltips.unShuffle')
+                                    : t('interviewQuestions.tooltips.shuffle')
+                            }
+                            className="bg-gray-800 text-white"
+                        >
                             <span>
                                 <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={shuffleQuestions}
-                                    disabled={selectedCategories.length === 0}
+                                    variant={shuffledQuestions.length > 0 ? "default" : "outline"}
+                                    onClick={toggleShuffleMode}
+                                    disabled={selectedCategories.length === 0 && shuffledQuestions.length === 0}
                                     className="ml-2"
                                 >
-                                    <Shuffle className="h-4 w-4" />
+                                    <Shuffle className={`h-4 w-4 ${shuffledQuestions.length > 0 ? "text-gray-400" : "text-gray-800"}`} />
                                 </Button>
                             </span>
                         </Tooltip>

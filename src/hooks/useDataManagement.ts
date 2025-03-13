@@ -195,14 +195,35 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         }));
     }, []);
 
-    const filterItems = useCallback((items: SharedItem[] | SharedCategoryShuffled[], query: string): SharedItem[] | SharedCategoryShuffled[] => {
-        if (!query) return items;
-        return items.filter(item =>
-            item.question.toLowerCase().includes(query.toLowerCase())
-        );
-    }, []);
+    const filterItems = useCallback(
+        (
+            items: SharedItem[] | SharedCategoryShuffled[],
+            query: string,
+            categories?: string[]
+        ): SharedItem[] | SharedCategoryShuffled[] => {
+            let filteredItems = items;
+
+            // First filter by search query if provided
+            if (query) {
+                filteredItems = items.filter(item =>
+                    item.question.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+
+            // Then filter by categories if provided and not empty
+            if (categories && categories.length > 0) {
+                filteredItems = filteredItems.filter(item =>
+                    categories.includes(item.category)
+                );
+            }
+
+            return filteredItems;
+        },
+        []
+    );
 
     const handleCategorySelect = useCallback((category: string) => {
+        // Toggle the category selection
         setSelectedCategories(prev => {
             const isSelected = prev.includes(category);
             if (isSelected) {
@@ -210,7 +231,18 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
             }
             return [...prev, category];
         });
-    }, []);
+
+        // Auto-expand the selected category
+        if (data) {
+            const categoryIndex = data.findIndex(cat => cat.category === category);
+            if (categoryIndex !== -1) {
+                setExpandedCategories(prev => ({
+                    ...prev,
+                    [categoryIndex]: true // Expand the category
+                }));
+            }
+        }
+    }, [data]);
 
     const handleShuffleQuestions = useCallback((setSelectedItem: (item: any) => void, setAnswer: (answer: string) => void) => {
         // Adapt to both knowledge and interview data structures
@@ -270,6 +302,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         isLoading,
         selectedCategories,
         shuffledQuestions,
+        setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
         isGoogle,

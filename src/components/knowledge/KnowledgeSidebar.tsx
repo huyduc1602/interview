@@ -2,6 +2,7 @@ import SharedSidebar from '@/components/share/SharedSidebar';
 import CategoryTags from '@/components/categoryTags';
 import { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { ExpandedCategories, KnowledgeItem } from '@/types/knowledge';
+import { Dispatch, SetStateAction } from 'react';
 
 interface KnowledgeSidebarProps {
     knowledge: SharedCategory[];
@@ -13,6 +14,7 @@ interface KnowledgeSidebarProps {
     filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     shuffledQuestions: SharedCategoryShuffled[];
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
@@ -31,6 +33,7 @@ export default function KnowledgeSidebar({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     handleCategorySelect,
@@ -59,6 +62,7 @@ export default function KnowledgeSidebar({
             filterQuestions={filterQuestions}
             setSearchQuery={setSearchQuery}
             shuffleQuestions={shuffleQuestions}
+            setShuffledQuestions={setShuffledQuestions}
             shuffledQuestions={shuffledQuestions}
             selectedCategories={selectedCategories}
             handleCategorySelect={handleCategorySelect}
