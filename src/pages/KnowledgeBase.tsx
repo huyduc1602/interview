@@ -5,10 +5,9 @@ import { Layout, SidebarLayout } from '@/layouts';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/settingsButton';
-import type { KnowledgeItem } from '@/types/knowledge';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
-import { ItemTypeSaved } from "@/types/common";
+import { ItemTypeSaved, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import KnowledgeSidebar from '@/components/knowledge/KnowledgeSidebar';
 import KnowledgeContent from '@/components/knowledge/KnowledgeContent';
@@ -72,7 +71,7 @@ export default function KnowledgeBase() {
 
     // Erase existingSavedAnswer if needed
     useEffect(() => {
-        if (existingSavedItem && existingSavedItem.id === (selectedItem as KnowledgeItem)?.id) {
+        if (existingSavedItem && existingSavedItem.id === (selectedItem as SharedItem)?.id) {
             setIsSavedAnswer(true);
         }
     }, [existingSavedItem, selectedItem]);

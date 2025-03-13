@@ -15,7 +15,7 @@ export function useKnowledgeData(
     spreadsheetId: string,
     sheetName: string,
     isGoogle: boolean,
-    knowledge: KnowledgeCategory[]
+    knowledge: SharedCategory[]
 ) {
     const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);

@@ -14,7 +14,7 @@ interface UseCategoryManagerReturn {
     initializeExpandedCategories: () => void;
 }
 
-export function useCategoryManager(knowledge: KnowledgeCategory[]): UseCategoryManagerReturn {
+export function useCategoryManager(knowledge: SharedCategory[]): UseCategoryManagerReturn {
     const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({});
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [isTagsExpanded, setIsTagsExpanded] = useState<boolean>(false);

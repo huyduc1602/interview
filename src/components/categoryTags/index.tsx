@@ -11,7 +11,7 @@ interface CategoryTagsProps {
     isTagsExpanded: boolean;
     setIsTagsExpanded: (expanded: boolean) => void;
     handleCategorySelect: (category: string) => void;
-    knowledge: SharedCategory[];
+    categoryItem: SharedCategory[];
 }
 
 export default function CategoryTags({
@@ -19,7 +19,7 @@ export default function CategoryTags({
     isTagsExpanded,
     setIsTagsExpanded,
     handleCategorySelect,
-    knowledge
+    categoryItem: knowledge
 }: CategoryTagsProps) {
     const { t } = useTranslation();
     const selectedCount = selectedCategories.length;

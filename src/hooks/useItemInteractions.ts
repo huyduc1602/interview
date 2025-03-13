@@ -2,8 +2,6 @@ import { useState, useCallback } from 'react';
 import { SavedItem, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { useAIResponse } from './useAIResponse';
 import { generateId } from '@/utils/supabaseUtils';
-import { KnowledgeItem } from '@/types/knowledge';
-import { InterviewQuestion } from '@/types/interview';
 
 interface ItemInteractionsOptions {
     type: 'knowledge' | 'interview';
@@ -17,7 +15,7 @@ export function useItemInteractions({
     generateAnswer,
     savedItems
 }: ItemInteractionsOptions) {
-    const [selectedItem, setSelectedItem] = useState<KnowledgeItem | InterviewQuestion | null>(null);
+    const [selectedItem, setSelectedItem] = useState<SharedItem | null>(null);
     const [isSavedAnswer, setIsSavedAnswer] = useState(false);
     const [existingSavedItem, setExistingSavedItem] = useState<SavedItem | null>(null);
 
@@ -114,7 +112,7 @@ export function useItemInteractions({
         if (!selectedItem) return;
 
         try {
-            const questionSend = selectedItem.type == 'knowledge' ? (selectedItem as KnowledgeItem).content : (selectedItem as InterviewQuestion).question
+            const questionSend = selectedItem.question
             const answer = await generateAnswer(questionSend);
             setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { fetchDataRequest, fetchDataSuccess } from '@/store/interview/slice';
+import { fetchDataRequest } from '@/store/interview/slice';
 import { ResponseAnswer, SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { useAuth } from './useAuth';
 import { useApiKeys } from './useApiKeys';
@@ -205,9 +205,9 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
 
             // First filter by search query if provided
             if (query) {
-                filteredItems = items.filter(item =>
-                    item.question.toLowerCase().includes(query.toLowerCase())
-                );
+                filteredItems = items.filter(item => {
+                    return item.question?.toLowerCase().includes(query.toLowerCase());
+                });
             }
 
             // Then filter by categories if provided and not empty
@@ -219,7 +219,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
 
             return filteredItems;
         },
-        []
+        [dataType] // Add dataType as a dependency
     );
 
     const handleCategorySelect = useCallback((category: string) => {
