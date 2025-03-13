@@ -1,7 +1,7 @@
 import React, { JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { BookmarkPlus, Send } from 'lucide-react';
+import { BookmarkPlus, Send, X } from 'lucide-react';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem, User, ChatMessage, FollowUpQuestion } from '@/types/common';
 import { cn } from '@/lib/utils';
@@ -227,6 +227,51 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     }
   };
 
+  // New function to delete a message and its response
+  const deleteMessagePair = async (messageIndex: number): Promise<void> => {
+    if (!selectedQuestion || !user) return;
+
+    // Find the saved item for this question
+    const savedItem = existingSavedItem || savedItems.find(
+      item => item.question === selectedQuestion.question
+    );
+
+    if (!savedItem) {
+      console.error('Cannot delete message: No saved item found');
+      return;
+    }
+
+    const currentMessages = chatHistories[selectedQuestion.question] || [];
+
+    // Make sure the message at this index is a user message
+    if (messageIndex >= currentMessages.length || currentMessages[messageIndex].role !== 'user') {
+      console.error('Invalid message index or not a user message');
+      return;
+    }
+
+    // Create a copy of messages array for modification
+    const updatedMessages = [...currentMessages];
+
+    // If this user message is followed by an assistant message, remove both
+    if (messageIndex + 1 < updatedMessages.length &&
+      updatedMessages[messageIndex + 1].role === 'assistant') {
+      // Remove both messages (user message and the assistant response)
+      updatedMessages.splice(messageIndex, 2);
+    } else {
+      // Just remove the user message if there's no assistant response
+      updatedMessages.splice(messageIndex, 1);
+    }
+
+    // Save updated chat history
+    try {
+      await saveChatHistoryForItem(savedItem.id, selectedQuestion.question, updatedMessages);
+      console.log('Message pair deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete message pair:', error);
+    }
+  };
+
+  // Update the renderChatHistory function to include delete buttons
   const renderChatHistory = () => {
     const messages = selectedQuestion && chatHistories[selectedQuestion.question];
 
@@ -244,8 +289,19 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
                   : "bg-purple-50 mr-4"
             )}
           >
-            <div className="text-xs text-gray-500 mb-1">
-              {message.role === 'user' ? t('common.you') : t('common.assistant')}
+            <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+              <span>{message.role === 'user' ? t('common.you') : t('common.assistant')}</span>
+
+              {/* Add delete button for user messages */}
+              {message.role === 'user' && (
+                <button
+                  onClick={() => deleteMessagePair(index)}
+                  className="hover:bg-gray-200 p-1 rounded-full transition-colors"
+                  title={t('common.delete')}
+                >
+                  <X className="h-3 w-3 text-gray-500" />
+                </button>
+              )}
             </div>
             <AIResponseDisplay
               content={message.content}
@@ -255,7 +311,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
           </div>
         ))}
       </div>
-    )
+    );
   };
 
   const renderQuestionAsk = () => {
