@@ -40,23 +40,6 @@ export function useItemInteractions({
         onError: handleError
     });
 
-    // Convert item to shared format
-    const convertToSharedItem = useCallback((item: any | null): SharedItem => {
-        if (!item) return {
-            id: '',
-            question: '',
-            category: '',
-            answer: ''
-        };
-
-        return {
-            id: item.id ?? generateId(),
-            question: type === 'knowledge' ? item.content : item.question,
-            category: item.category || '',
-            answer: item.answer || ''
-        };
-    }, [type]);
-
     // Fetch data from saved items or generate new answer
     const fetchItemData = useCallback(async (item: any, existingSaved: SavedItem | null) => {
         if (existingSaved?.answer) {
@@ -127,7 +110,6 @@ export function useItemInteractions({
         setIsSavedAnswer,
         existingSavedItem,
         setExistingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error
