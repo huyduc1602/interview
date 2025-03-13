@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchUserSettings, updateFeatureFlag } from '@/utils/supabaseStorage';
 
 export interface APIKeysState {
     openai?: string;
@@ -14,10 +15,13 @@ export interface APIKeysState {
 }
 
 export const useApiKeysSettings = () => {
-    const { user } = useAuth();
+    const { user, isGoogleUser } = useAuth();
     const [apiKeys, setApiKeys] = useState<APIKeysState>({});
     const [saved, setSaved] = useState(false);
     const [showKeys, setShowKeys] = useState(false);
+    const [featureFlags, setFeatureFlags] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
+    const isGoogle = isGoogleUser();
 
     useEffect(() => {
         if (user) {
@@ -25,17 +29,68 @@ export const useApiKeysSettings = () => {
         }
     }, [user]);
 
-    const loadApiKeys = () => {
+    const loadApiKeys = async () => {
         if (!user) return;
+        setLoading(true);
 
-        const savedKeys = localStorage.getItem(`api_keys_${user.id}`);
-        if (savedKeys) {
-            try {
-                setApiKeys(JSON.parse(savedKeys));
-            } catch (error) {
-                console.error('Failed to parse API keys from localStorage:', error);
-                localStorage.removeItem(`api_keys_${user.id}`);
+        try {
+            if (isGoogle) {
+                // Load settings from Supabase
+                const { data: settingsData } = await fetchUserSettings(user.id);
+
+                if (settingsData) {
+                    // Set API keys
+                    const settings: APIKeysState = {
+                        // ...existing mapping
+                    };
+                    setApiKeys(settings);
+
+                    // Set feature flags
+                    setFeatureFlags(settingsData.feature_flags || {});
+                }
+
+                // If no feature flags exist yet, initialize defaults
+                if (!settingsData?.feature_flags) {
+                    const defaultFlags = {
+                        auto_save_knowledge: true,
+                        auto_save_interview: true
+                    };
+                    setFeatureFlags(defaultFlags);
+                }
+            } else {
+                // Load from localStorage
+                const savedKeys = localStorage.getItem(`api_keys_${user.id}`);
+                if (savedKeys) {
+                    try {
+                        setApiKeys(JSON.parse(savedKeys));
+                    } catch (error) {
+                        console.error('Failed to parse API keys from localStorage:', error);
+                        localStorage.removeItem(`api_keys_${user.id}`);
+                    }
+                }
+
+                // Load feature flags
+                const savedFlags = localStorage.getItem(`feature_flags_${user.id}`);
+                if (savedFlags) {
+                    try {
+                        setFeatureFlags(JSON.parse(savedFlags));
+                    } catch (error) {
+                        console.error('Failed to parse feature flags:', error);
+                    }
+                } else {
+                    // Set default flags
+                    const defaultFlags = {
+                        auto_save_knowledge: true,
+                        auto_save_interview: true
+                    };
+                    setFeatureFlags(defaultFlags);
+                    localStorage.setItem(`feature_flags_${user.id}`, JSON.stringify(defaultFlags));
+                }
             }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -82,6 +137,35 @@ export const useApiKeysSettings = () => {
         URL.revokeObjectURL(url);
     };
 
+    const handleFeatureFlagChange = async (key: string, value: boolean) => {
+        if (!user) return;
+
+        try {
+            setLoading(true);
+
+            // Update local state
+            setFeatureFlags(prev => ({
+                ...prev,
+                [key]: value
+            }));
+
+            if (isGoogle) {
+                // Update in Supabase
+                await updateFeatureFlag(user.id, key, value);
+            } else {
+                // Update in localStorage
+                localStorage.setItem(`feature_flags_${user.id}`, JSON.stringify({
+                    ...featureFlags,
+                    [key]: value
+                }));
+            }
+        } catch (error) {
+            console.error('Error updating feature flag:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         apiKeys,
         setApiKeys,
@@ -92,6 +176,9 @@ export const useApiKeysSettings = () => {
         handleApiKeyChange,
         handleFileUpload,
         handleDownloadSampleKeys,
-        loadApiKeys
+        loadApiKeys,
+        featureFlags,
+        loading,
+        handleFeatureFlagChange
     };
 };

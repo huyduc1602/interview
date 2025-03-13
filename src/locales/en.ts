@@ -235,7 +235,8 @@ export default {
   settings: {
     title: "Settings",
     tabs: {
-      apiKeys: "API Keys"
+      apiKeys: "API Keys",
+      features: "Features" 
     },
     apiKeys: {
       info: "Enter your API keys below. Your keys are stored securely in your browser and never sent to our servers.",
@@ -270,7 +271,47 @@ export default {
       sheetNameInterviewQuestions: {
         label: "Interview Questions Sheet Name",
         help: "Enter the sheet name for the Interview Questions."
+      },
+      modelKeys: {
+        title: "AI Model API Keys",
+        description: "API keys for AI models used in the application."
+      },
+      googleSheets: {
+        title: "Google Sheets Integration",
+        description: "Settings for Google Sheets data source integration."
       }
+    },
+    features: {
+      title: "Feature Settings",
+      info: "Control application features and behaviors.",
+      autoSaveKnowledge: {
+        label: "Auto-save Knowledge Base",
+        description: "Automatically save answers when viewing knowledge base content"
+      },
+      autoSaveInterview: {
+        label: "Auto-save Interview Questions",
+        description: "Automatically save answers when viewing interview questions"
+      },
+      autoSave: {
+        title: "Automatic Question Saving",
+        description: "Configure if questions should be saved automatically.",
+        knowledge: "Auto-save Knowledge Base questions",
+        knowledgeHelp: "Automatically save answers when viewing knowledge base content.",
+        interview: "Auto-save Interview questions",
+        interviewHelp: "Automatically save answers when viewing interview questions."
+      },
+      saveHistory: {
+        title: "Chat History",
+        description: "Configure chat history settings for follow-up questions.",
+        knowledge: "Save Knowledge Base chat history",
+        knowledgeHelp: "Store follow-up questions and answers for knowledge base items.",
+        interview: "Save Interview chat history",
+        interviewHelp: "Store follow-up questions and answers for interview questions."
+      }
+    },
+    storageInfo: {
+      cloud: "Your settings are stored securely in the cloud and will be available on any device you sign in to.",
+      local: "Your settings are stored locally on this device only."
     },
     save: "Save Settings",
     saved: "Settings saved successfully!",

@@ -228,7 +228,8 @@ export default {
   settings: {
     title: "Cài đặt",
     tabs: {
-      apiKeys: "Khóa API"
+      apiKeys: "Khóa API",
+      features: "Tính năng"
     },
     apiKeys: {
       info: "Nhập khóa API của bạn bên dưới. Các khóa của bạn được lưu trữ an toàn trong trình duyệt và không bao giờ được gửi đến máy chủ của chúng tôi.",
@@ -258,12 +259,52 @@ export default {
       },
       sheetNameKnowledgeBase: {
         label: "Tên trang tính cơ sở tri thức",
-        help: "Nhập tên trang tính cho Cơ sở tri thức."
+        help: "Nhập tên trang tính cho Cơ sở kiến thức."
       },
       sheetNameInterviewQuestions: {
         label: "Tên trang tính câu hỏi phỏng vấn",
         help: "Nhập tên trang tính cho Câu hỏi phỏng vấn."
+      },
+      modelKeys: {
+        title: "Khóa API mô hình AI",
+        description: "Khóa API cho các mô hình AI được sử dụng trong ứng dụng."
+      },
+      googleSheets: {
+        title: "Tích hợp Google Trang tính",
+        description: "Cài đặt tích hợp nguồn dữ liệu Google Trang tính."
       }
+    },
+    features: {
+      title: "Cài đặt tính năng",
+      info: "Kiểm soát các tính năng và hành vi của ứng dụng.",
+      autoSaveKnowledge: {
+        label: "Tự động lưu Cơ sở kiến thức",
+        description: "Tự động lưu câu trả lời khi xem nội dung cơ sở kiến ​​thức"
+      },
+      autoSaveInterview: {
+        label: "Tự động lưu câu hỏi phỏng vấn",
+        description: "Tự động lưu câu trả lời khi xem câu hỏi phỏng vấn"
+      },
+      autoSave: {
+        title: "Lưu câu hỏi tự động",
+        description: "Cấu hình xem câu hỏi có nên được lưu tự động không.",
+        knowledge: "Tự động lưu câu hỏi trong Cơ sở kiến ​​thức",
+        knowledgeHelp: "Tự động lưu câu trả lời khi xem nội dung cơ sở kiến ​​thức.",
+        interview: "Tự động lưu câu hỏi phỏng vấn",
+        interviewHelp: "Tự động lưu câu trả lời khi xem câu hỏi phỏng vấn."
+      },
+      saveHistory: {
+        title: "Lịch sử trò chuyện",
+        description: "Cấu hình cài đặt lịch sử trò chuyện cho các câu hỏi tiếp theo.",
+        knowledge: "Lưu lịch sử trò chuyện trong Cơ sở kiến ​​thức",
+        knowledgeHelp: "Lưu câu hỏi và câu trả lời tiếp theo cho các mục cơ sở kiến ​​thức.",
+        interview: "Lưu lịch sử trò chuyện trong Phỏng vấn",
+        interviewHelp: "Lưu câu hỏi và câu trả lời tiếp theo cho các câu hỏi phỏng vấn."
+      }
+    },
+    storageInfo: {
+      cloud: "Cài đặt của bạn được lưu trữ an toàn trên đám mây và có thể truy cập từ bất kỳ thiết bị nào bạn đăng nhập vào.",
+      local: "Cài đặt của bạn chỉ được lưu trữ cục bộ trên thiết bị này."
     },
     save: "Lưu Cài đặt",
     saved: "Đã lưu cài đặt thành công!",
