@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React, { JSX, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
@@ -9,7 +9,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import type { ExpandedCategories } from '@/types/interview';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { Badge } from '@/components/ui/badge';
-import Spinner from '@/components/ui/spinner';
+import ShimmerSidebar from '@/components/ui/shimmer/ShimmerSidebar';
 import { KnowledgeItem } from '@/types/knowledge';
 
 interface SharedSidebarProps {
@@ -206,9 +206,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
 
             <div className={cn("space-y-4")}>
                 {loading ? (
-                    <div className="flex justify-center items-center h-full">
-                        <Spinner />
-                    </div>
+                    <ShimmerSidebar type={type} />
                 ) : (
                     <>
                         {shuffledQuestions.length > 0 && renderShuffledQuestions()}

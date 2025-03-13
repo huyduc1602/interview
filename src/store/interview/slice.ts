@@ -42,7 +42,12 @@ const interviewSlice = createSlice({
   reducers: {
     // Data fetching actions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchDataRequest: (state, _action: PayloadAction<{ apiKey: string; spreadsheetId: string, user: User | null }>) => {
+    fetchDataRequest: (state, _action: PayloadAction<{
+      apiKey: string;
+      spreadsheetId: string;
+      user: User | null;
+      onComplete?: () => void;
+    }>) => {
       state.loading = true;
     },
     fetchDataSuccess: (state, action) => {
