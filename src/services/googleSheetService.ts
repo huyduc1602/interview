@@ -85,8 +85,8 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                 };
             }
 
-            const SHEET_KNOWLEDGE = "Danh mục kiến thức";
-            const SHEET_QUESTIONS = "Câu hỏi phỏng vấn";
+            const SHEET_KNOWLEDGE = getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE, user.id) || "Danh mục kiến thức";
+            const SHEET_QUESTIONS = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS, user.id) || "Câu hỏi phỏng vấn";
 
             // Fetch knowledge data with retry - now with proper typing
             const knowledgeResponse = await fetchWithRetry<GoogleSheetValuesResponse>(
@@ -319,7 +319,7 @@ export const updateKnowledgeStatus = async (rowIndex: number, status: string, us
 
     const API_KEY = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY, user.id);
     const SPREADSHEET_ID = getApiKey(ApiKeyService.SPREADSHEET_ID, user.id);
-    const SHEET_KNOWLEDGE = "Danh mục kiến thức";
+    const SHEET_KNOWLEDGE = getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE, user.id) || "Danh mục kiến thức";
     try {
         const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_KNOWLEDGE)}!C${rowIndex}`;
 
