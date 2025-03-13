@@ -21,7 +21,6 @@ export default function KnowledgeBase() {
     const { user } = useAuth();
     const { knowledge } = useSelector((state: RootState) => state.interview);
     const { savedItems, saveItem, addFollowUpQuestion } = useSavedItems(ItemTypeSaved.KnowledgeAnswers);
-    console.log('KnowledgeBase - knowledge', knowledge);
 
     const {
         loading,

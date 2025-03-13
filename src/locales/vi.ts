@@ -5,13 +5,6 @@ export default {
     error: 'Lỗi',
     selectTopic: 'Chọn một chủ đề để xem nội dung',
     generateAnswer: 'Đang tạo câu trả lời...',
-    "send": "Gửi",
-    "you": "Bạn",
-    "assistant": "Trợ lý",
-    errors: {
-      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
-    },
-    save: 'Lưu',
     saved: {
       title: 'Mục đã lưu',
       empty: 'Chưa có mục nào được lưu',
@@ -19,7 +12,15 @@ export default {
       interview: 'Câu hỏi phỏng vấn',
       knowledge: 'Cơ sở kiến thức'
     },
-    settings: "Cài đặt"
+    settings: "Cài đặt",
+    save: "Lưu",
+    remove: "Xóa",
+    send: "Gửi",
+    you: "Bạn",
+    assistant: "Trợ lý",
+    errors: {
+      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
+    }
   },
   login: {
     google: "Đăng nhập với Google"

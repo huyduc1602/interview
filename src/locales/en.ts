@@ -78,6 +78,14 @@ export default {
       startPrompt: "Ask me anything about programming, interviews, or technical topics!",
       inputPlaceholder: "Type your message here..."
     },
+    save: "Save",
+    remove: "Remove",
+    send: "Send",
+    you: "You",
+    assistant: "Trợ lý",
+    errors: {
+      failedToGetAnswer: "Failed to generate answer. Please try again."
+    }
   },
   knowledgeBase: {
     title: 'Knowledge Base',
