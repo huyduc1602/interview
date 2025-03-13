@@ -1,5 +1,6 @@
 import { supabase } from '@/supabaseClient';
 import { SavedItem, ItemTypeSaved, ChatMessage } from '@/types/common';
+import { SettingsState } from '@/hooks/useSettings';
 
 /**
  * Save data to Supabase answers table
@@ -166,5 +167,134 @@ export const fetchChatHistory = async (answerId: string, userId: string) => {
     } catch (error) {
         console.error(`Error fetching chat history for answer ${answerId}:`, error);
         return { data: { messages: [] }, error };
+    }
+};
+
+// Fetch user settings from Supabase
+export const fetchUserSettings = async (userId: string) => {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+        if (error) throw error;
+
+        return { data, error: null };
+    } catch (error) {
+        console.error('Error fetching user settings:', error);
+        return { data: null, error };
+    }
+};
+
+// Save or update user settings to Supabase
+export const saveUserSettings = async (userId: string, settings: any) => {
+    try {
+        // Format settings for database
+        const dbSettings = {
+            user_id: userId,
+            openai: settings.openai,
+            gemini: settings.gemini,
+            mistral: settings.mistral,
+            openchat: settings.openchat,
+            google_sheet_api_key: settings.google_sheet_api_key,
+            api_settings: settings.apiSettings || settings.api_settings || {},
+            app_preferences: settings.appPreferences || settings.app_preferences || {},
+            feature_flags: settings.featureFlags || settings.feature_flags || {}
+        };
+
+        // Check if settings already exist for this user
+        const { data: existingSettings } = await supabase
+            .from('settings')
+            .select('id')
+            .eq('user_id', userId)
+            .single();
+
+        let result;
+        if (existingSettings) {
+            // Update existing settings
+            result = await supabase
+                .from('settings')
+                .update(dbSettings)
+                .eq('user_id', userId);
+        } else {
+            // Insert new settings
+            result = await supabase
+                .from('settings')
+                .insert([dbSettings]);
+        }
+
+        if (result.error) throw result.error;
+
+        return { data: result.data, error: null };
+    } catch (error) {
+        console.error('Error saving user settings:', error);
+        return { data: null, error };
+    }
+};
+
+// Get feature flag values from user settings
+export const getFeatureFlags = async (userId: string): Promise<Record<string, any>> => {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .select('feature_flags')
+            .eq('user_id', userId)
+            .single();
+
+        if (error) throw error;
+
+        return data?.feature_flags || {};
+    } catch (error) {
+        console.error('Error fetching feature flags:', error);
+        return {};
+    }
+};
+
+// Update specific feature flag
+export const updateFeatureFlag = async (
+    userId: string,
+    flagPath: string,
+    value: any
+): Promise<boolean> => {
+    try {
+        // First get current flags
+        const { data: currentSettings, error: fetchError } = await supabase
+            .from('settings')
+            .select('feature_flags')
+            .eq('user_id', userId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // Prepare update with new flag value
+        const featureFlags = currentSettings?.feature_flags || {};
+
+        // Handle nested paths like "auto_save.knowledge"
+        const pathParts = flagPath.split('.');
+        if (pathParts.length === 1) {
+            featureFlags[pathParts[0]] = value;
+        } else {
+            let current = featureFlags;
+            for (let i = 0; i < pathParts.length - 1; i++) {
+                current[pathParts[i]] = current[pathParts[i]] || {};
+                current = current[pathParts[i]];
+            }
+            current[pathParts[pathParts.length - 1]] = value;
+        }
+
+        // Update in database
+        const { error: updateError } = await supabase
+            .from('settings')
+            .update({ feature_flags: featureFlags })
+            .eq('user_id', userId);
+
+        if (updateError) throw updateError;
+
+        return true;
+    } catch (error) {
+        console.error('Error updating feature flag:', error);
+        return false;
     }
 };
