@@ -9,10 +9,10 @@ import { AIModelType } from '@/services/aiServices';
 interface KnowledgeContentProps {
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     user: User | null;
-    saveItem: (item: SavedItem) => void;
+    saveItem: (item: SavedItem) => Promise<string | null>;
     selectedModel: string;
     setSelectedModel: (model: AIModelType) => void;
-    handleRegenerateAnswer: () => void;
+    handleRegenerateAnswer: () => Promise<void>;
     loading: boolean;
     error: string | null;
     savedItems: SavedItem[];
@@ -20,7 +20,7 @@ interface KnowledgeContentProps {
     generateAnswer: (prompt: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
     isSavedAnswer: boolean;
-    setIsSavedAnswer: (isSaved: boolean) => void;
+    setIsSavedAnswer: Dispatch<SetStateAction<boolean>>;
     existingSavedItem: SavedItem | null;
     typeSavedItem: ItemTypeSaved;
 }

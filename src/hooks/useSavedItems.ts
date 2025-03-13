@@ -1,30 +1,50 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import { saveDataSupabase, updateDataSupabase, deleteDataSupabase, fetchUserDataSupabase } from '@/utils/supabaseStorage';
+import { saveData, updateData, deleteData, fetchUserData, saveChatHistory, fetchChatHistory } from '@/utils/supabaseStorage';
 import { debounce } from 'lodash';
-import type { FollowUpQuestion, ItemTypeSaved, SavedItem } from '@/types/common';
+import type { ItemTypeSaved, SavedItem, ChatMessage } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
+import { FollowUpQuestion } from '../types/common';
 
 export function useSavedItems(type: ItemTypeSaved) {
   const { user, isGoogleUser } = useAuth();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
+
+  // Store user ID in a ref to avoid unnecessary effect triggers
   const userIdRef = useRef<string | null>(null);
 
   // Create a stable debounce function outside of useCallback
   const stableDebouncedLoad = useRef(
     debounce(async (userId: string, isGoogle: boolean, itemType: string) => {
       if (isGoogle) {
-        const { data, error } = await fetchUserDataSupabase(itemType, userId);
+        const { data, error } = await fetchUserData(itemType as ItemTypeSaved, userId);
 
         if (error) {
           console.error('Error fetching saved items from Supabase:', error);
         } else if (data) {
           setSavedItems(data);
+
+          // Also fetch chat histories for these items
+          const chatHistoriesMap: Record<string, ChatMessage[]> = {};
+          for (const item of data) {
+            const { data: chatData } = await fetchChatHistory(item.id, userId);
+            if (chatData && chatData.messages) {
+              chatHistoriesMap[item.question] = chatData.messages;
+            }
+          }
+          setChatHistories(chatHistoriesMap);
         }
       } else {
         const saved = localStorage.getItem(`${itemType}_${userId}`);
         if (saved) {
           setSavedItems(JSON.parse(saved));
+        }
+
+        // Load chat histories from localStorage
+        const savedChatHistories = localStorage.getItem(`chat_histories_${itemType}_${userId}`);
+        if (savedChatHistories) {
+          setChatHistories(JSON.parse(savedChatHistories));
         }
       }
     }, 500)
@@ -40,94 +60,59 @@ export function useSavedItems(type: ItemTypeSaved) {
     }
   }, [user, isGoogleUser, type, stableDebouncedLoad]);
 
-  // Helper function to find existing item
-  const findExistingItem = (items: SavedItem[], newItem: SavedItem, userId: string) => {
+  // Helper function for finding existing items
+  const findExistingItem = useCallback((items: SavedItem[], question: string, userId: string) => {
     const index = items.findIndex(item =>
-      item.question === newItem.question && item.user_id === userId
+      item.question === question && item.user_id === userId
     );
 
     return {
       index,
       item: index !== -1 ? items[index] : null
     };
-  };
+  }, []);
 
-  // Helper function to update an existing item
-  const updateExistingItem = async (
-    existingItem: SavedItem,
-    updates: Partial<SavedItem>,
-    userId: string,
-    tableType: ItemTypeSaved,
-    isGoogle: boolean
-  ): Promise<SavedItem> => {
-    const updatedItem: SavedItem = {
-      ...existingItem,
-      ...updates,
-      answer: updates.answer ?? existingItem.answer,
-      model: updates.model ?? existingItem.model,
-      created_at: new Date().toISOString()
-    };
+  // Helper function to update localStorage
+  const updateLocalStorage = useCallback((userId: string, itemType: ItemTypeSaved, items: SavedItem[]) => {
+    localStorage.setItem(`${itemType}_${userId}`, JSON.stringify(items));
+  }, []);
 
-    // Update in Supabase if Google user
-    if (isGoogle) {
-      const updateFields = {
-        answer: updatedItem.answer,
-        model: updatedItem.model,
-        created_at: updatedItem.created_at,
-        category: updates.category || existingItem.category
-      };
-      const { error } = await updateDataSupabase(tableType, existingItem.id, userId, updateFields);
-      if (error) {
-        console.error('Error updating item in Supabase:', error);
+  // Save chat history for an item
+  const saveChatHistoryForItem = useCallback(async (
+    itemId: string,
+    question: string,
+    messages: ChatMessage[]
+  ) => {
+    if (!user) return;
+
+    const isGoogle = isGoogleUser();
+
+    // Update local state
+    setChatHistories(prev => {
+      const updated = { ...prev, [question]: messages };
+
+      // Save to localStorage if not Google user
+      if (!isGoogle) {
+        localStorage.setItem(`chat_histories_${type}_${user.id}`, JSON.stringify(updated));
       }
-    }
 
-    return updatedItem;
-  };
-
-  // Helper function to create a new item
-  const createNewItem = async (
-    item: SavedItem,
-    userId: string,
-    tableType: ItemTypeSaved,
-    isGoogle: boolean
-  ): Promise<SavedItem> => {
-    const newItem: SavedItem = {
-      ...item,
-      id: item.id ?? generateId(),
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      category: item.category || '',
-      question: item.question,
-      answer: item.answer,
-      model: item.model
-    };
+      return updated;
+    });
 
     // Save to Supabase if Google user
     if (isGoogle) {
-      await saveDataSupabase(tableType, newItem);
+      await saveChatHistory(itemId, user.id, messages);
     }
+  }, [user, isGoogleUser, type]);
 
-    return newItem;
-  };
-
-  // Helper function to update localStorage if needed
-  const updateLocalStorage = (
-    userId: string,
-    tableType: ItemTypeSaved,
-    items: SavedItem[]
-  ) => {
-    localStorage.setItem(`${tableType}_${userId}`, JSON.stringify(items));
-  };
-
-  // Main saveItem function refactored
-  const saveItem = async (item: SavedItem) => {
-    if (!user) return;
+  // Save or update item
+  const saveItem = useCallback(async (item: SavedItem) => {
+    if (!user) return null;
 
     // Find existing item if any
     const { index: existingIndex, item: existingItem } = findExistingItem(
       savedItems,
-      item,
+      item.question,
       user.id
     );
 
@@ -136,13 +121,23 @@ export function useSavedItems(type: ItemTypeSaved) {
 
     if (existingItem) {
       // Update existing item
-      const updatedItem = await updateExistingItem(
-        existingItem,
-        item,
-        user.id,
-        type,
-        isGoogle
-      );
+      const updatedItem: SavedItem = {
+        ...existingItem,
+        ...item,
+        answer: item.answer || existingItem.answer,
+        model: item.model || existingItem.model,
+        updated_at: new Date().toISOString()
+      };
+
+      // Update in Supabase if Google user
+      if (isGoogle) {
+        await updateData(type, existingItem.id, user.id, {
+          answer: updatedItem.answer,
+          model: updatedItem.model,
+          updated_at: updatedItem.updated_at,
+          category: item.category || existingItem.category
+        });
+      }
 
       // Update state
       setSavedItems(prev => {
@@ -160,7 +155,22 @@ export function useSavedItems(type: ItemTypeSaved) {
       return existingItem.id;
     } else {
       // Create new item
-      const newItem = await createNewItem(item, user.id, type, isGoogle);
+      const newItem: SavedItem = {
+        ...item,
+        id: item.id ?? generateId(),
+        user_id: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        category: item.category || '',
+        question: item.question,
+        answer: item.answer,
+        model: item.model
+      };
+
+      // Save to Supabase if Google user
+      if (isGoogle) {
+        await saveData(type, newItem);
+      }
 
       // Update state
       setSavedItems(prev => {
@@ -176,51 +186,42 @@ export function useSavedItems(type: ItemTypeSaved) {
 
       return newItem.id;
     }
-  };
+  }, [savedItems, user, isGoogleUser, type, findExistingItem, updateLocalStorage]);
 
   // Add follow-up question
-  const addFollowUpQuestion = async ({ itemId, question, answer }: FollowUpQuestion) => {
+  const addFollowUpQuestion = useCallback(async ({itemId, question, answer}: FollowUpQuestion) => {
     if (!user) return;
 
-    setSavedItems(prev => {
-      const updated = prev.map(item => {
-        if (item.id === itemId) {
-          const updatedItem = {
-            ...item,
-            followUpQuestions: [
-              ...(item.followUpQuestions || []),
-              { question, answer, timestamp: Date.now() }
-            ]
-          };
+    const item = savedItems.find(item => item.id === itemId);
+    if (!item) return;
 
-          if (isGoogleUser()) {
-            // Use the new updateData function
-            updateDataSupabase(type, item.id, user.id, {
-              followUpQuestions: updatedItem.followUpQuestions
-            });
-          }
+    // Get existing messages or initialize empty array
+    const existingMessages = chatHistories[item.question] || [];
 
-          return updatedItem;
-        }
-        return item;
-      });
+    // Add new messages
+    const updatedMessages: ChatMessage[] = [
+      ...existingMessages,
+      { role: 'user', content: question, timestamp: Date.now() },
+      { role: 'assistant', content: answer, timestamp: Date.now() }
+    ];
 
-      if (!isGoogleUser()) {
-        localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
-      }
+    // Save chat history
+    await saveChatHistoryForItem(itemId, item.question, updatedMessages);
 
-      return updated;
-    });
-  };
+  }, [user, savedItems, chatHistories, saveChatHistoryForItem]);
 
   // Delete item
-  const deleteItem = async (itemId: string) => {
+  const deleteItem = useCallback(async (itemId: string) => {
     if (!user) return;
+
+    // Find the item to get its question (needed for chat history in local state)
+    const item = savedItems.find(item => item.id === itemId);
+    if (!item) return;
 
     try {
       // For Google users, delete from Supabase first
       if (isGoogleUser()) {
-        const { error } = await deleteDataSupabase(type, itemId, user.id);
+        const { error } = await deleteData(type, itemId, user.id);
 
         if (error) {
           console.error('Error deleting item from Supabase:', error);
@@ -230,27 +231,43 @@ export function useSavedItems(type: ItemTypeSaved) {
         console.info('Successfully deleted from Supabase');
       }
 
-      // Update local state after successful remote delete (or for local storage users)
+      // Update items state
       setSavedItems(prev => {
         const updated = prev.filter(item => item.id !== itemId);
 
         // For non-Google users, update localStorage
         if (!isGoogleUser()) {
-          localStorage.setItem(`${type}_${user.id}`, JSON.stringify(updated));
+          updateLocalStorage(user.id, type, updated);
         }
 
         return updated;
       });
-      console.log('deleteItem - saveItem',saveItem);
+
+      // Also update chat histories state
+      setChatHistories(prev => {
+        const updated = { ...prev };
+        if (item.question in updated) {
+          delete updated[item.question];
+
+          // Update localStorage for non-Google users
+          if (!isGoogleUser()) {
+            localStorage.setItem(`chat_histories_${type}_${user.id}`, JSON.stringify(updated));
+          }
+        }
+        return updated;
+      });
+
     } catch (error) {
       console.error('Unexpected error during item deletion:', error);
     }
-  };
+  }, [user, isGoogleUser, type, updateLocalStorage, savedItems]);
 
   return {
     savedItems,
     saveItem,
     addFollowUpQuestion,
-    deleteItem
+    deleteItem,
+    chatHistories,
+    saveChatHistoryForItem
   };
 }

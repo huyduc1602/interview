@@ -1,43 +1,35 @@
 import { supabase } from '@/supabaseClient';
-import { ItemTypeSaved, ResponseAnswer } from '@/types/common';
 import { v4 as uuidv4 } from 'uuid';
-import { PostgrestResponse } from '@supabase/supabase-js';
 
-export const fetchKnowledgeDataFromSupabase = async (userId: string): Promise<ResponseAnswer[] | null> => {
+export const fetchKnowledgeDataFromSupabase = async (userId: string) => {
     try {
-        const response: PostgrestResponse<ResponseAnswer> = await supabase
-            .from(ItemTypeSaved.KnowledgeAnswers)
+        const { data, error } = await supabase
+            .from('answers')
             .select('*')
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .eq('type', 'knowledge');
 
-        if (response.error) {
-            console.error('Error fetching knowledge data:', response.error);
-            return null;
-        }
-
-        return response.data;
+        if (error) throw error;
+        return data || [];
     } catch (error) {
-        console.error('Unexpected error fetching knowledge data:', error);
-        return null;
+        console.error('Error fetching knowledge data:', error);
+        return [];
     }
 };
 
 export const fetchInterviewQuestionDataFromSupabase = async (userId: string) => {
     try {
         const { data, error } = await supabase
-            .from(ItemTypeSaved.InterviewAnswers)
+            .from('answers')
             .select('*')
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .eq('type', 'interview');
 
-        if (error) {
-            console.error('Error fetching interview question data:', error);
-            return null;
-        }
-
-        return data;
+        if (error) throw error;
+        return data || [];
     } catch (error) {
-        console.error('Unexpected error fetching interview question data:', error);
-        return null;
+        console.error('Error fetching interview questions:', error);
+        return [];
     }
 };
 
