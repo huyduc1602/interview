@@ -16,6 +16,8 @@ export interface ModelGroup {
     models: ModelOption[];
 }
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export const modelGroups: ModelGroup[] = [
     {
         label: "models.groups.openai",
@@ -39,7 +41,7 @@ export const modelGroups: ModelGroup[] = [
     {
         label: "models.groups.free",
         models: [
-            {
+            ...(isDevelopment ? [{
                 id: AIModel.GEMINI,
                 name: "models.google.gemini",
                 icon: <Sparkles className="w-4 h-4 text-green-500" />,
@@ -47,7 +49,7 @@ export const modelGroups: ModelGroup[] = [
                     text: "models.badges.google",
                     color: "text-green-500"
                 }
-            },
+            }] : []),
             {
                 id: AIModel.MISTRAL,
                 name: "models.mistral.small",
