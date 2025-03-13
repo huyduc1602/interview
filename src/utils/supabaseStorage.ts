@@ -1,6 +1,5 @@
 import { supabase } from '@/supabaseClient';
 import { SavedItem, ItemTypeSaved, ChatMessage } from '@/types/common';
-import { SettingsState } from '@/hooks/useSettings';
 import { UserSettings, SaveSettingsInput, SettingsResponse, FeatureFlags } from '@/types/settings';
 
 /**
