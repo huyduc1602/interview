@@ -116,7 +116,9 @@ export default {
     tooltips: {
       search: 'Tìm kiếm trong tất cả câu hỏi',
       shuffle: 'Xáo trộn ngẫu nhiên câu hỏi từ danh mục đã chọn',
-      collapse: 'Thu gọn lựa chọn danh mục'
+      unShuffle: 'Trở lại chế độ xem bình thường',
+      collapse: 'Thu gọn lựa chọn danh mục',
+      selectCategories: "Chọn danh mục cần hiển thị"
     },
     categories: {
       select: 'Chọn Danh Mục',

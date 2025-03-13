@@ -124,7 +124,9 @@ export default {
     tooltips: {
       search: 'Search through all questions',
       shuffle: 'Randomly shuffle selected category questions',
-      collapse: 'Collapse category selection'
+      unShuffle: 'Return to normal view',
+      collapse: 'Collapse category selection',
+      selectCategories: "Select the category to display"
     },
     categories: {
       select: 'Select Categories',
