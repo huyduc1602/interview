@@ -13,7 +13,10 @@ export async function generateGeminiResponse(prompt: string, user: User | null):
     throw new Error('User not authenticated');
   }
 
-  const GEMINI_API_KEY = getApiKey(ApiKeyService.GEMINI, user.id);
+  const GEMINI_API_KEY = process.env.NODE_ENV === 'development' ? getApiKey(ApiKeyService.GEMINI, user.id) : '';
+  if (!GEMINI_API_KEY && process.env.NODE_ENV === 'development') {
+    throw new Error("Gemini API key is not configured in development mode");
+  }
 
   if (!GEMINI_API_KEY) {
     throw new Error('Gemini API key not configured');
