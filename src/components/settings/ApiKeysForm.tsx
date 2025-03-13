@@ -12,6 +12,8 @@ interface ApiKeysFormProps {
     showKeys: boolean;
 }
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 const ApiKeysForm: React.FC<ApiKeysFormProps> = ({
     settings,
     updateSetting,
@@ -31,13 +33,13 @@ const ApiKeysForm: React.FC<ApiKeysFormProps> = ({
             helpText: t('settings.apiKeys.openai.help'),
             placeholder: 'sk-...'
         },
-        {
+        ...(isDevelopment ? [{
             name: 'gemini',
             category: '',
             label: t('settings.apiKeys.gemini.label'),
             helpText: t('settings.apiKeys.gemini.help'),
             placeholder: 'AIzaSy...'
-        },
+        }] : []),
         {
             name: 'mistral',
             category: '',
