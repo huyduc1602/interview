@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { fetchUserSettings, saveUserSettings, updateFeatureFlag } from '@/utils/supabaseStorage';
 import { useTranslation } from 'react-i18next';
 import { debounce } from 'lodash';
+import { settingsBridge } from '@/utils/settingsBridge';
 
 // Define data types for settings
 export interface SettingsState {
@@ -216,6 +217,15 @@ export const useSettings = () => {
         debouncedSave(settings);
 
     }, [settings, initialLoadComplete, debouncedSave]);
+
+    // Sync settings to the bridge
+    useEffect(() => {
+        // Only sync settings when we have a user and settings have been loaded
+        if (user && initialLoadComplete) {
+            // Update the bridge whenever settings change
+            settingsBridge.updateSettings(settings, user.id);
+        }
+    }, [user, settings, initialLoadComplete]);
 
     // Manual save - can be used to force immediate save
     const saveSettings = async () => {
