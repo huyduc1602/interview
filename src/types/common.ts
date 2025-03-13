@@ -9,12 +9,13 @@ export interface BaseItem {
 export interface SavedItem {
     id: string;
     user_id: string;
-    created_at: string;
     followUpQuestions?: { question: string; answer: string; timestamp: number }[];
     category: string;
     question: string;
     answer: string;
     model: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface User {
@@ -44,7 +45,7 @@ export interface SharedItem extends BaseItem {
     category: string;
     question: string;
     answer: string | null;
-    order? : number;
+    order?: number;
 }
 
 export enum ItemTypeSaved {
@@ -66,4 +67,20 @@ export interface ResponseAnswer {
     answer: string;
     created_at: string;
     model: string
+}
+
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: number;
+    isError?: boolean;
+}
+
+export interface ChatHistoryItem {
+    id: string;
+    answer_id: string;
+    user_id: string;
+    messages: ChatMessage[];
+    created_at: string;
+    updated_at: string;
 }

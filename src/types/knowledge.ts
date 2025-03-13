@@ -25,17 +25,6 @@ export interface KnowledgeCategory {
     items: KnowledgeItem[];
 }
 
-export interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: number;
-    isError?: boolean;
-}
-
-export interface ChatHistory {
-    [key: string]: ChatMessage[];
-}
-
 export interface ExpandedCategories {
     [key: number]: boolean;
 }
