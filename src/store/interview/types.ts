@@ -11,7 +11,7 @@ export interface QuestionItem {
 
 export interface KnowledgeCategory {
     category: string;
-    items: KnowledgeItem[];
+    items: SharedItem[];
 }
 
 export interface QuestionCategory {
@@ -27,7 +27,7 @@ export interface CachedAnswers {
 }
 
 export interface InterviewState {
-    knowledge: KnowledgeCategory[];
+    knowledge: SharedCategory[];
     questions: QuestionCategory[];
     answers: Record<string, string>;
     loading: boolean;

@@ -1,11 +1,3 @@
-export interface KnowledgeItem {
-    rowIndex: number;
-    order: string;
-    content: string;
-    status: string;
-    notes: string;
-}
-
 export interface QuestionItem {
     rowIndex: number;
     question: string;
@@ -15,7 +7,7 @@ export interface QuestionItem {
 
 export interface Category {
     category: string;
-    items: KnowledgeItem[] | QuestionItem[];
+    items: SharedItem[] | QuestionItem[];
 }
 
 export interface SheetData {
