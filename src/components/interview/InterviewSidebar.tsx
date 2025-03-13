@@ -3,6 +3,7 @@ import CategoryTags from '@/components/categoryTags';
 import { SharedItem, SharedCategoryShuffled, SharedCategory } from '@/types/common';
 import { ExpandedCategories } from '@/types/interview';
 import { KnowledgeItem } from '@/types/knowledge';
+import { Dispatch, SetStateAction } from 'react';
 
 interface InterviewSidebarProps {
     questions: SharedCategory[];
@@ -15,6 +16,7 @@ interface InterviewSidebarProps {
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
     shuffledQuestions: SharedCategoryShuffled[];
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
     isTagsExpanded: boolean;
@@ -32,6 +34,7 @@ export default function InterviewSidebar({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     handleCategorySelect,
@@ -60,6 +63,7 @@ export default function InterviewSidebar({
             filterQuestions={filterQuestions}
             setSearchQuery={setSearchQuery}
             shuffleQuestions={shuffleQuestions}
+            setShuffledQuestions={setShuffledQuestions}
             shuffledQuestions={shuffledQuestions}
             selectedCategories={selectedCategories}
             handleCategorySelect={handleCategorySelect}

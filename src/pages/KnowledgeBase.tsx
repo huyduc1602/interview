@@ -36,6 +36,7 @@ export default function KnowledgeBase() {
         isLoading,
         selectedCategories,
         shuffledQuestions,
+        setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
         setSearchQuery,
@@ -103,6 +104,7 @@ export default function KnowledgeBase() {
                             setSearchQuery={setSearchQuery}
                             shuffleQuestions={handleShuffleQuestionsWithState}
                             shuffledQuestions={shuffledQuestions}
+                            setShuffledQuestions={setShuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             isTagsExpanded={isTagsExpanded}

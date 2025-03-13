@@ -35,6 +35,7 @@ export default function InterviewQuestions() {
         isLoading,
         selectedCategories,
         shuffledQuestions,
+        setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
         setSearchQuery,
@@ -102,6 +103,7 @@ export default function InterviewQuestions() {
                             setSearchQuery={setSearchQuery}
                             shuffleQuestions={handleShuffleQuestionsWithState}
                             shuffledQuestions={shuffledQuestions}
+                            setShuffledQuestions={setShuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             isTagsExpanded={isTagsExpanded}
