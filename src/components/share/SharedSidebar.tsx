@@ -79,7 +79,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
 
     const renderQuestions = () => {
         if (type == 'interview') {
-            return questions.map((category, categoryIndex) => {
+            return questions?.map((category, categoryIndex) => {
                 const items = getItems(category);
                 const filteredItems = filterQuestions(items, searchQuery) as SharedItem[] | SharedCategoryShuffled[];
                 if (filteredItems.length === 0 && searchQuery) return null;
