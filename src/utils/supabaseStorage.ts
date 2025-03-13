@@ -1,6 +1,7 @@
 import { supabase } from '@/supabaseClient';
 import { SavedItem, ItemTypeSaved, ChatMessage } from '@/types/common';
 import { SettingsState } from '@/hooks/useSettings';
+import { UserSettings, SaveSettingsInput, SettingsResponse, FeatureFlags } from '@/types/settings';
 
 /**
  * Save data to Supabase answers table
@@ -171,7 +172,7 @@ export const fetchChatHistory = async (answerId: string, userId: string) => {
 };
 
 // Fetch user settings from Supabase
-export const fetchUserSettings = async (userId: string) => {
+export const fetchUserSettings = async (userId: string): Promise<SettingsResponse> => {
     try {
         const { data, error } = await supabase
             .from('settings')
@@ -181,15 +182,15 @@ export const fetchUserSettings = async (userId: string) => {
 
         if (error) throw error;
 
-        return { data, error: null };
+        return { data: data as UserSettings, error: null };
     } catch (error) {
         console.error('Error fetching user settings:', error);
-        return { data: null, error };
+        return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
 };
 
 // Save or update user settings to Supabase
-export const saveUserSettings = async (userId: string, settings: any) => {
+export const saveUserSettings = async (userId: string, settings: SaveSettingsInput): Promise<{ data: any, error: Error | null }> => {
     try {
         // Format settings for database
         const dbSettings = {
@@ -198,10 +199,10 @@ export const saveUserSettings = async (userId: string, settings: any) => {
             gemini: settings.gemini,
             mistral: settings.mistral,
             openchat: settings.openchat,
-            google_sheet_api_key: settings.google_sheet_api_key,
-            api_settings: settings.apiSettings || settings.api_settings || {},
-            app_preferences: settings.appPreferences || settings.app_preferences || {},
-            feature_flags: settings.featureFlags || settings.feature_flags || {}
+            google_sheet_api_key: settings.googleSheetApiKey,
+            api_settings: settings.api_settings || {},
+            app_preferences: settings.app_preferences || {},
+            feature_flags: settings.feature_flags || {}
         };
 
         // Check if settings already exist for this user
@@ -230,12 +231,12 @@ export const saveUserSettings = async (userId: string, settings: any) => {
         return { data: result.data, error: null };
     } catch (error) {
         console.error('Error saving user settings:', error);
-        return { data: null, error };
+        return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
 };
 
 // Get feature flag values from user settings
-export const getFeatureFlags = async (userId: string): Promise<Record<string, any>> => {
+export const getFeatureFlags = async (userId: string): Promise<FeatureFlags> => {
     try {
         const { data, error } = await supabase
             .from('settings')
@@ -245,7 +246,7 @@ export const getFeatureFlags = async (userId: string): Promise<Record<string, an
 
         if (error) throw error;
 
-        return data?.feature_flags || {};
+        return data?.feature_flags as FeatureFlags || {};
     } catch (error) {
         console.error('Error fetching feature flags:', error);
         return {};

@@ -83,7 +83,6 @@ export function useItemInteractions({
 
     // Handle item click
     const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | any) => {
-        console.log('handleItemClick - savedItems', savedItems);
         // Cast to proper type based on data source
         const actualItem = item as any;
 

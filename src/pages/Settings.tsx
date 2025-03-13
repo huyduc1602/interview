@@ -1,30 +1,24 @@
 import { useTranslation } from 'react-i18next';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs/index';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, Key, Cloud, Database, ToggleLeft } from 'lucide-react';
-import { useApiKeysSettings } from '@/hooks/useApiKeysSettings';
+import { Info, Key, Cloud, Database } from 'lucide-react';
+import { useSettings } from '@/hooks/useSettings';
 import SettingsActions from '@/components/settings/SettingsActions';
 import ApiKeysForm from '@/components/settings/ApiKeysForm';
-import FeatureSettings from '@/components/settings/FeatureSettings';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function Settings() {
   const { t } = useTranslation();
   const {
-    apiKeys,
+    settings,
     saved,
     showKeys,
     setShowKeys,
-    handleSave,
-    handleApiKeyChange,
+    saveSettings,
+    updateSetting,
     handleFileUpload,
-    handleDownloadSampleKeys,
-    featureFlags,
-    handleFeatureFlagChange
-  } = useApiKeysSettings();
-
-  const { isGoogleUser } = useAuth();
-  const isGoogle = isGoogleUser();
+    handleDownloadSampleSettings,
+    isGoogle
+  } = useSettings();
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -35,10 +29,6 @@ export default function Settings() {
           <TabsTrigger value="apikeys">
             <Key className="w-4 h-4 mr-2" />
             {t('settings.tabs.apiKeys')}
-          </TabsTrigger>
-          <TabsTrigger value="features">
-            <ToggleLeft className="w-4 h-4 mr-2" />
-            {t('settings.tabs.features')}
           </TabsTrigger>
         </TabsList>
 
@@ -66,47 +56,18 @@ export default function Settings() {
             </Alert>
 
             <SettingsActions
-              onSave={handleSave}
+              onSave={saveSettings}
               showKeys={showKeys}
               setShowKeys={setShowKeys}
               onFileUpload={handleFileUpload}
-              onDownloadSampleKeys={handleDownloadSampleKeys}
+              onDownloadSampleKeys={handleDownloadSampleSettings}
               saved={saved}
             />
 
             <ApiKeysForm
-              apiKeys={apiKeys}
-              handleApiKeyChange={handleApiKeyChange}
+              settings={settings}
+              updateSetting={updateSetting}
               showKeys={showKeys}
-              featureFlags={featureFlags}
-              onFeatureFlagChange={handleFeatureFlagChange}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="features" className="mt-6">
-          <Alert>
-            <Info className="w-4 h-4" />
-            <AlertDescription>
-              {t('settings.features.info')}
-            </AlertDescription>
-          </Alert>
-
-          <div className="mt-6">
-            <FeatureSettings
-              settings={apiKeys}
-              updateSetting={handleApiKeyChange}
-            />
-          </div>
-
-          <div className="mt-6">
-            <SettingsActions
-              onSave={handleSave}
-              showKeys={showKeys}
-              setShowKeys={setShowKeys}
-              onFileUpload={handleFileUpload}
-              onDownloadSampleKeys={handleDownloadSampleKeys}
-              saved={saved}
             />
           </div>
         </TabsContent>
