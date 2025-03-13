@@ -1,8 +1,8 @@
 import SharedSidebar from '@/components/share/SharedSidebar';
 import CategoryTags from '@/components/categoryTags';
 import { SharedItem, SharedCategoryShuffled, SharedCategory } from '@/types/common';
-import { ExpandedCategories } from '@/types/interview';
-import { KnowledgeItem } from '@/types/knowledge';
+import { ExpandedCategories } from '@/types/common';
+import { Dispatch, SetStateAction } from 'react';
 
 interface InterviewSidebarProps {
     questions: SharedCategory[];
@@ -10,11 +10,12 @@ interface InterviewSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => Promise<void>;
+    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled) => Promise<void>;
     filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
     shuffledQuestions: SharedCategoryShuffled[];
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
     isTagsExpanded: boolean;
@@ -32,6 +33,7 @@ export default function InterviewSidebar({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     handleCategorySelect,
@@ -45,7 +47,7 @@ export default function InterviewSidebar({
             isTagsExpanded={isTagsExpanded}
             setIsTagsExpanded={setIsTagsExpanded}
             handleCategorySelect={handleCategorySelect}
-            knowledge={questions}
+            categoryItem={questions}
         />
     );
 
@@ -60,6 +62,7 @@ export default function InterviewSidebar({
             filterQuestions={filterQuestions}
             setSearchQuery={setSearchQuery}
             shuffleQuestions={shuffleQuestions}
+            setShuffledQuestions={setShuffledQuestions}
             shuffledQuestions={shuffledQuestions}
             selectedCategories={selectedCategories}
             handleCategorySelect={handleCategorySelect}
