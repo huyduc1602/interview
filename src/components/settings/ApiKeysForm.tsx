@@ -26,56 +26,56 @@ const ApiKeysForm: React.FC<ApiKeysFormProps> = ({
     const apiKeyFields = [
         {
             name: 'openai',
-            category: 'apiKeys',
+            category: '',
             label: t('settings.apiKeys.openai.label'),
             helpText: t('settings.apiKeys.openai.help'),
             placeholder: 'sk-...'
         },
         {
             name: 'gemini',
-            category: 'apiKeys',
+            category: '',
             label: t('settings.apiKeys.gemini.label'),
             helpText: t('settings.apiKeys.gemini.help'),
             placeholder: 'AIzaSy...'
         },
         {
             name: 'mistral',
-            category: 'apiKeys',
+            category: '',
             label: t('settings.apiKeys.mistral.label'),
             helpText: t('settings.apiKeys.mistral.help'),
             placeholder: ''
         },
         {
             name: 'openchat',
-            category: 'apiKeys',
+            category: '',
             label: t('settings.apiKeys.openchat.label'),
             helpText: t('settings.apiKeys.openchat.help'),
             placeholder: ''
         },
         {
             name: 'googleSheetApiKey',
-            category: 'apiKeys',
+            category: '',
             label: t('settings.apiKeys.googleSheetApiKey.label'),
             helpText: t('settings.apiKeys.googleSheetApiKey.help'),
             placeholder: 'AIzaSy...'
         },
         {
             name: 'spreadsheetId',
-            category: 'api_settings',
+            category: '',
             label: t('settings.apiKeys.spreadsheetId.label'),
             helpText: t('settings.apiKeys.spreadsheetId.help'),
             placeholder: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
         },
         {
             name: 'sheetNameKnowledgeBase',
-            category: 'api_settings',
+            category: '',
             label: t('settings.apiKeys.sheetNameKnowledgeBase.label'),
             helpText: t('settings.apiKeys.sheetNameKnowledgeBase.help'),
             placeholder: 'KnowledgeBase'
         },
         {
             name: 'sheetNameInterviewQuestions',
-            category: 'api_settings',
+            category: '',
             label: t('settings.apiKeys.sheetNameInterviewQuestions.label'),
             helpText: t('settings.apiKeys.sheetNameInterviewQuestions.help'),
             placeholder: 'InterviewQuestions'

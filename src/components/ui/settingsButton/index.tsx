@@ -43,7 +43,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, sheetName, is
                                 <p>{t('common.loading')}</p>
                             </div>
                         ) : (
-                            <ApiKeyForm onSubmit={onSubmit} sheetNameProp={sheetName} />
+                                <ApiKeyForm onSubmit={onSubmit} sheetNameProp={sheetName} setIsApiKeyFormVisible={setIsApiKeyFormVisible} />
                         )}
                     </div>
                 </div>
