@@ -32,6 +32,26 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
     // Track page reloads
     const pageLoadIdRef = useRef<string | null>(null);
 
+    // Use a ref to track loading operations
+    const loadingOperationsRef = useRef(0);
+
+    const setLoading = useCallback((isLoading: boolean) => {
+
+        if (isLoading) {
+            // Increment counter when starting a loading operation
+            loadingOperationsRef.current += 1;
+            setIsLoading(true);
+        } else {
+            // Decrement counter when a loading operation completes
+            loadingOperationsRef.current = Math.max(0, loadingOperationsRef.current - 1);
+
+            // Only set loading to false when all operations complete
+            if (loadingOperationsRef.current === 0) {
+                setIsLoading(false);
+            }
+        }
+    }, []);
+
     // Memoize API keys to prevent recreation
     const apiKey = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKey]);
     const spreadsheetId = useMemo(() => getApiKey(ApiKeyService.SPREADSHEET_ID), [getApiKey]);
@@ -90,61 +110,75 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
             acc[index] = category.items?.length > 0 || category.category?.length > 0;
             return acc;
         }, {} as { [key: number]: boolean }));
-
-        if (isLoading) setIsLoading(false);
-    }, [data, isLoading]);
+    }, [data]);
 
     const loadData = async () => {
-        setIsLoading(true);
+        // Reset any stuck loading operations
+        if (loadingOperationsRef.current > 0) {
+            console.warn(`Resetting ${loadingOperationsRef.current} stuck loading operations`);
+            loadingOperationsRef.current = 0;
+        }
+
+        // Start fresh
+        setLoading(true); // Operation #1
         console.log(`Loading ${dataType} data...`);
 
         try {
-            // Always load from Google Sheets first (for all users)
+            // Create a tracking ID for this specific operation
+            const operationId = Date.now().toString();
+            console.log(`Started operation #${operationId}`);
+
+            // First loading operation: Redux data fetch
             if (apiKey && spreadsheetId && sheetName) {
-                dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
-            }
+                try {
+                    await new Promise<void>((resolve, reject) => {
+                        const timeoutId = setTimeout(() => {
+                            reject(new Error("Redux operation timed out after 10 seconds"));
+                        }, 10000); // 10 second timeout
 
-            // For Google users, fetch answers from Supabase and merge with data
-            if (isGoogle && data?.length > 0) {
-                const answers = await fetchDataFromSupabase(user?.id ?? generateId());
-
-                if (answers && answers.length > 0) {
-                    // Create a map of question -> answer for quick lookup
-                    const answersMap = new Map();
-                    answers.forEach(item => {
-                        if (item.question && item.answer) {
-                            const key = dataType === 'knowledge' ? item.question : item.question;
-                            answersMap.set(key, item.answer);
-                        }
-                    });
-
-                    // Clone and update data with answers
-                    const field = dataType === 'knowledge' ? 'knowledge' : 'questions';
-                    const contentField = dataType === 'knowledge' ? 'content' : 'question';
-
-                    const updatedData = data.map(category => ({
-                        ...category,
-                        items: category.items.map((item: any) => {
-                            const key = item[contentField];
-                            const answer = answersMap.get(key);
-                            if (answer) {
-                                return { ...item, answer };
+                        dispatch(fetchDataRequest({
+                            apiKey,
+                            spreadsheetId,
+                            user,
+                            onComplete: () => {
+                                clearTimeout(timeoutId);
+                                resolve();
                             }
-                            return item;
-                        })
-                    }));
-
-                    // Update Redux store with merged data
-                    dispatch(fetchDataSuccess({ [field]: updatedData }));
+                        }));
+                    });
+                } catch (reduxError) {
+                    console.error(`Redux operation #${operationId} failed:`, reduxError);
+                    throw reduxError; // Rethrow to be caught by outer try/catch
                 }
             }
 
-            console.log(`${dataType} data loaded successfully`);
+            // Second loading operation: Supabase (only if needed)
+            if (isGoogle && data?.length > 0) {
+                try {
+                    await fetchDataFromSupabase(user?.id ?? generateId());
+                    // Process answers...
+                    console.log(`Completed Supabase operation #${operationId}`);
+                } catch (supabaseError) {
+                    console.error(`Supabase operation #${operationId} failed:`, supabaseError);
+                    // We don't rethrow here since this is optional data
+                }
+            }
+
+            console.log(`${dataType} data loaded successfully for operation #${operationId}`);
         } catch (error) {
             console.error(`Error loading ${dataType} data:`, error);
         } finally {
-            setIsLoading(false);
             dataLoadedRef.current = true;
+            setLoading(false); // Decrement operation #1
+
+            // Add safety check to fix any imbalance
+            setTimeout(() => {
+                if (loadingOperationsRef.current > 0) {
+                    console.warn(`Detected ${loadingOperationsRef.current} stuck operations after loadData, resetting`);
+                    loadingOperationsRef.current = 0;
+                    setIsLoading(false);
+                }
+            }, 100);
         }
     };
 
@@ -206,10 +240,30 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
     const handleApiKeySubmit = useCallback(async (apiKey: string, spreadsheetId: string) => {
         if (!user) return;
 
-        setIsLoading(true);
-        await dispatch(fetchDataRequest({ apiKey, spreadsheetId, user }));
+        // Use the consistent loading tracking system
+        setLoading(true);
+
+        try {
+            // Create a promise that resolves when the dispatch completes
+            await new Promise<void>((resolve) => {
+                dispatch(fetchDataRequest({
+                    apiKey,
+                    spreadsheetId,
+                    user,
+                    onComplete: resolve
+                }));
+            });
+        } finally {
+            // Use the consistent loading tracking system
+            setLoading(false);
+        }
+    }, [dispatch, user, setLoading]);
+
+    const resetLoadingState = useCallback(() => {
+        console.log("Resetting loading state - was stuck at:", loadingOperationsRef.current);
+        loadingOperationsRef.current = 0;
         setIsLoading(false);
-    }, [dispatch, user]);
+    }, []);
 
     return {
         expandedCategories,
@@ -230,6 +284,8 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         handleShuffleQuestions,
         handleApiKeySubmit,
         loadData,
-        forceReloadData // Expose method to force data reload
+        forceReloadData, // Expose method to force data reload
+        resetLoadingState,
+        loadingOperationsCount: loadingOperationsRef.current,
     };
 }

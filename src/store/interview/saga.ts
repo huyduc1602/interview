@@ -28,12 +28,16 @@ interface AnswerPayload {
     answer: string;
 }
 
-function* fetchDataSaga(action: PayloadAction<{ apiKey: string; spreadsheetId: string; user: User | null }>): Generator<unknown, void, ApiResponse<SheetData>> {
+function* fetchDataSaga(action: ReturnType<typeof fetchDataRequest>): Generator<unknown, void, ApiResponse<SheetData>> {
     try {
         const { apiKey, spreadsheetId, user } = action.payload;
         const response = yield call(fetchGoogleSheetData, apiKey, spreadsheetId, user);
         if (response.success && response.data) {
             yield put(fetchDataSuccess(response.data));
+            // Call the onComplete callback if provided
+            if (action.payload.onComplete) {
+                action.payload.onComplete();
+            }
         } else {
             throw new Error(response.error || 'Failed to fetch data');
         }
@@ -41,6 +45,11 @@ function* fetchDataSaga(action: PayloadAction<{ apiKey: string; spreadsheetId: s
         yield put(fetchDataFailure(
             error instanceof Error ? error.message : 'An unknown error occurred'
         ));
+
+        // Still call onComplete even on error to resolve the promise
+        if (action.payload.onComplete) {
+            action.payload.onComplete();
+        }
     }
 }
 
