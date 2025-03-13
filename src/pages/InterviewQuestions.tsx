@@ -58,7 +58,6 @@ export default function InterviewQuestions() {
         isSavedAnswer,
         setIsSavedAnswer,
         existingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error
@@ -85,7 +84,7 @@ export default function InterviewQuestions() {
     }
 
     // Convert to shared item format
-    const sharedQuestion = selectedItem ? convertToSharedItem(selectedItem) : null;
+    const sharedQuestion = selectedItem;
 
     return (
         <TooltipProvider>
