@@ -63,24 +63,27 @@ const ApiKeyGuide: React.FC = () => {
                             {t('apiKeyGuide.googleClient.link')}
                         </a>
                     </section>
-                    <section>
-                        <h2 className="text-2xl font-semibold mb-2">{t('apiKeyGuide.googleGemini.title')}</h2>
-                        <p>{t('apiKeyGuide.googleGemini.description')}</p>
-                        <ol className="list-decimal list-inside space-y-2 mt-2">
-                            <li>{t('apiKeyGuide.googleGemini.steps.1')}</li>
-                            <li>{t('apiKeyGuide.googleGemini.steps.2')}</li>
-                            <li>{t('apiKeyGuide.googleGemini.steps.3')}</li>
-                            <li>{t('apiKeyGuide.googleGemini.steps.4')}</li>
-                        </ol>
-                        <a
-                            href="https://console.cloud.google.com/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                        >
-                            {t('apiKeyGuide.googleGemini.link')}
-                        </a>
-                    </section>
+                    {process.env.NODE_ENV === 'development' && (
+                        <section>
+                            <h2 className="text-2xl font-semibold mb-2">{t('apiKeyGuide.googleGemini.title')}</h2>
+                            <p>{t('apiKeyGuide.googleGemini.description')}</p>
+                            <ol className="list-decimal list-inside space-y-2 mt-2">
+                                <li>{t('apiKeyGuide.googleGemini.steps.1')}</li>
+                                <li>{t('apiKeyGuide.googleGemini.steps.2')}</li>
+                                <li>{t('apiKeyGuide.googleGemini.steps.3')}</li>
+                                <li>{t('apiKeyGuide.googleGemini.steps.4')}</li>
+                            </ol>
+                            <a
+                                href="https://console.cloud.google.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                            >
+                                {t('apiKeyGuide.googleGemini.link')}
+                            </a>
+                        </section>
+                    )}
+
                     <section>
                         <h2 className="text-2xl font-semibold mb-2">{t('apiKeyGuide.mistral.title')}</h2>
                         <p>{t('apiKeyGuide.mistral.description')}</p>
