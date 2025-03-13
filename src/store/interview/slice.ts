@@ -1,4 +1,4 @@
-import { User } from '@/types/common';
+import { SharedCategory, SharedItem, User } from '@/types/common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface InterviewState {
@@ -42,7 +42,12 @@ const interviewSlice = createSlice({
   reducers: {
     // Data fetching actions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchDataRequest: (state, _action: PayloadAction<{ apiKey: string; spreadsheetId: string, user: User | null }>) => {
+    fetchDataRequest: (state, _action: PayloadAction<{
+      apiKey: string;
+      spreadsheetId: string;
+      user: User | null;
+      onComplete?: () => void;
+    }>) => {
       state.loading = true;
     },
     fetchDataSuccess: (state, action) => {
@@ -76,20 +81,10 @@ const interviewSlice = createSlice({
     updateKnowledgeStatusSuccess: (state, action) => {
       state.loading = false;
       const { rowIndex, status } = action.payload;
-      interface KnowledgeItem {
-        rowIndex: number;
-        status: string;
-        [key: string]: unknown;
-      }
 
-      interface KnowledgeCategory {
-        items: KnowledgeItem[];
-        [key: string]: unknown;
-      }
-
-      state.knowledge = (state.knowledge as KnowledgeCategory[]).map((category: KnowledgeCategory) => ({
+      state.knowledge = (state.knowledge as SharedCategory[]).map((category: SharedCategory) => ({
         ...category,
-        items: category.items.map((item: KnowledgeItem) =>
+        items: category.items.map((item: SharedItem) =>
           item.rowIndex === rowIndex
             ? { ...item, status }
             : item

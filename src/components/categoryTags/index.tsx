@@ -11,7 +11,7 @@ interface CategoryTagsProps {
     isTagsExpanded: boolean;
     setIsTagsExpanded: (expanded: boolean) => void;
     handleCategorySelect: (category: string) => void;
-    knowledge: SharedCategory[];
+    categoryItem: SharedCategory[];
 }
 
 export default function CategoryTags({
@@ -19,7 +19,7 @@ export default function CategoryTags({
     isTagsExpanded,
     setIsTagsExpanded,
     handleCategorySelect,
-    knowledge
+    categoryItem: knowledge
 }: CategoryTagsProps) {
     const { t } = useTranslation();
     const selectedCount = selectedCategories.length;
@@ -43,15 +43,17 @@ export default function CategoryTags({
                         +{selectedCount - 2} {t('interviewQuestions.categories.more')}
                     </Badge>
                 )}
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-auto"
-                    onClick={() => setIsTagsExpanded(true)}
-                >
-                    <Tag className="h-4 w-4 mr-2" />
-                    {t('interviewQuestions.categories.selectCount', { selected: selectedCount, total: totalCount })}
-                </Button>
+                <Tooltip content={t('interviewQuestions.tooltips.selectCategories')} className="bg-gray-800 text-white">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto"
+                        onClick={() => setIsTagsExpanded(true)}
+                    >
+                        <Tag className="h-4 w-4 mr-2" />
+                        {t('interviewQuestions.categories.selectCount', { selected: selectedCount, total: totalCount })}
+                    </Button>
+                </Tooltip>
             </div>
         );
     }

@@ -1,7 +1,8 @@
 import SharedSidebar from '@/components/share/SharedSidebar';
 import CategoryTags from '@/components/categoryTags';
 import { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
-import { ExpandedCategories, KnowledgeItem } from '@/types/knowledge';
+import { ExpandedCategories } from '@/types/common';
+import { Dispatch, SetStateAction } from 'react';
 
 interface KnowledgeSidebarProps {
     knowledge: SharedCategory[];
@@ -9,10 +10,11 @@ interface KnowledgeSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled | KnowledgeItem) => void;
-    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
+    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled) => void;
+    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     shuffledQuestions: SharedCategoryShuffled[];
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
@@ -31,6 +33,7 @@ export default function KnowledgeSidebar({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     handleCategorySelect,
@@ -44,7 +47,7 @@ export default function KnowledgeSidebar({
             isTagsExpanded={isTagsExpanded}
             setIsTagsExpanded={setIsTagsExpanded}
             handleCategorySelect={handleCategorySelect}
-            knowledge={knowledge}
+            categoryItem={knowledge}
         />
     );
 
@@ -59,6 +62,7 @@ export default function KnowledgeSidebar({
             filterQuestions={filterQuestions}
             setSearchQuery={setSearchQuery}
             shuffleQuestions={shuffleQuestions}
+            setShuffledQuestions={setShuffledQuestions}
             shuffledQuestions={shuffledQuestions}
             selectedCategories={selectedCategories}
             handleCategorySelect={handleCategorySelect}

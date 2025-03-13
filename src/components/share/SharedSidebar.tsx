@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React, { Dispatch, JSX, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
@@ -6,11 +6,10 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Shuffle } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
-import type { ExpandedCategories } from '@/types/interview';
+import type { ExpandedCategories } from '@/types/common';
 import type { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { Badge } from '@/components/ui/badge';
-import Spinner from '@/components/ui/spinner';
-import { KnowledgeItem } from '@/types/knowledge';
+import ShimmerSidebar from '@/components/ui/shimmer/ShimmerSidebar';
 
 interface SharedSidebarProps {
     questions: SharedCategory[];
@@ -18,10 +17,15 @@ interface SharedSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (question: SharedItem | SharedCategoryShuffled | KnowledgeItem, category?: string) => void | Promise<void>;
-    filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[] | KnowledgeItem[];
+    handleQuestionClick: (question: SharedItem | SharedCategoryShuffled, category?: string) => void | Promise<void>;
+    filterQuestions: (
+        items: SharedItem[] | SharedCategoryShuffled[],
+        query: string,
+        category?: string[]
+    ) => SharedItem[] | SharedCategoryShuffled[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
+    setShuffledQuestions: Dispatch<SetStateAction<SharedCategoryShuffled[]>>;
     shuffledQuestions: SharedCategoryShuffled[];
     selectedCategories: string[];
     handleCategorySelect: (category: string) => void;
@@ -40,6 +44,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     filterQuestions,
     setSearchQuery,
     shuffleQuestions,
+    setShuffledQuestions,
     shuffledQuestions,
     selectedCategories,
     renderCategoryTags,
@@ -53,6 +58,16 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
             return shuffledQuestions as SharedItem[];
         }
         return category.items;
+    };
+
+    const toggleShuffleMode = () => {
+        if (shuffledQuestions.length > 0) {
+            // If we're already in shuffle mode, clear the shuffled questions
+            setShuffledQuestions([]);
+        } else {
+            // If we're not in shuffle mode, shuffle the questions
+            shuffleQuestions();
+        }
     };
 
     const renderShuffledQuestions = () => {
@@ -78,95 +93,156 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     };
 
     const renderQuestions = () => {
-        if (type == 'interview') {
-            return questions?.map((category, categoryIndex) => {
-                const items = getItems(category);
-                const filteredItems = filterQuestions(items, searchQuery) as SharedItem[] | SharedCategoryShuffled[];
-                if (filteredItems.length === 0 && searchQuery) return null;
+        return questions?.map((category, categoryIndex) => {
+            if (!expandedCategories[categoryIndex] && !selectedCategories.includes(category.category)) return null;
 
-                return (
-                    <div key={categoryIndex} className="space-y-2 min-w-min">
-                        <CategoryHeader
-                            isExpanded={expandedCategories[categoryIndex]}
-                            title={category.category}
-                            itemCount={filteredItems.length}
-                            onClick={() => toggleCategory(categoryIndex)}
-                        />
-                        {expandedCategories[categoryIndex] && (
-                            <div className="ml-6 space-y-1">
-                                {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
-                                    <button
-                                        key={itemIndex}
-                                        onClick={() => handleQuestionClick(item, category.category)}
-                                        className={cn(
-                                            "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
-                                            selectedQuestion?.question === item.question
-                                                ? "bg-purple-100 text-purple-900"
-                                                : "hover:bg-gray-100"
-                                        )}
-                                    >
-                                        {searchQuery ? (
-                                            <HighlightText
-                                                text={item.question}
-                                                search={searchQuery}
-                                            />
-                                        ) : (
-                                            item.question
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                );
-            });
-        }
+            const items = getItems(category);
+            const filteredItems = filterQuestions(
+                items, searchQuery, selectedCategories.length > 0 ? selectedCategories : undefined
+            ) as SharedItem[] | SharedCategoryShuffled[];
 
-        if (type == 'knowledge') {
-            return questions?.map((kCategory, categoryIndex) => {
-                const items = getItems(kCategory);
-                const filteredItems = filterQuestions(items, searchQuery) as KnowledgeItem[];
-                if (filteredItems.length === 0 && searchQuery) return null;
+            // Skip empty categories after filtering
+            if (filteredItems.length === 0 && searchQuery) return null;
 
-                return (
-                    <div key={categoryIndex} className="space-y-2 min-w-min">
-                        <CategoryHeader
-                            isExpanded={expandedCategories[categoryIndex]}
-                            title={kCategory.category}
-                            itemCount={filteredItems.length}
-                            onClick={() => toggleCategory(categoryIndex)}
-                        />
-                        {expandedCategories[categoryIndex] && (
-                            <div className="ml-6 space-y-1">
-                                {filteredItems.map((item: KnowledgeItem, itemIndex: number) => (
-                                    <button
-                                        key={itemIndex}
-                                        onClick={() => handleQuestionClick(item, kCategory.category)}
-                                        className={cn(
-                                            "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
-                                            selectedQuestion?.question === item.content
-                                                ? "bg-purple-100 text-purple-900"
-                                                : "hover:bg-gray-100"
-                                        )}
-                                    >
-                                        {searchQuery ? (
-                                            <HighlightText
-                                                text={item.content}
-                                                search={searchQuery}
-                                            />
-                                        ) : (
-                                            item.content
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                );
-            });
-        }
+            // Don't show categories that have no items and aren't selected
+            if (filteredItems.length === 0 &&
+                !selectedCategories.includes(category.category)) return null;
 
-        return null;
+            return (
+                <div key={categoryIndex} className="space-y-2 min-w-min">
+                    <CategoryHeader
+                        isExpanded={expandedCategories[categoryIndex]}
+                        title={category.category}
+                        itemCount={filteredItems.length}
+                        onClick={() => toggleCategory(categoryIndex)}
+                    />
+                    {expandedCategories[categoryIndex] && (
+                        <div className="ml-6 space-y-1">
+                            {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
+                                <button
+                                    key={itemIndex}
+                                    onClick={() => handleQuestionClick(item, category.category)}
+                                    className={cn(
+                                        "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
+                                        selectedQuestion?.question === item.question
+                                            ? "bg-purple-100 text-purple-900"
+                                            : "hover:bg-gray-100"
+                                    )}
+                                >
+                                    {searchQuery ? (
+                                        <HighlightText
+                                            text={item.question}
+                                            search={searchQuery}
+                                        />
+                                    ) : (
+                                        item.question
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+        // if (type == 'interview') {
+        //     return questions?.map((category, categoryIndex) => {
+        //         if (!expandedCategories[categoryIndex] && !selectedCategories.includes(category.category)) return null;
+
+        //         const items = getItems(category);
+        //         const filteredItems = filterQuestions(
+        //             items, searchQuery, selectedCategories.length > 0 ? selectedCategories : undefined
+        //         ) as SharedItem[] | SharedCategoryShuffled[];
+
+        //         // Skip empty categories after filtering
+        //         if (filteredItems.length === 0 && searchQuery) return null;
+
+        //         // Don't show categories that have no items and aren't selected
+        //         if (filteredItems.length === 0 &&
+        //             !selectedCategories.includes(category.category)) return null;
+
+        //         return (
+        //             <div key={categoryIndex} className="space-y-2 min-w-min">
+        //                 <CategoryHeader
+        //                     isExpanded={expandedCategories[categoryIndex]}
+        //                     title={category.category}
+        //                     itemCount={filteredItems.length}
+        //                     onClick={() => toggleCategory(categoryIndex)}
+        //                 />
+        //                 {expandedCategories[categoryIndex] && (
+        //                     <div className="ml-6 space-y-1">
+        //                         {filteredItems.map((item: SharedItem | SharedCategoryShuffled, itemIndex: number) => (
+        //                             <button
+        //                                 key={itemIndex}
+        //                                 onClick={() => handleQuestionClick(item, category.category)}
+        //                                 className={cn(
+        //                                     "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
+        //                                     selectedQuestion?.question === item.question
+        //                                         ? "bg-purple-100 text-purple-900"
+        //                                         : "hover:bg-gray-100"
+        //                                 )}
+        //                             >
+        //                                 {searchQuery ? (
+        //                                     <HighlightText
+        //                                         text={item.question}
+        //                                         search={searchQuery}
+        //                                     />
+        //                                 ) : (
+        //                                     item.question
+        //                                 )}
+        //                             </button>
+        //                         ))}
+        //                     </div>
+        //                 )}
+        //             </div>
+        //         );
+        //     });
+        // }
+
+        // if (type == 'knowledge') {
+        //     return questions?.map((kCategory, categoryIndex) => {
+        //         const items = getItems(kCategory);
+        //         const filteredItems = filterQuestions(items, searchQuery) as SharedItem[];
+        //         if (filteredItems.length === 0 && searchQuery) return null;
+
+        //         return (
+        //             <div key={categoryIndex} className="space-y-2 min-w-min">
+        //                 <CategoryHeader
+        //                     isExpanded={expandedCategories[categoryIndex]}
+        //                     title={kCategory.category}
+        //                     itemCount={filteredItems.length}
+        //                     onClick={() => toggleCategory(categoryIndex)}
+        //                 />
+        //                 {expandedCategories[categoryIndex] && (
+        //                     <div className="ml-6 space-y-1">
+        //                         {filteredItems.map((item: SharedItem, itemIndex: number) => (
+        //                             <button
+        //                                 key={itemIndex}
+        //                                 onClick={() => handleQuestionClick(item, kCategory.category)}
+        //                                 className={cn(
+        //                                     "fill-available text-left px-2 py-1 rounded text-sm border-2 border-dotted border-sky-500",
+        //                                     selectedQuestion?.question === item.content
+        //                                         ? "bg-purple-100 text-purple-900"
+        //                                         : "hover:bg-gray-100"
+        //                                 )}
+        //                             >
+        //                                 {searchQuery ? (
+        //                                     <HighlightText
+        //                                         text={item.content}
+        //                                         search={searchQuery}
+        //                                     />
+        //                                 ) : (
+        //                                     item.content
+        //                                 )}
+        //                             </button>
+        //                         ))}
+        //                     </div>
+        //                 )}
+        //             </div>
+        //         );
+        //     });
+        // }
+
+        // return null;
     };
 
     return (
@@ -186,16 +262,23 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
                                 />
                             </div>
                         </Tooltip>
-                        <Tooltip content={t('interviewQuestions.tooltips.shuffle')} className="bg-gray-800 text-white">
+                        <Tooltip
+                            content={
+                                shuffledQuestions.length > 0
+                                    ? t('interviewQuestions.tooltips.unShuffle')
+                                    : t('interviewQuestions.tooltips.shuffle')
+                            }
+                            className="bg-gray-800 text-white"
+                        >
                             <span>
                                 <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={shuffleQuestions}
-                                    disabled={selectedCategories.length === 0}
+                                    variant={shuffledQuestions.length > 0 ? "default" : "outline"}
+                                    onClick={toggleShuffleMode}
+                                    disabled={selectedCategories.length === 0 && shuffledQuestions.length === 0}
                                     className="ml-2"
                                 >
-                                    <Shuffle className="h-4 w-4" />
+                                    <Shuffle className={`h-4 w-4 ${shuffledQuestions.length > 0 ? "text-gray-400" : "text-gray-800"}`} />
                                 </Button>
                             </span>
                         </Tooltip>
@@ -206,9 +289,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
 
             <div className={cn("space-y-4")}>
                 {loading ? (
-                    <div className="flex justify-center items-center h-full">
-                        <Spinner />
-                    </div>
+                    <ShimmerSidebar type={type} />
                 ) : (
                     <>
                         {shuffledQuestions.length > 0 && renderShuffledQuestions()}

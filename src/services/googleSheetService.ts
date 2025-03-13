@@ -1,8 +1,9 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import type { ApiResponse, SheetData, Category, KnowledgeItem, QuestionItem } from './googleSheetService.d';
+import type { ApiResponse, SheetData, Category, QuestionItem } from './googleSheetService.d';
 import { getApiKey } from '@/utils/apiKeys';
-import { User } from '@/types/common';
+import { SharedItem, User } from '@/types/common';
 import { ApiKeyService } from '@/hooks/useApiKeys';
+import { generateId } from '@/utils/supabaseUtils';
 
 // Define the Google Sheets API response interface
 interface GoogleSheetValuesResponse {
@@ -84,8 +85,8 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                 };
             }
 
-            const SHEET_KNOWLEDGE = "Danh mục kiến thức";
-            const SHEET_QUESTIONS = "Câu hỏi phỏng vấn";
+            const SHEET_KNOWLEDGE = getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE, user.id) || "Danh mục kiến thức";
+            const SHEET_QUESTIONS = getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS, user.id) || "Câu hỏi phỏng vấn";
 
             // Fetch knowledge data with retry - now with proper typing
             const knowledgeResponse = await fetchWithRetry<GoogleSheetValuesResponse>(
@@ -100,14 +101,14 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
             if (!knowledgeResponse.data.values) {
                 return {
                     success: false,
-                    error: 'Không tìm thấy dữ liệu trong sheet "Danh mục kiến thức". Vui lòng kiểm tra cấu trúc sheet.'
+                    error: `No data found in sheet "${SHEET_KNOWLEDGE}". Please check sheet structure.`
                 };
             }
 
             const rows = knowledgeResponse.data.values.slice(1); // Skip header row
             let currentCategory: string | null = null;
             const categorizedKnowledge: Category[] = [];
-            const knowledgeItems: { [key: string]: KnowledgeItem[] } = {};
+            const knowledgeItems: { [key: string]: SharedItem[] } = {};
 
             interface Row extends Array<string> {
                 [index: number]: string;
@@ -120,10 +121,13 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                 } else if (row[0] && row[1] && currentCategory) {
                     knowledgeItems[currentCategory].push({
                         rowIndex: rowIndex + 2, // +2 because we skipped header and array is 0-based
-                        order: row[0],
-                        content: row[1],
+                        order: Number.parseInt(row[0]),
+                        question: row[1],
                         status: row[2] || 'Đang đợi',
-                        notes: row[3] || ''
+                        notes: row[3] || '',
+                        id: generateId(),
+                        category: currentCategory,
+                        answer: null
                     });
                 }
             });
@@ -139,7 +143,7 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
             if (categorizedKnowledge.length === 0) {
                 return {
                     success: false,
-                    error: 'Không tìm thấy danh mục kiến thức nào. Vui lòng kiểm tra cấu trúc sheet.'
+                    error: 'No "knowledge" categories found. Please check the sheet structure.'
                 };
             }
 
@@ -156,7 +160,7 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
             if (!questionsResponse.data.values) {
                 return {
                     success: false,
-                    error: 'Không tìm thấy dữ liệu trong sheet "Câu hỏi phỏng vấn". Vui lòng kiểm tra cấu trúc sheet.'
+                    error: `No data found in the "${SHEET_QUESTIONS}" sheet. Please check the sheet structure.`
                 };
             }
 
@@ -194,7 +198,7 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
             if (Object.keys(questionItems).length === 0) {
                 return {
                     success: false,
-                    error: 'Không tìm thấy danh mục câu hỏi nào. Vui lòng kiểm tra cấu trúc sheet.'
+                    error: 'No question categories found. Please check the google sheet structure.'
                 };
             }
 
@@ -259,41 +263,41 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                         case 400:
                             return {
                                 success: false,
-                                error: 'Yêu cầu không hợp lệ. Vui lòng kiểm tra cấu hình API.'
+                                error: 'Invalid request. Please check your API configuration.'
                             };
                         case 401:
                         case 403:
                             return {
                                 success: false,
-                                error: 'Lỗi xác thực. API key có thể không hợp lệ hoặc đã hết hạn.'
+                                error: 'Authentication error. The API key may be invalid or expired.'
                             };
                         case 404:
                             return {
                                 success: false,
-                                error: 'Không tìm thấy tài nguyên. Vui lòng kiểm tra ID của bảng tính.'
+                                error: 'Resource not found. Please check the spreadsheet ID.'
                             };
                         case 429:
                             return {
                                 success: false,
-                                error: 'Đã vượt quá giới hạn truy vấn API. Vui lòng thử lại sau.'
+                                error: 'API request limit exceeded. Please try again later.'
                             };
                         default:
                             return {
                                 success: false,
-                                error: `Lỗi API (${axiosError.response.status}): ${(axiosError.response.data as { error?: { message?: string } })?.error?.message || axiosError.message}`
+                                error: `API error (${axiosError.response.status}): ${(axiosError.response.data as { error?: { message?: string } })?.error?.message || axiosError.message}`
                             };
                     }
                 }
 
                 return {
                     success: false,
-                    error: `Lỗi kết nối: ${axiosError.message}`
+                    error: `Connection error: ${axiosError.message}`
                 };
             }
 
             return {
                 success: false,
-                error: error instanceof Error ? `Lỗi không xác định: ${error.message}` : 'Đã xảy ra lỗi khi tải dữ liệu'
+                error: error instanceof Error ? `Unknown error: ${error.message}` : 'An error occurred while loading data'
             };
         } finally {
             // Reset the semaphore and cached promise when done
@@ -315,7 +319,7 @@ export const updateKnowledgeStatus = async (rowIndex: number, status: string, us
 
     const API_KEY = getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY, user.id);
     const SPREADSHEET_ID = getApiKey(ApiKeyService.SPREADSHEET_ID, user.id);
-    const SHEET_KNOWLEDGE = "Danh mục kiến thức";
+    const SHEET_KNOWLEDGE = getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE, user.id) || "Danh mục kiến thức";
     try {
         const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_KNOWLEDGE)}!C${rowIndex}`;
 

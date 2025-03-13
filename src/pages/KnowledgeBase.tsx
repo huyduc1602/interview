@@ -5,10 +5,9 @@ import { Layout, SidebarLayout } from '@/layouts';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import SettingsButton from '@/components/ui/settingsButton';
-import type { KnowledgeItem } from '@/types/knowledge';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
-import { ItemTypeSaved } from "@/types/common";
+import { ItemTypeSaved, SharedItem } from "@/types/common";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import KnowledgeSidebar from '@/components/knowledge/KnowledgeSidebar';
 import KnowledgeContent from '@/components/knowledge/KnowledgeContent';
@@ -36,6 +35,7 @@ export default function KnowledgeBase() {
         isLoading,
         selectedCategories,
         shuffledQuestions,
+        setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
         setSearchQuery,
@@ -58,7 +58,6 @@ export default function KnowledgeBase() {
         isSavedAnswer,
         setIsSavedAnswer,
         existingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error
@@ -66,12 +65,11 @@ export default function KnowledgeBase() {
         type: 'knowledge',
         generateAnswer,
         savedItems,
-        contentField: 'content'
     });
 
     // Erase existingSavedAnswer if needed
     useEffect(() => {
-        if (existingSavedItem && existingSavedItem.id === (selectedItem as KnowledgeItem)?.id) {
+        if (existingSavedItem && existingSavedItem.id === (selectedItem as SharedItem)?.id) {
             setIsSavedAnswer(true);
         }
     }, [existingSavedItem, selectedItem]);
@@ -85,7 +83,7 @@ export default function KnowledgeBase() {
     }
 
     // Create the shared item for the content component
-    const sharedQuestion = selectedItem ? convertToSharedItem(selectedItem) : null;
+    const sharedQuestion = selectedItem;
 
     return (
         <TooltipProvider>
@@ -103,6 +101,7 @@ export default function KnowledgeBase() {
                             setSearchQuery={setSearchQuery}
                             shuffleQuestions={handleShuffleQuestionsWithState}
                             shuffledQuestions={shuffledQuestions}
+                            setShuffledQuestions={setShuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             isTagsExpanded={isTagsExpanded}
