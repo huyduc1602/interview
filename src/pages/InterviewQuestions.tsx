@@ -35,6 +35,7 @@ export default function InterviewQuestions() {
         isLoading,
         selectedCategories,
         shuffledQuestions,
+        setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
         setSearchQuery,
@@ -57,7 +58,6 @@ export default function InterviewQuestions() {
         isSavedAnswer,
         setIsSavedAnswer,
         existingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error
@@ -65,7 +65,6 @@ export default function InterviewQuestions() {
         type: 'interview',
         generateAnswer,
         savedItems,
-        contentField: 'question'
     });
 
     // Check for existing saved item
@@ -84,7 +83,7 @@ export default function InterviewQuestions() {
     }
 
     // Convert to shared item format
-    const sharedQuestion = selectedItem ? convertToSharedItem(selectedItem) : null;
+    const sharedQuestion = selectedItem;
 
     return (
         <TooltipProvider>
@@ -102,6 +101,7 @@ export default function InterviewQuestions() {
                             setSearchQuery={setSearchQuery}
                             shuffleQuestions={handleShuffleQuestionsWithState}
                             shuffledQuestions={shuffledQuestions}
+                            setShuffledQuestions={setShuffledQuestions}
                             selectedCategories={selectedCategories}
                             handleCategorySelect={handleCategorySelect}
                             isTagsExpanded={isTagsExpanded}

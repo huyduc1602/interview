@@ -1,15 +1,11 @@
 import { useState, useCallback } from 'react';
 import { SavedItem, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { useAIResponse } from './useAIResponse';
-import { generateId } from '@/utils/supabaseUtils';
-import { KnowledgeItem } from '@/types/knowledge';
-import { InterviewQuestion } from '@/types/interview';
 
 interface ItemInteractionsOptions {
     type: 'knowledge' | 'interview';
     generateAnswer: (question: string) => Promise<string>;
     savedItems: SavedItem[];
-    contentField: string; // 'content' for knowledge, 'question' for interview
 }
 
 export function useItemInteractions({
@@ -17,7 +13,7 @@ export function useItemInteractions({
     generateAnswer,
     savedItems
 }: ItemInteractionsOptions) {
-    const [selectedItem, setSelectedItem] = useState<KnowledgeItem | InterviewQuestion | null>(null);
+    const [selectedItem, setSelectedItem] = useState<SharedItem | null>(null);
     const [isSavedAnswer, setIsSavedAnswer] = useState(false);
     const [existingSavedItem, setExistingSavedItem] = useState<SavedItem | null>(null);
 
@@ -41,23 +37,6 @@ export function useItemInteractions({
         onSuccess: handleSuccess,
         onError: handleError
     });
-
-    // Convert item to shared format
-    const convertToSharedItem = useCallback((item: any | null): SharedItem => {
-        if (!item) return {
-            id: '',
-            question: '',
-            category: '',
-            answer: ''
-        };
-
-        return {
-            id: item.id ?? generateId(),
-            question: type === 'knowledge' ? item.content : item.question,
-            category: item.category || '',
-            answer: item.answer || ''
-        };
-    }, [type]);
 
     // Fetch data from saved items or generate new answer
     const fetchItemData = useCallback(async (item: any, existingSaved: SavedItem | null) => {
@@ -114,7 +93,7 @@ export function useItemInteractions({
         if (!selectedItem) return;
 
         try {
-            const questionSend = selectedItem.type == 'knowledge' ? (selectedItem as KnowledgeItem).content : (selectedItem as InterviewQuestion).question
+            const questionSend = selectedItem.question
             const answer = await generateAnswer(questionSend);
             setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {
@@ -129,7 +108,6 @@ export function useItemInteractions({
         setIsSavedAnswer,
         existingSavedItem,
         setExistingSavedItem,
-        convertToSharedItem,
         handleItemClick,
         handleRegenerateAnswer,
         error

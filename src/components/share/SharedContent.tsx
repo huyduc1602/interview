@@ -7,6 +7,7 @@ import { ItemTypeSaved, SavedItem, SharedCategoryShuffled, SharedItem, User, Cha
 import { cn } from '@/lib/utils';
 import { generateId } from '@/utils/supabaseUtils';
 import { useSavedItems } from '@/hooks/useSavedItems';
+import LoadingDots from '@/components/ui/loadingDots';
 
 interface InterviewQuestionsContentProps {
   selectedQuestion: SharedItem | SharedCategoryShuffled | null;
@@ -353,9 +354,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            </div>
+            <LoadingDots />
           ) : (
             <>
               <div className="text-right">
