@@ -36,4 +36,10 @@ declare module 'lucide-react' {
   export const Eye: React.FC<LucideProps>;
   export const EyeOff: React.FC<LucideProps>;
   export const Upload: React.FC<LucideProps>;
+  export const Cloud: React.FC<LucideProps>;
+  export const Database: React.FC<LucideProps>;
+  export const ToggleLeft: React.FC<LucideProps>;
+  export const ToggleRight: React.FC<LucideProps>;
+  export const Loader2: React.FC<LucideProps>;
+  export const Languages: React.FC<LucideProps>;
 }

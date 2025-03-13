@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, X } from 'lucide-react';
-import ApiKeyForm from '@/components/ApiKeyForm';
+import ApiKeyForm from '@/components/apiKeyForm';
 import { useTranslation } from 'react-i18next';
 
 interface SettingsButtonProps {
@@ -43,7 +43,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ onSubmit, sheetName, is
                                 <p>{t('common.loading')}</p>
                             </div>
                         ) : (
-                            <ApiKeyForm onSubmit={onSubmit} sheetNameProp={sheetName} />
+                                <ApiKeyForm onSubmit={onSubmit} sheetNameProp={sheetName} setIsApiKeyFormVisible={setIsApiKeyFormVisible} />
                         )}
                     </div>
                 </div>

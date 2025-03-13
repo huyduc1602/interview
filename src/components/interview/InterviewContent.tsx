@@ -1,5 +1,5 @@
 import SharedContent from '@/components/share/SharedContent';
-import { ModelSelector } from "@/components/ui/model-selector";
+import { ModelSelector } from "@/components/ui/modelSelector";
 import { clearCachedAnswers } from '@/store/interview/slice';
 import { ItemTypeSaved, SharedItem, SharedCategoryShuffled, SavedItem, User, FollowUpQuestion } from '@/types/common';
 import { useDispatch } from 'react-redux';
@@ -8,7 +8,7 @@ import { Dispatch, SetStateAction } from 'react';
 interface InterviewContentProps {
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     user: User | null;
-    saveItem: (item: SavedItem) => void;
+    saveItem: (item: SavedItem) => Promise<string | null>;
     selectedModel: string;
     setSelectedModel: (model: string) => void;
     handleRegenerateAnswer: () => Promise<void>;
@@ -19,7 +19,7 @@ interface InterviewContentProps {
     generateAnswer: (question: string) => Promise<string>;
     setAnswer: Dispatch<SetStateAction<string | null>>;
     isSavedAnswer?: boolean;
-    setIsSavedAnswer: (isSaved: boolean) => void;
+    setIsSavedAnswer: Dispatch<SetStateAction<boolean>>
     existingSavedItem?: SavedItem | null;
     typeSavedItem?: ItemTypeSaved;
 }

@@ -5,7 +5,7 @@ import { useChat } from '@/hooks/useChat';
 import { Layout, SidebarLayout } from '@/layouts';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedItems } from '@/hooks/useSavedItems';
-import SettingsButton from '@/components/ui/SettingsButton';
+import SettingsButton from '@/components/ui/settingsButton';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 import LoginPrompt from "@/components/auth/LoginPrompt";
 import { ItemTypeSaved } from "@/types/common";

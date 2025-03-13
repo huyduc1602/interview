@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@radix-ui/react-dropdown-menu';
-import { Button } from './button';
+import { Button } from '../button';
 import { cn } from '@/lib/utils';
 
 export function UserMenu() {
@@ -25,8 +25,8 @@ export function UserMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 p-1 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
-        <DropdownMenuItem 
-          onClick={logout} 
+        <DropdownMenuItem
+          onClick={logout}
           className={cn(
             "flex items-center px-3 py-2 text-sm rounded-sm",
             "text-red-600 dark:text-red-400",

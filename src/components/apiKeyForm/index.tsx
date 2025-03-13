@@ -1,34 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Dispatch } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ApiKeyService, useApiKeys } from '@/hooks/useApiKeys';
+import { useSettings } from '@/hooks/useSettings';
 
 interface ApiKeyFormProps {
     onSubmit: (apiKey: string, spreadsheetId: string, sheetName: string) => void;
     sheetNameProp?: string;
+    setIsApiKeyFormVisible: Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ApiKeyForm({ onSubmit, sheetNameProp }: ApiKeyFormProps) {
+export default function ApiKeyForm({ onSubmit, sheetNameProp, setIsApiKeyFormVisible }: ApiKeyFormProps) {
     const { t } = useTranslation();
-    const { getApiKey, saveApiKey } = useApiKeys();
+    const { settings, updateSetting } = useSettings();
     const [apiKey, setApiKey] = useState('');
     const [spreadsheetId, setSpreadsheetId] = useState('');
     const [sheetName, setSheetName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Load initial values from settings
     useEffect(() => {
-        setApiKey(getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY) || '');
-        setSpreadsheetId(getApiKey(ApiKeyService.SPREADSHEET_ID) || '');
-        setSheetName(getApiKey(sheetNameProp || ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE));
-    }, [getApiKey]);
+        setApiKey(settings.googleSheetApiKey || '');
+        setSpreadsheetId(settings.spreadsheetId || '');
+
+        // Determine which sheet name to use based on the prop
+        let sheetNameKey = 'sheetNameKnowledgeBase'; // Default
+        if (sheetNameProp === 'sheetNameInterviewQuestions') {
+            sheetNameKey = 'sheetNameInterviewQuestions';
+        }
+
+        setSheetName(settings[sheetNameKey] || '');
+    }, [settings, sheetNameProp]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        saveApiKey('google_sheet', apiKey);
-        saveApiKey('spreadsheet_id', spreadsheetId);
-        saveApiKey('sheet_name', sheetName);
-        await onSubmit(apiKey, spreadsheetId, sheetName);
-        setIsLoading(false);
+
+        try {
+            // Update settings with new values
+            updateSetting('', 'googleSheetApiKey', apiKey);
+            updateSetting('', 'spreadsheetId', spreadsheetId);
+
+            // Update appropriate sheet name based on prop
+            let sheetNameKey = 'sheetNameKnowledgeBase'; // Default
+            if (sheetNameProp === 'sheetNameInterviewQuestions') {
+                sheetNameKey = 'sheetNameInterviewQuestions';
+            }
+
+            updateSetting('', sheetNameKey, sheetName);
+
+            // Call the onSubmit callback with the new values
+            onSubmit(apiKey, spreadsheetId, sheetName);
+            setIsApiKeyFormVisible(false);
+        } catch (error) {
+            console.error('Error saving API settings:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const classInput = 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';

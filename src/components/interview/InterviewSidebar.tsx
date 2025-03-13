@@ -1,5 +1,5 @@
 import SharedSidebar from '@/components/share/SharedSidebar';
-import CategoryTags from '@/components/knowledge/CategoryTags';
+import CategoryTags from '@/components/categoryTags';
 import { SharedItem, SharedCategoryShuffled, SharedCategory } from '@/types/common';
 import { ExpandedCategories } from '@/types/interview';
 import { KnowledgeItem } from '@/types/knowledge';

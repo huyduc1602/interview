@@ -1,5 +1,5 @@
 import SharedSidebar from '@/components/share/SharedSidebar';
-import CategorySelector from './CategorySelector';
+import CategoryTags from '@/components/categoryTags';
 import { SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { ExpandedCategories, KnowledgeItem } from '@/types/knowledge';
 
@@ -39,7 +39,7 @@ export default function KnowledgeSidebar({
     isLoading
 }: KnowledgeSidebarProps) {
     const renderCategoryTags = () => (
-        <CategorySelector
+        <CategoryTags
             selectedCategories={selectedCategories}
             isTagsExpanded={isTagsExpanded}
             setIsTagsExpanded={setIsTagsExpanded}
