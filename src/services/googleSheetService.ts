@@ -198,7 +198,7 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
             if (Object.keys(questionItems).length === 0) {
                 return {
                     success: false,
-                    error: 'Không tìm thấy danh mục câu hỏi nào. Vui lòng kiểm tra cấu trúc sheet.'
+                    error: 'No question categories found. Please check the google sheet structure.'
                 };
             }
 
@@ -263,41 +263,41 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                         case 400:
                             return {
                                 success: false,
-                                error: 'Yêu cầu không hợp lệ. Vui lòng kiểm tra cấu hình API.'
+                                error: 'Invalid request. Please check your API configuration.'
                             };
                         case 401:
                         case 403:
                             return {
                                 success: false,
-                                error: 'Lỗi xác thực. API key có thể không hợp lệ hoặc đã hết hạn.'
+                                error: 'Authentication error. The API key may be invalid or expired.'
                             };
                         case 404:
                             return {
                                 success: false,
-                                error: 'Không tìm thấy tài nguyên. Vui lòng kiểm tra ID của bảng tính.'
+                                error: 'Resource not found. Please check the spreadsheet ID.'
                             };
                         case 429:
                             return {
                                 success: false,
-                                error: 'Đã vượt quá giới hạn truy vấn API. Vui lòng thử lại sau.'
+                                error: 'API request limit exceeded. Please try again later.'
                             };
                         default:
                             return {
                                 success: false,
-                                error: `Lỗi API (${axiosError.response.status}): ${(axiosError.response.data as { error?: { message?: string } })?.error?.message || axiosError.message}`
+                                error: `API error (${axiosError.response.status}): ${(axiosError.response.data as { error?: { message?: string } })?.error?.message || axiosError.message}`
                             };
                     }
                 }
 
                 return {
                     success: false,
-                    error: `Lỗi kết nối: ${axiosError.message}`
+                    error: `Connection error: ${axiosError.message}`
                 };
             }
 
             return {
                 success: false,
-                error: error instanceof Error ? `Lỗi không xác định: ${error.message}` : 'Đã xảy ra lỗi khi tải dữ liệu'
+                error: error instanceof Error ? `Unknown error: ${error.message}` : 'An error occurred while loading data'
             };
         } finally {
             // Reset the semaphore and cached promise when done
