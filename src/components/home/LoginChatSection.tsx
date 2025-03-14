@@ -8,6 +8,7 @@ import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import MessageSquare from '@/components/icons/MessageSquare';
 import Send from '@/components/icons/Send';
 import LoginGoogle from '@/components/auth/LoginGoogle';
+import LoginGithub from '@/components/auth/LoginGithub';
 
 const LoginChatSection: React.FC = () => {
     const { t } = useTranslation();
@@ -63,6 +64,7 @@ const LoginChatSection: React.FC = () => {
                     <h2 className="text-xl font-semibold mb-4">{t('auth.loginTitle')}</h2>
                     <LoginForm onSuccess={() => window.location.reload()} />
                     <LoginGoogle />
+                    <LoginGithub />
                 </div>
             )}
 

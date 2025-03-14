@@ -226,6 +226,8 @@ export default {
     logout: "Đăng xuất",
     enterEmail: "Nhập địa chỉ email",
     requestLogin: "Đăng nhập để xem lịch sử chat",
+    signInWithGithub: "Đăng nhập với GitHub",
+    signingIn: "Đang đăng nhập...",
     error: {
       title: "Lỗi xác thực",
       returnToHome: "Quay lại trang chủ",

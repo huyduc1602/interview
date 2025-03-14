@@ -134,6 +134,52 @@ export function useAuth() {
         }
     };
 
+    const signInWithGithub = async () => {
+        try {
+            // Add timestamp to avoid cache
+            const timestamp = new Date().getTime();
+
+            // Check if we're on localhost and use appropriate redirect URL
+            let baseUrl = window.location.origin;
+            // For local development, ensure we're using localhost
+            if (!baseUrl.includes('localhost') && process.env.NODE_ENV === 'development') {
+                // Get port from environment variables or window.location
+                const port = import.meta.env.VITE_PORT || window.location.port || '5173';
+                baseUrl = `http://localhost:${port}`;
+            }
+
+            const redirectUrl = `${baseUrl}/auth/callback?timestamp=${timestamp}`;
+            console.log('Using redirect URL with timestamp:', redirectUrl);
+
+            // Delete old session if any
+            await supabase.auth.signOut();
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: redirectUrl,
+                    skipBrowserRedirect: false
+                }
+            });
+
+            if (error) {
+                console.error('Login with GitHub failed:', error);
+                return { success: false, error };
+            }
+
+            if (!data || !data.url) {
+                console.error('Login with GitHub failed: No data or URL');
+                return { success: false, error: 'No data or URL' };
+            }
+            console.log('GitHub login initiated. Redirect URL data:', data);
+            setIsLoginGoogle(true);
+            return { success: true };
+        } catch (error) {
+            console.error('Exception in signInWithGithub:', error);
+            return { success: false, error };
+        }
+    };
+
     const logout = async () => {
         await supabase.auth.signOut();
         setUser(null);
@@ -144,5 +190,5 @@ export function useAuth() {
         return false;
     };
 
-    return { user, session, loading, login, loginWithGoogle, logout, isGoogleUser };
+    return { user, session, loading, login, loginWithGoogle, signInWithGithub, logout, isGoogleUser };
 }

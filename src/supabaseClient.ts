@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { User } from '@/types/common';
 
-const SUPABASE_URL = 'https://nusledxyrnjehfiohsmz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c2xlZHh5cm5qZWhmaW9oc216Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3NDM4NDMsImV4cCI6MjA1NzMxOTg0M30.MQYt9hSlObGX2dnsDsUXDq91T5aVZBStrwKjIZTGElA';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:5173';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const SITE_URL = window.location.origin;
 const REDIRECT_URL = `${SITE_URL}/auth/callback`;
 
