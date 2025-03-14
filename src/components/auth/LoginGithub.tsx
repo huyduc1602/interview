@@ -29,7 +29,7 @@ const LoginGithub: React.FC = () => {
                 type="button"
                 onClick={handleGithubLogin}
                 disabled={isLoading}
-                className="w-full bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded flex items-center justify-center gap-2"
+                className="w-[90%] bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded flex items-center justify-center gap-2"
             >
                 {isLoading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

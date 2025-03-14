@@ -8,10 +8,10 @@ const LoginGoogle: React.FC = () => {
     const { t } = useTranslation();
 
     return (
-        <div className="flex justify-center items-center mt-5">
+        <div className="mt-4">
             <button
                 onClick={loginWithGoogle}
-                className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 w-[90%] bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded flex items-center justify-center gap-2"
             >
                 <Google className='mr-2' />
                 {t('login.google')}
