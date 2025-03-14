@@ -7,54 +7,66 @@ export default function AuthCallback() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Check if localStorage is available and contains code_verifier
-        try {
-            const testStorage = 'test-storage';
-            localStorage.setItem(testStorage, testStorage);
-            localStorage.removeItem(testStorage);
+        // Kiểm tra về việc có session không ngay từ đầu
+        async function checkExistingSession() {
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (data?.session) {
+                    console.log('Session exists on load');
 
-            const hasCodeVerifier = !!localStorage.getItem('code_verifier');
-            console.log('Local storage is available, code_verifier exists:', hasCodeVerifier);
-            if (!hasCodeVerifier) {
-                console.warn('No code_verifier found in localStorage!');
+                    // Cập nhật user và chuyển hướng
+                    const user = data.session.user;
+                    const googleUser = {
+                        id: user.id,
+                        name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
+                        email: user.email,
+                        provider: 'google'
+                    };
+                    localStorage.setItem('current_user', JSON.stringify(googleUser));
+
+                    // Đảm bảo chuyển hướng sau khi đã lưu user
+                    setTimeout(() => navigate('/'), 100);
+                    return true;
+                }
+                return false;
+            } catch (err) {
+                console.error('Error checking session:', err);
+                return false;
             }
-        } catch (e) {
-            console.error('Local storage is not available:', e);
         }
 
-        let isMounted = true;
+        async function processAuth() {
+            // Kiểm tra nếu đã có session trước
+            if (await checkExistingSession()) return;
 
-        async function handleAuth() {
+            // Kiểm tra extra parameters
+            console.log('Full URL:', window.location.href);
+            console.log('Current search:', window.location.search);
+            console.log('Current hash:', window.location.hash);
+
+            // Thử xử lý tất cả fragments, search params nếu có
             try {
-                console.log('AuthCallback: Starting auth process');
+                // Sử dụng hàm callback của Supabase
+                const { error } = await supabase.auth.getSession();
+                if (error) console.warn('getSession error:', error);
 
-                // Add a small delay to ensure URL parameters are fully available
-                await new Promise(resolve => setTimeout(resolve, 100));
-
+                // Thử exchange code từ URL
                 const result = await exchangeAuthCodeForToken();
 
-                if (!isMounted) return;
-
-                if (!result.success) {
-                    console.error('Auth failed:', result.error);
-                    throw result.error;
+                if (result.success) {
+                    console.log('Authentication successful');
+                    navigate('/');
+                } else {
+                    console.error('Authentication failed:', result.error);
+                    setError('Authentication failed. Please try again.');
                 }
-
-                console.log('Auth successful, redirecting to home');
-                navigate("/");
             } catch (err) {
-                if (!isMounted) return;
-
-                console.error("Error during token exchange:", err);
-                setError(err instanceof Error ? err.message : 'Authentication failed');
+                console.error('Auth processing error:', err);
+                setError('Error during authentication. Please try again.');
             }
         }
 
-        handleAuth();
-
-        return () => {
-            isMounted = false;
-        };
+        processAuth();
     }, [navigate]);
 
     if (error) {

@@ -64,8 +64,15 @@ async function exchangeAuthCodeForToken() {
         console.log('Parsed search params:', Object.fromEntries(searchParams.entries()));
         console.log('Parsed hash params:', Object.fromEntries(hashParams.entries()));
 
-        // Try to get code from search params first, then from hash params
-        const authCode = searchParams.get('code') || hashParams.get('code');
+        const codeFromSearch = new URLSearchParams(window.location.search).get('code');
+        const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
+        const accessTokenFromHash = new URLSearchParams(window.location.hash.substring(1)).get('access_token');
+
+        console.log('Code from search:', !!codeFromSearch);
+        console.log('Code from hash:', !!codeFromHash);
+        console.log('Access token from hash:', !!accessTokenFromHash);
+
+        const authCode = codeFromSearch || codeFromHash;
         const codeVerifier = localStorage.getItem('code_verifier');
 
         console.log('Extracted auth code exists:', !!authCode);
