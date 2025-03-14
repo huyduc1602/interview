@@ -94,32 +94,63 @@ async function exchangeAuthCodeForToken() {
 
             console.log('Passing to exchangeCodeForSession:', urlParamString);
 
-            const { data, error } = await supabase.auth.exchangeCodeForSession(urlParamString);
+            try {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(urlParamString);
 
-            if (error) {
-                console.error('Supabase exchange failed:', error);
-                return { success: false, error };
+                if (error) {
+                    console.error('Supabase exchange failed:', error);
+
+                    // Log more details about the error
+                    if (error.message === 'Unexpected end of JSON input') {
+                        console.error('Empty or invalid JSON response received from authentication server');
+                        console.error('This may be due to network issues or authentication service unavailability');
+                    }
+
+                    return { success: false, error };
+                }
+
+                if (!data || !data.session) {
+                    console.error('No session created after code exchange');
+                    return { success: false, error: new Error('No session data returned') };
+                }
+
+                const user = data.session.user;
+
+                // Create user object with necessary properties
+                const googleUser = {
+                    id: user.id,
+                    name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                    email: user.email,
+                    provider: 'google'
+                } as User;
+
+                // Store user in localStorage for persistence
+                localStorage.setItem('current_user', JSON.stringify(googleUser));
+
+                return { success: true, user: googleUser };
+            } catch (exchangeError) {
+                console.error('Exception during code exchange:', exchangeError);
+
+                // Try refreshing the session as a fallback
+                try {
+                    const { data: refreshData } = await supabase.auth.refreshSession();
+                    if (refreshData?.session) {
+                        const user = refreshData.session.user;
+                        const googleUser = {
+                            id: user.id,
+                            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                            email: user.email,
+                            provider: 'google'
+                        } as User;
+                        localStorage.setItem('current_user', JSON.stringify(googleUser));
+                        return { success: true, user: googleUser };
+                    }
+                } catch (refreshError) {
+                    console.error('Session refresh also failed:', refreshError);
+                }
+
+                return { success: false, error: exchangeError };
             }
-
-            if (!data.session) {
-                console.error('No session created after code exchange');
-                return { success: false, error: new Error('No session created') };
-            }
-
-            const user = data.session.user;
-
-            // Create user object with necessary properties
-            const googleUser = {
-                id: user.id,
-                name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
-                email: user.email,
-                provider: 'google'
-            } as User;
-
-            // Store user in localStorage for persistence
-            localStorage.setItem('current_user', JSON.stringify(googleUser));
-
-            return { success: true, user: googleUser };
         }
 
         console.log('Exchanging auth code for token...');
