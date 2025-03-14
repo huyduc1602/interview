@@ -47,6 +47,7 @@ export interface SettingsState {
 export const useSettings = () => {
     const { i18n } = useTranslation();
     const { user, isGoogleUser } = useAuth();
+    const isGoogle = user ? isGoogleUser() : false; // computed once
     const langActive = i18n.language === 'en' ? 'vi' : 'en';
     const [settings, setSettings] = useState<SettingsState>({
         apiSettings: {},
@@ -69,133 +70,135 @@ export const useSettings = () => {
     // Track previous settings for comparison
     const previousSettingsRef = useRef(settings);
 
-    // Determine if we should use Supabase or local storage
-    const isGoogle = isGoogleUser();
+    // Consolidated save logic to avoid duplication in debounced and manual saves
+    const saveSettingsInternal = useCallback(
+        async (settingsToSave: SettingsState) => {
+            if (!user) return;
+            setLoading(true);
+            try {
+                if (isGoogle) {
+                    const dbSettings = {
+                        // Direct API keys
+                        openai: settingsToSave.openai,
+                        gemini: settingsToSave.gemini,
+                        mistral: settingsToSave.mistral,
+                        openchat: settingsToSave.openchat,
+                        googleSheetApiKey: settingsToSave.googleSheetApiKey,
+                        // Structured settings
+                        api_settings: {
+                            ...settingsToSave.apiSettings,
+                            spreadsheetId: settingsToSave.spreadsheetId,
+                            sheetNameKnowledgeBase: settingsToSave.sheetNameKnowledgeBase,
+                            sheetNameInterviewQuestions: settingsToSave.sheetNameInterviewQuestions
+                        },
+                        app_preferences: settingsToSave.appPreferences || {},
+                        feature_flags: settingsToSave.featureFlags || {}
+                    };
+
+                    const { error } = await saveUserSettings(user.id, dbSettings);
+                    if (error) {
+                        console.error('Failed to save settings to Supabase:', error);
+                        return;
+                    }
+                } else {
+                    localStorage.setItem(`user_settings_${user.id}`, JSON.stringify(settingsToSave));
+                }
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3000);
+            } catch (error) {
+                console.error('Error saving settings:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [user, isGoogle]
+    );
 
     // Create a debounced save function to avoid excessive saves
     const debouncedSave = useCallback(
         debounce((settingsToSave) => {
-            const saveSettingsToStorage = async () => {
-                if (!user) return;
-
-                setLoading(true);
-                try {
-                    if (isGoogle) {
-                        // Format settings for database
-                        const dbSettings = {
-                            // Direct API keys
-                            openai: settingsToSave.openai,
-                            gemini: settingsToSave.gemini,
-                            mistral: settingsToSave.mistral,
-                            openchat: settingsToSave.openchat,
-                            googleSheetApiKey: settingsToSave.googleSheetApiKey,
-
-                            // Structured settings
-                            api_settings: {
-                                ...settingsToSave.apiSettings,
-                                // Include top-level sheet settings in api_settings
-                                spreadsheetId: settingsToSave.spreadsheetId,
-                                sheetNameKnowledgeBase: settingsToSave.sheetNameKnowledgeBase,
-                                sheetNameInterviewQuestions: settingsToSave.sheetNameInterviewQuestions
-                            },
-                            app_preferences: settingsToSave.appPreferences || {},
-                            feature_flags: settingsToSave.featureFlags || {}
-                        };
-
-                        // Save to Supabase
-                        const { error } = await saveUserSettings(user.id, dbSettings);
-
-                        if (error) {
-                            console.error('Failed to save settings to Supabase:', error);
-                            return;
-                        }
-                    } else {
-                        // Save to localStorage
-                        localStorage.setItem(`user_settings_${user.id}`, JSON.stringify(settingsToSave));
-                    }
-
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 3000);
-                } catch (error) {
-                    console.error('Error saving settings:', error);
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            saveSettingsToStorage();
+            saveSettingsInternal(settingsToSave);
         }, 700),
-        [user, isGoogle]
+        [saveSettingsInternal]
     );
 
-    // Load settings from Supabase or localStorage
-    const loadSettings = useCallback(async () => {
+    // Load settings from localStorage
+    const loadSettingsLocal = useCallback(async () => {
         if (!user) return;
 
-        setSkipNextSave(true); // Skip auto-save after loading
-        setLoading(true);
+        const savedSettings = localStorage.getItem(`user_settings_${user.id}`);
+        if (savedSettings) {
+            try {
+                const parsedSettings = JSON.parse(savedSettings);
+                setSettings(parsedSettings);
+                previousSettingsRef.current = parsedSettings;
+            } catch (error) {
+                console.error('Failed to parse settings from localStorage:', error);
+                localStorage.removeItem(`user_settings_${user.id}`);
+            }
+        }
+    }, [user]);
+
+    // Load settings from Supabase
+    const loadSettingsFromSupabase = useCallback(async () => {
+        if (!user) return;
 
         try {
-            if (isGoogle) {
-                // Load settings from Supabase
-                const { data, error } = await fetchUserSettings(user.id);
+            // Load settings from Supabase
+            const { data, error } = await fetchUserSettings(user.id);
 
-                if (error) {
-                    console.error('Failed to fetch settings from Supabase:', error);
-                } else if (data) {
-                    // Convert database schema to settings state
-                    const mappedSettings: SettingsState = {
-                        // Direct API keys
-                        openai: data.openai,
-                        gemini: data.gemini,
-                        mistral: data.mistral,
-                        openchat: data.openchat,
-                        googleSheetApiKey: data.google_sheet_api_key,
+            if (error) {
+                console.error('Failed to fetch settings from Supabase:', error);
+            } else if (data) {
+                // Convert database schema to settings state
+                const mappedSettings: SettingsState = {
+                    // Direct API keys
+                    openai: data.openai,
+                    gemini: data.gemini,
+                    mistral: data.mistral,
+                    openchat: data.openchat,
+                    googleSheetApiKey: data.google_sheet_api_key,
 
-                        // Google Sheets settings - bringing them to top level for compatibility
-                        spreadsheetId: data.api_settings?.spreadsheetId,
-                        sheetNameKnowledgeBase: data.api_settings?.sheetNameKnowledgeBase,
-                        sheetNameInterviewQuestions: data.api_settings?.sheetNameInterviewQuestions,
+                    // Google Sheets settings - bringing them to top level for compatibility
+                    spreadsheetId: data.api_settings?.spreadsheetId,
+                    sheetNameKnowledgeBase: data.api_settings?.sheetNameKnowledgeBase,
+                    sheetNameInterviewQuestions: data.api_settings?.sheetNameInterviewQuestions,
 
-                        // Structured settings
-                        apiSettings: data.api_settings || {},
-                        appPreferences: data.app_preferences || {},
-                        featureFlags: data.feature_flags || {}
-                    };
+                    // Structured settings
+                    apiSettings: data.api_settings || {},
+                    appPreferences: data.app_preferences || {},
+                    featureFlags: data.feature_flags || {}
+                };
 
-                    setSettings(mappedSettings);
-                    previousSettingsRef.current = mappedSettings;
-                }
-            } else {
-                // Load settings from localStorage
-                const savedSettings = localStorage.getItem(`user_settings_${user.id}`);
-                if (savedSettings) {
-                    try {
-                        const parsedSettings = JSON.parse(savedSettings);
-                        setSettings(parsedSettings);
-                        previousSettingsRef.current = parsedSettings;
-                    } catch (error) {
-                        console.error('Failed to parse settings from localStorage:', error);
-                        localStorage.removeItem(`user_settings_${user.id}`);
-                    }
-                }
+                setSettings(mappedSettings);
+                previousSettingsRef.current = mappedSettings;
             }
-
-            // Mark initial load as complete
-            setInitialLoadComplete(true);
         } catch (error) {
             console.error('Error loading settings:', error);
         } finally {
             setLoading(false);
         }
-    }, [user, isGoogle]);
+    }, [user]);
+
+    const loadSettings = useCallback(async () => {
+        if (!user) return;
+        setSkipNextSave(true); // Skip auto-save after loading
+        setLoading(true);
+
+        if (isGoogle) {
+            loadSettingsFromSupabase();
+        } else {
+            loadSettingsLocal();
+        }
+
+        // Mark initial load as complete
+        setInitialLoadComplete(true);
+    }, [user, isGoogle, loadSettingsFromSupabase, loadSettingsLocal]);
 
     // Load settings when user changes
     useEffect(() => {
-        if (user) {
-            loadSettings();
-        }
-    }, [user, loadSettings]);
+        loadSettings();
+    }, [user]);
 
     // Auto-save settings when they change
     useEffect(() => {
@@ -232,51 +235,7 @@ export const useSettings = () => {
         setSkipNextSave(true); // Prevent auto-save from double-saving
         debouncedSave.cancel(); // Cancel any pending auto-saves
 
-        if (!user) return;
-
-        setLoading(true);
-        try {
-            if (isGoogle) {
-                // Format settings for database
-                const dbSettings = {
-                    // Direct API keys
-                    openai: settings.openai,
-                    gemini: settings.gemini,
-                    mistral: settings.mistral,
-                    openchat: settings.openchat,
-                    googleSheetApiKey: settings.googleSheetApiKey,
-
-                    // Structured settings
-                    api_settings: {
-                        ...settings.apiSettings,
-                        // Include top-level sheet settings in api_settings
-                        spreadsheetId: settings.spreadsheetId,
-                        sheetNameKnowledgeBase: settings.sheetNameKnowledgeBase,
-                        sheetNameInterviewQuestions: settings.sheetNameInterviewQuestions
-                    },
-                    app_preferences: settings.appPreferences || {},
-                    feature_flags: settings.featureFlags || {}
-                };
-
-                // Save to Supabase
-                const { error } = await saveUserSettings(user.id, dbSettings);
-
-                if (error) {
-                    console.error('Failed to save settings to Supabase:', error);
-                    return;
-                }
-            } else {
-                // Save to localStorage
-                localStorage.setItem(`user_settings_${user.id}`, JSON.stringify(settings));
-            }
-
-            setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
-        } catch (error) {
-            console.error('Error saving settings:', error);
-        } finally {
-            setLoading(false);
-        }
+        await saveSettingsInternal(settings);
     };
 
     // Update a setting value with optional auto-save control
@@ -397,6 +356,37 @@ export const useSettings = () => {
         URL.revokeObjectURL(url);
     };
 
+    // Save multiple API keys at once
+    const saveMultipleApiKeys = async (apiKeys: {
+        openai?: string;
+        gemini?: string;
+        mistral?: string;
+        openchat?: string;
+        googleSheetApiKey?: string;
+        spreadsheetId?: string;
+        sheetNameKnowledgeBase?: string;
+        sheetNameInterviewQuestions?: string;
+    }, forceSave = false) => {
+        // Update settings with new API keys
+        updateMultipleSettings(apiKeys);
+
+        // If forceSave is true, immediately save the settings
+        if (forceSave) {
+            await saveSettings();
+        }
+    };
+
+    // Save a single API key and optionally force save immediately
+    const saveApiKey = async (key: string, value: string, forceSave = false) => {
+        // Update the specific API key
+        updateSetting('', key, value, forceSave);
+
+        // If forceSave is true, immediately save the settings
+        if (forceSave) {
+            await saveSettings();
+        }
+    };
+
     // Get API keys in flat format (for components expecting the old format)
     const getApiKeys = () => {
         const { openai, gemini, mistral, openchat, googleSheetApiKey, spreadsheetId,
@@ -430,7 +420,7 @@ export const useSettings = () => {
         loading,
         showKeys,
         setShowKeys,
-        isGoogle,
+        isGoogleUser,
 
         // Methods
         saveSettings,
@@ -439,7 +429,9 @@ export const useSettings = () => {
         handleApiKeyChange,
         handleFeatureFlagChange,
         handleFileUpload,
-        handleDownloadSampleSettings: handleDownloadSampleSettings,
+        handleDownloadSampleSettings,
         loadSettings,
+        saveMultipleApiKeys,
+        saveApiKey
     };
 };
