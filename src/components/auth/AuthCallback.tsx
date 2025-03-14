@@ -50,12 +50,6 @@ export default function AuthCallback() {
                     <p>{error}</p>
                     <div className="mt-4 flex space-x-4">
                         <button
-                            onClick={() => window.location.href = '/login'}
-                            className="px-4 py-2 bg-red-100 rounded-md hover:bg-red-200"
-                        >
-                            Try Again
-                        </button>
-                        <button
                             onClick={() => navigate('/')}
                             className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
                         >
