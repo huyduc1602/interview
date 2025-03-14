@@ -1,66 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthService from '@/services/AuthService';
+import { exchangeAuthCodeForToken } from '@/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 export default function AuthCallback() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     useEffect(() => {
         async function handleCallback() {
             try {
-                // Get the authorization code from the URL
-                const params = new URLSearchParams(window.location.search);
-                const code = params.get('code');
+                // Let Supabase handle the authentication callback
+                console.log('Processing authentication callback...');
 
-                if (!code) {
-                    throw new Error('Authorization code not found in the callback URL');
+                // Use the exchangeAuthCodeForToken function from supabaseClient
+                const result = await exchangeAuthCodeForToken();
+                console.debug('AUTH CALLBACK: result ', result);
+                if (!result.success) {
+                    console.debug('AUTH CALLBACK: result.error ', result.error)
+                    throw new Error((result.error as ErrorCallback)?.name || 'Authentication failed');
                 }
 
-                // Get stored code verifier
-                const codeVerifier = localStorage.getItem('code_verifier');
-                if (!codeVerifier) {
-                    throw new Error('Code verifier not found in storage');
-                }
-
-                // Use a proxy service to exchange the code for a token
-                // (This avoids exposing your client secret in the frontend)
-                const tokenResponse = await fetch('https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        client_id: AuthService.getClientId(),
-                        // Note: Using a proxy requires you to handle the client_secret securely
-                        // In a production app, you would use a small serverless function for this step
-                        code: code,
-                        redirect_uri: AuthService.getRedirectUri(),
-                        code_verifier: codeVerifier
-                    })
-                });
-
-                const tokenData = await tokenResponse.json();
-
-                if (tokenData.error) {
-                    throw new Error(`Token exchange failed: ${tokenData.error_description}`);
-                }
-
-                // Get user data with the access token
-                const userResponse = await fetch('https://api.github.com/user', {
-                    headers: {
-                        'Authorization': `token ${tokenData.access_token}`
-                    }
-                });
-
-                const userData = await userResponse.json();
-
-                // Store authentication data
-                AuthService.setAuthData(tokenData.access_token, userData);
-
-                // Redirect to home page or dashboard
+                // Successful authentication, redirect to home page
+                console.log('Authentication successful, redirecting to home page');
                 navigate('/');
             } catch (err) {
                 console.error('Authentication error:', err);
@@ -74,12 +38,48 @@ export default function AuthCallback() {
     }, [navigate]);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-t-blue-500 border-gray-200 rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-medium mb-2">{t('auth.processingAuthentication')}</h2>
+                    <p className="text-gray-500">{t('auth.pleaseWait')}</p>
+                </div>
+            </div>
+        );
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
+                    <svg className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 className="text-xl font-bold text-red-800 mb-2">{t('auth.error.title')}</h2>
+                    <p className="text-red-700 mb-4">{error}</p>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        {t('auth.backToHome')}
+                    </button>
+                </div>
+            </div>
+        );
     }
 
-    return <div>Authentication successful! Redirecting...</div>;
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 className="text-xl font-medium mb-2">{t('auth.authSuccess')}</h2>
+                <p className="text-gray-500">{t('auth.redirecting')}</p>
+            </div>
+        </div>
+    );
 }

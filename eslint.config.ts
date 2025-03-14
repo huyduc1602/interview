@@ -2,14 +2,15 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import { Linter } from 'eslint';
 
 const config = [
+    {
+        ignores: ['**/dist/**', '**/node_modules/**', '**/*.d.ts', 'src/services/googleSheetService.d.ts'],
+    },
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {
         files: ['**/*.{ts,tsx}'],
-        ignores: ['**/dist/**', '**/node_modules/**', '**/*.d.ts'],
         plugins: {
             react: reactPlugin,
             'react-hooks': reactHooksPlugin

@@ -228,6 +228,8 @@ export default {
     requestLogin: "Đăng nhập để xem lịch sử chat",
     signInWithGithub: "Đăng nhập với GitHub",
     signingIn: "Đang đăng nhập...",
+    redirecting: "Đang chuyển hướng...",
+    pleaseWait: "Vui lòng đợi...",
     error: {
       title: "Lỗi xác thực",
       returnToHome: "Quay lại trang chủ",
@@ -235,7 +237,7 @@ export default {
       duringAuth: "Lỗi trong quá trình xác thực. Vui lòng thử lại.",
     },
     processingAuthentication: "Đang xử lý xác thực...",
-    pleaseWait: "Vui lòng chờ..."
+    backToHome: 'Về trang chủ'
   },
   settings: {
     title: "Cài đặt",

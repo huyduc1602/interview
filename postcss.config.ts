@@ -1,6 +1,5 @@
-import type { Config } from 'postcss';
-
-const config: Config = {
+// Define our own config type or use CommonJS-style export
+const config = {
     plugins: {
         tailwindcss: {},
         autoprefixer: {},
