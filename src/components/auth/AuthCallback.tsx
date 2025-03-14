@@ -9,7 +9,7 @@ export default function AuthCallback() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        // Kiểm tra về việc có session không ngay từ đầu
+        // Check if there is a session at the beginning
         async function checkExistingSession() {
             try {
                 const { data } = await supabase.auth.getSession();
@@ -26,7 +26,7 @@ export default function AuthCallback() {
                     };
                     localStorage.setItem('current_user', JSON.stringify(googleUser));
 
-                    // Đảm bảo chuyển hướng sau khi đã lưu user
+                    // Make sure to redirect after saving the user
                     setTimeout(() => navigate('/'), 100);
                     return true;
                 }
@@ -38,15 +38,15 @@ export default function AuthCallback() {
         }
 
         async function processAuth() {
-            // Kiểm tra nếu đã có session trước
+            // Check if there was a previous session
             if (await checkExistingSession()) return;
 
-            // Kiểm tra extra parameters
+            // Check extra parameters
             console.log('Full URL:', window.location.href);
             console.log('Current search:', window.location.search);
             console.log('Current hash:', window.location.hash);
 
-            // Thử xử lý tất cả fragments, search params nếu có
+            // Try to process all fragments, search params if any
             try {
                 // Sử dụng hàm callback của Supabase
                 const { error } = await supabase.auth.getSession();
