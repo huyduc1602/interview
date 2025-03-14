@@ -1,11 +1,12 @@
 import React, { createContext, useContext } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { User } from '@/types/common';
+import { AuthError } from '@supabase/supabase-js';
 
 interface AuthContextProps {
     user: User | null;
     login: (email: string) => void;
-    loginWithGoogle: () => Promise<void>;
+    loginWithGoogle: () => Promise<{ success: boolean; error?: AuthError } | { success: boolean; error: AuthError }>;
     logout: () => Promise<void>;
 }
 
