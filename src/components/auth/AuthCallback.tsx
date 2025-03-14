@@ -9,52 +9,38 @@ export default function AuthCallback() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        // Check if there is a session at the beginning
-        async function checkExistingSession() {
+        async function processAuth() {
+            // Check localStorage for current_user and ensure provider is google
+            const stored = localStorage.getItem('current_user');
+            if (stored) {
+                const currentUser = JSON.parse(stored);
+                if (!currentUser.provider || currentUser.provider !== 'google') {
+                    console.warn('Not a Google login, skipping Supabase API call');
+                    navigate('/');
+                    return;
+                }
+            } else {
+                console.warn('No stored user found; assuming non-Google login');
+                navigate('/');
+                return;
+            }
+
+            // Optional: check if a Supabase session already exists
             try {
                 const { data } = await supabase.auth.getSession();
                 if (data?.session) {
-                    console.log('Session exists on load');
-
-                    // Cập nhật user và chuyển hướng
-                    const user = data.session.user;
-                    const googleUser = {
-                        id: user.id,
-                        name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
-                        email: user.email,
-                        provider: 'google'
-                    };
-                    localStorage.setItem('current_user', JSON.stringify(googleUser));
-
-                    // Make sure to redirect after saving the user
+                    console.log('Session exists on load, redirecting...');
                     setTimeout(() => navigate('/'), 100);
-                    return true;
+                    return;
                 }
-                return false;
             } catch (err) {
-                console.error('Error checking session:', err);
-                return false;
+                console.error('Error checking existing session:', err);
             }
-        }
 
-        async function processAuth() {
-            // Check if there was a previous session
-            if (await checkExistingSession()) return;
-
-            // Check extra parameters
-            console.log('Full URL:', window.location.href);
-            console.log('Current search:', window.location.search);
-            console.log('Current hash:', window.location.hash);
-
-            // Try to process all fragments, search params if any
+            // Process Google auth code exchange
+            console.log('Processing Google authentication with URL:', window.location.href);
             try {
-                // Sử dụng hàm callback của Supabase
-                const { error } = await supabase.auth.getSession();
-                if (error) console.warn('getSession error:', error);
-
-                // Thử exchange code từ URL
                 const result = await exchangeAuthCodeForToken();
-
                 if (result.success) {
                     console.log('Authentication successful');
                     navigate('/');
@@ -67,9 +53,8 @@ export default function AuthCallback() {
                 setError(t('auth.error.duringAuth'));
             }
         }
-
         processAuth();
-    }, [navigate]);
+    }, [navigate, t]);
 
     if (error) {
         return (
