@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [feature/login_google_and_use_supabase_storage]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
