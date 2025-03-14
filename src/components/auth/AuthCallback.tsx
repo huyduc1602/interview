@@ -4,7 +4,6 @@ import { exchangeAuthCodeForToken } from '@/supabaseClient';
 
 export default function AuthCallback() {
     const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,7 +32,6 @@ export default function AuthCallback() {
 
                 console.error("Error during token exchange:", err);
                 setError(err instanceof Error ? err.message : 'Authentication failed');
-                setIsLoading(false);
             }
         }
 

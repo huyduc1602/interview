@@ -4,21 +4,6 @@ import { User } from '@/types/common';
 const SUPABASE_URL = 'https://nusledxyrnjehfiohsmz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c2xlZHh5cm5qZWhmaW9oc216Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3NDM4NDMsImV4cCI6MjA1NzMxOTg0M30.MQYt9hSlObGX2dnsDsUXDq91T5aVZBStrwKjIZTGElA';
 
-// Get base URL for the current environment
-const getBaseUrl = () => {
-    // When running in production on GitHub Pages
-    if (window.location.hostname !== 'localhost') {
-        // Get the GitHub Pages base path (e.g. /interview/)
-        const pathSegments = window.location.pathname.split('/');
-        const repoName = pathSegments[1]; // The repo name should be the first path segment
-        return `/${repoName}`;
-    }
-    return ''; // No base path needed for localhost
-};
-
-// Configure auth redirect URLs based on environment
-const SITE_URL = window.location.origin + getBaseUrl();
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
         autoRefreshToken: true,
