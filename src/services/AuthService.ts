@@ -10,7 +10,7 @@ class AuthService {
 
     constructor() {
         // GitHub OAuth App settings - you need to create this in GitHub
-        this.clientId = 'YOUR_GITHUB_CLIENT_ID'; // Replace with your GitHub Client ID
+        this.clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
         this.redirectUri = `${window.location.origin}/auth/callback`;
 
         // Local storage keys
