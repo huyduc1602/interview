@@ -236,6 +236,8 @@ export default {
     error: {
       title: "Authentication Error",
       returnToHome: "Return to Home",
+      authFailed: "Authentication failed. Please try again.",
+      duringAuth: "Error during authentication. Please try again.",
     },
     processingAuthentication: "Processing authentication...",
     pleaseWait: "Please wait..."
