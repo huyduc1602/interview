@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/supabaseClient';
+import { generateCodeVerifier, supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -87,19 +87,46 @@ export function useAuth() {
         }
     };
 
-    const loginWithGoogle = async () => {
-        // Generate a PKCE code verifier (using generateId for simplicity; in practice use a high-entropy random string)
-        const pkceCodeVerifier = generateId();
-        localStorage.setItem('pkce_code_verifier', pkceCodeVerifier);
+    async function exchangeAuthCodeForToken() {
+        const params = new URLSearchParams(window.location.search);
+        const authCode = params.get('code');
+        const codeVerifier = localStorage.getItem('code_verifier');
 
-        await supabase.auth.signInWithOAuth({
+        if (!authCode || !codeVerifier) {
+            console.error('Missing auth_code or code_verifier');
+            return;
+        }
+
+        const response = await fetch(
+            "https://nusledxyrnjehfiohsmz.supabase.co/auth/v1/token?grant_type=pkce",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auth_code: authCode, code_verifier: codeVerifier }),
+            }
+        );
+
+        const data = await response.json();
+        console.log('Access Token:', data);
+    }
+
+    const loginWithGoogle = async () => {
+        const codeVerifier = generateCodeVerifier();
+        localStorage.setItem('code_verifier', codeVerifier);
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: window.location.origin + '/auth/callback'
-                // ...any extra params if needed...
             }
         });
-        setIsLoginGoogle(true);
+
+        if (error) {
+            console.error('Login failed:', error);
+        } else {
+            setIsLoginGoogle(true);
+            window.location.href = data.url; // Redirect user
+        }
     };
 
     const logout = async () => {
