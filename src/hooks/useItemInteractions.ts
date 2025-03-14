@@ -50,7 +50,7 @@ export function useItemInteractions({
             try {
                 console.info('Generating new answer');
                 // No saved answer found, generate a new one
-                const questionContent = type === 'knowledge' ? item.content : item.question;
+                const questionContent = item.question;
                 const answer = await handleGenerateAnswer(questionContent);
                 setSelectedItem(prev => prev ? { ...prev, answer } : null);
             } catch (error) {
@@ -68,9 +68,7 @@ export function useItemInteractions({
         // First set the selected item (to display immediately even without an answer)
         setSelectedItem(actualItem);
 
-        // Check if this item already has an answer in savedItems
-        const questionField = type === 'knowledge' ? 'content' : 'question';
-        const questionContent = actualItem[questionField];
+        const questionContent = actualItem.question;
 
         const existingSaved = savedItems.find(savedItem =>
             savedItem.question === questionContent

@@ -5,7 +5,7 @@ import { User } from '@/types/common';
 interface AuthContextProps {
     user: User | null;
     login: (email: string) => void;
-    loginWithGoogle: () => Promise<void>;
+    loginWithGoogle: () => Promise<{ success: boolean; error?: unknown } | { success: boolean; error: unknown }>;
     logout: () => Promise<void>;
 }
 
