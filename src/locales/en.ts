@@ -1,5 +1,3 @@
-import { error } from "console";
-
 export default {
   common: {
     search: 'Search',
@@ -238,7 +236,9 @@ export default {
     error: {
       title: "Authentication Error",
       returnToHome: "Return to Home",
-    }
+    },
+    processingAuthentication: "Processing authentication...",
+    pleaseWait: "Please wait..."
   },
   settings: {
     title: "Settings",
