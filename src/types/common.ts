@@ -92,3 +92,9 @@ export interface ChatHistoryItem {
     created_at: string;
     updated_at: string;
 }
+
+export interface ErrorAuthCallback {
+    __isAuthError: boolean,
+    name: string,
+    originalError: object
+}

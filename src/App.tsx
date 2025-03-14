@@ -8,7 +8,8 @@ import Settings from '@/pages/Settings';
 import ApiKeyGuide from '@/pages/ApiKeyGuide';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthProvider';
-import AuthCallback from '@/components/auth/AuthCallback';
+import AuthCallback from '@/pages/AuthCallback';
+import AuthorizeRedirect from '@/pages/AuthorizeRedirect';
 import './i18n';
 
 const App: React.FC = () => {
@@ -25,6 +26,7 @@ const App: React.FC = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/api-key-guide" element={<ApiKeyGuide />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/v1/authorize" element={<AuthorizeRedirect />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
