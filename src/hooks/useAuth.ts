@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateCodeVerifier, supabase } from '@/supabaseClient';
+import { supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -89,44 +89,41 @@ export function useAuth() {
 
     const loginWithGoogle = async () => {
         try {
-            // Generate and store code verifier
-            const codeVerifier = generateCodeVerifier();
-            console.log('Generated new code verifier');
+            // Thêm timestamp để tránh cache
+            const timestamp = new Date().getTime();
 
-            // Clear any old verifiers first
-            localStorage.removeItem('code_verifier');
-            localStorage.setItem('code_verifier', codeVerifier);
-            console.log('Stored code verifier in localStorage');
+            // Sử dụng URL tuyệt đối và thêm state để theo dõi
+            const redirectUrl = `${window.location.origin}/auth/callback?timestamp=${timestamp}`;
+            console.log('Using redirect URL with timestamp:', redirectUrl);
 
-            // Sử dụng URL tuyệt đối cho redirect
-            const redirectUrl = `${window.location.origin}/auth/callback`;
-            console.log('Using redirect URL:', redirectUrl);
+            // Xóa session cũ nếu có
+            await supabase.auth.signOut();
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: redirectUrl,
+                    // Đảm bảo nhận được refresh_token và ghi đè lên consent screen
                     queryParams: {
                         access_type: 'offline',
-                        prompt: 'consent'
-                    }
+                        prompt: 'consent',
+                    },
+                    // Đặt mode thành 'token' để sử dụng implicit flow
+                    // mode là một lựa chọn trong PKCE flow
+                    skipBrowserRedirect: false
                 }
             });
 
             if (error) {
-                console.error('Login failed:', error);
+                console.error('Login with Google failed:', error);
                 return { success: false, error };
-            } else {
-                console.log('OAuth URL generated successfully:', data.url);
-                // Ensure synchronous storage before redirect
-                setTimeout(() => {
-                    window.location.href = data.url;
-                }, 100);
-                setIsLoginGoogle(true);
-                return { success: true };
             }
+
+            console.log('Google login initiated. Redirect URL data:', data);
+            setIsLoginGoogle(true);
+            return { success: true };
         } catch (error) {
-            console.error('Error in loginWithGoogle:', error);
+            console.error('Exception in loginWithGoogle:', error);
             return { success: false, error };
         }
     };
