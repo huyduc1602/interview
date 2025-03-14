@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [bugfix/fix_login_google] # Đổi tạm để test
+    branches: [bugfix/master]
   workflow_dispatch:
 
 permissions:
