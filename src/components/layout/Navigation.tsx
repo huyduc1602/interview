@@ -13,7 +13,7 @@ const commonClasses = {
     navInner: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16',
     navContent: 'hidden md:flex items-center gap-8',
     homeLink: 'text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent',
-    userActions: 'flex items-center gap-4 pl-8 border-l',
+    userActions: 'flex items-center gap-4 pl-8 border-l justify-center sm:justify-between',
     mobileMenu: 'md:hidden absolute top-16 left-0 w-full bg-white dark:bg-gray-800 shadow-lg transition-transform transform',
     mobileMenuOpen: 'h-auto',
     mobileMenuClosed: 'h-0 overflow-hidden',
