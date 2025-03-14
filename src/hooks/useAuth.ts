@@ -91,18 +91,31 @@ export function useAuth() {
         const codeVerifier = generateCodeVerifier();
         localStorage.setItem('code_verifier', codeVerifier);
 
+        // Sử dụng URL tuyệt đối cho redirect
+        const redirectUrl = `${window.location.origin}/auth/callback`;
+        console.log('Using redirect URL:', redirectUrl);
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/auth/callback'
+                redirectTo: redirectUrl,
+                queryParams: {
+                    // Thêm access_type để đảm bảo nhận được refresh token
+                    access_type: 'offline',
+                    // Thêm prompt để đảm bảo luôn nhận được token mới
+                    prompt: 'consent'
+                }
             }
         });
 
         if (error) {
             console.error('Login failed:', error);
+            return { success: false, error };
         } else {
             setIsLoginGoogle(true);
-            window.location.href = data.url; // Redirect user
+            console.log('Redirecting to OAuth URL:', data.url);
+            window.location.href = data.url;
+            return { success: true };
         }
     };
 
