@@ -94,8 +94,8 @@ export default function AuthCallback() {
         <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
                 <div className="w-16 h-16 border-4 border-t-purple-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="mt-4 text-gray-600">Processing authentication...</p>
-                <p className="text-sm text-gray-500 mt-2">Please wait...</p>
+                <p className="mt-4 text-gray-600">{t('auth.processingAuthentication')}</p>
+                <p className="text-sm text-gray-500 mt-2">{t('auth.pleaseWait')}</p>
             </div>
         </div>
     );
