@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { exchangeAuthCodeForToken } from '@/supabaseClient';
+import { exchangeAuthCodeForToken, supabase } from '@/supabaseClient';
 
 export default function AuthCallback() {
     const [error, setError] = useState<string | null>(null);
