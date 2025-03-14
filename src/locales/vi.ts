@@ -229,7 +229,9 @@ export default {
     error: {
       title: "Lỗi xác thực",
       returnToHome: "Quay lại trang chủ",
-    }
+    },
+    processingAuthentication: "Đang xử lý xác thực...",
+    pleaseWait: "Vui lòng chờ..."
   },
   settings: {
     title: "Cài đặt",
