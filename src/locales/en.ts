@@ -233,6 +233,10 @@ export default {
     logout: "Sign Out",
     enterEmail: "Enter your email",
     requestLogin: "Login to Save Your Chat History",
+    signInWithGithub: "Sign in with GitHub",
+    signingIn: "Signing in...",
+    redirecting: "Redirecting...",
+    pleaseWait: "Please wait...",
     error: {
       title: "Authentication Error",
       returnToHome: "Return to Home",
@@ -240,13 +244,13 @@ export default {
       duringAuth: "Error during authentication. Please try again.",
     },
     processingAuthentication: "Processing authentication...",
-    pleaseWait: "Please wait..."
+    backToHome: 'Back to Home'
   },
   settings: {
     title: "Settings",
     tabs: {
       apiKeys: "API Keys",
-      features: "Features" 
+      features: "Features"
     },
     apiKeys: {
       info: "Enter your API keys below. Your keys are stored securely in your browser and never sent to our servers.",

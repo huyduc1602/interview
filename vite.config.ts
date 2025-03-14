@@ -16,7 +16,7 @@ export default defineConfig({
         outDir: 'dist',
     },
     server: {
-        port: 5173,
+        port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,
     },
     base: '/', // Ensure this is set correctly for Vercel
 });

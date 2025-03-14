@@ -7,9 +7,12 @@
   "scripts": {
     "tailwindcss": "tailwindcss",
     "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build-ts": "tsc",
+    "build-vite": "vite build",
+    "build": "npm run build-ts && npm run build-vite",
+    "lint": "eslint . --ext ts,tsx --fix",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -75,6 +78,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "jiti": "^2.4.2",
     "postcss": "^8.5.3",
     "prettier": "^3.5.2",
     "tailwind-scrollbar": "^3.0.0",

@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [bugfix/fix_login_google] # Đổi tạm để test
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -36,6 +36,7 @@ jobs:
           echo "VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.production
           echo "VITE_MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> .env.production
           echo "VITE_OPENCHAT_API_KEY=${{ secrets.OPENCHAT_API_KEY }}" >> .env.production
+          echo "VITE_GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env.production
 
       - name: Install dependencies
         run: npm ci

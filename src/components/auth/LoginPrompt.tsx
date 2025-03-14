@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Layout } from '@/layouts';
 import LoginGoogle from './LoginGoogle';
+import LoginGithub from './LoginGithub';
 
 interface LoginPromptProps {
     onSuccess: () => void;
@@ -17,6 +18,7 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ onSuccess }) => {
                 <h1 className="text-2xl font-bold mb-6">{t('auth.requestLogin')}</h1>
                 <LoginForm onSuccess={onSuccess} />
                 <LoginGoogle />
+                <LoginGithub />
             </div>
         </Layout>
     );

@@ -6,16 +6,17 @@ interface AuthContextProps {
     user: User | null;
     login: (email: string) => void;
     loginWithGoogle: () => Promise<{ success: boolean; error?: unknown } | { success: boolean; error: unknown }>;
+    signInWithGithub: () => Promise<{ success: boolean; error?: unknown } | { success: boolean; error: unknown }>;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, login, loginWithGoogle, logout } = useAuth();
+    const { user, login, loginWithGoogle, signInWithGithub, logout } = useAuth();
 
     return (
-        <AuthContext.Provider value={{ user, login, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, login, loginWithGoogle, signInWithGithub, logout }}>
             {children}
         </AuthContext.Provider>
     );
