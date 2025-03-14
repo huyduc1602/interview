@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exchangeAuthCodeForToken, supabase } from '@/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 export default function AuthCallback() {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     useEffect(() => {
         // Kiểm tra về việc có session không ngay từ đầu
@@ -73,14 +75,14 @@ export default function AuthCallback() {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="bg-red-50 p-4 rounded-md text-red-700">
-                    <h2 className="text-lg font-medium">Authentication Error</h2>
+                    <h2 className="text-lg font-medium text-center">{t('auth.error.title')}</h2>
                     <p>{error}</p>
-                    <div className="mt-4 flex space-x-4">
+                    <div className="mt-4 flex space-x-4 justify-center">
                         <button
                             onClick={() => navigate('/')}
                             className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
                         >
-                            Return to Home
+                            {t('auth.error.returnToHome')}
                         </button>
                     </div>
                 </div>
