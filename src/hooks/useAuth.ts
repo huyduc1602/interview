@@ -88,10 +88,15 @@ export function useAuth() {
     };
 
     const loginWithGoogle = async () => {
+        // Generate a PKCE code verifier (using generateId for simplicity; in practice use a high-entropy random string)
+        const pkceCodeVerifier = generateId();
+        localStorage.setItem('pkce_code_verifier', pkceCodeVerifier);
+
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: window.location.origin + '/auth/callback'
+                // ...any extra params if needed...
             }
         });
         setIsLoginGoogle(true);

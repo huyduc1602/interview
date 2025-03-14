@@ -14,8 +14,17 @@ export default function AuthCallback() {
                 console.debug("Environment:", process.env.NODE_ENV);
                 console.debug("Current URL:", window.location.href);
 
-                // Use exchangeCodeForSession to correctly retrieve session after OAuth redirect
-                const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+                // Retrieve and verify the stored PKCE code verifier
+                const codeVerifier = localStorage.getItem('pkce_code_verifier') || '';
+                console.debug("Retrieved code_verifier:", codeVerifier);
+                if (!codeVerifier) {
+                    throw new Error('Missing PKCE code verifier');
+                }
+
+                // Pass the code_verifier along with the auth_code from the URL
+                const { data, error } = await supabase.auth.exchangeCodeForSession(
+                    `${window.location.href}&code_verifier=${codeVerifier}`
+                );
                 // Debug: log response data and error
                 console.debug("Response from exchangeCodeForSession:", { data, error });
 
