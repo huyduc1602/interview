@@ -60,11 +60,11 @@ export default function AuthCallback() {
                     navigate('/');
                 } else {
                     console.error('Authentication failed:', result.error);
-                    setError('Authentication failed. Please try again.');
+                    setError(t('auth.error.authFailed'));
                 }
             } catch (err) {
                 console.error('Auth processing error:', err);
-                setError('Error during authentication. Please try again.');
+                setError(t('auth.error.duringAuth'));
             }
         }
 
