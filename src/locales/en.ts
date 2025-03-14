@@ -1,3 +1,5 @@
+import { error } from "console";
+
 export default {
   common: {
     search: 'Search',
@@ -233,6 +235,10 @@ export default {
     logout: "Sign Out",
     enterEmail: "Enter your email",
     requestLogin: "Login to Save Your Chat History",
+    error: {
+      title: "Authentication Error",
+      returnToHome: "Return to Home",
+    }
   },
   settings: {
     title: "Settings",

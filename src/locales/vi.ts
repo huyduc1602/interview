@@ -226,6 +226,10 @@ export default {
     logout: "Đăng xuất",
     enterEmail: "Nhập địa chỉ email",
     requestLogin: "Đăng nhập để xem lịch sử chat",
+    error: {
+      title: "Lỗi xác thực",
+      returnToHome: "Quay lại trang chủ",
+    }
   },
   settings: {
     title: "Cài đặt",
