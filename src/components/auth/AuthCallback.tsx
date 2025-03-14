@@ -10,23 +10,25 @@ export default function AuthCallback() {
     useEffect(() => {
         const handleAuthCallback = async () => {
             try {
-                // Supabase automatically handles the hash fragment for us
-                const { data, error } = await supabase.auth.getSession();
+                // Debug: log environment and URL details
+                console.debug("Environment:", process.env.NODE_ENV);
+                console.debug("Current URL:", window.location.href);
+
+                // Use exchangeCodeForSession to correctly retrieve session after OAuth redirect
+                const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+                // Debug: log response data and error
+                console.debug("Response from exchangeCodeForSession:", { data, error });
 
                 if (error) {
                     throw error;
                 }
-
                 if (!data.session) {
                     throw new Error('No session found');
                 }
-
                 const { user } = data.session;
-
                 if (!user) {
                     throw new Error('No user found in session');
                 }
-
                 // Create user object with necessary properties
                 const googleUser = {
                     id: user.id,
@@ -38,11 +40,9 @@ export default function AuthCallback() {
                 localStorage.setItem('current_user', JSON.stringify(googleUser));
 
                 console.log('Authentication successful, redirecting...');
-
-                // Redirect to home page or dashboard
                 navigate('/');
             } catch (err) {
-                console.error('Authentication error:', err);
+                console.error('Authentication error details:', err);
                 setError(err instanceof Error ? err.message : 'Authentication failed');
             }
         };
