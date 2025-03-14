@@ -88,34 +88,46 @@ export function useAuth() {
     };
 
     const loginWithGoogle = async () => {
-        const codeVerifier = generateCodeVerifier();
-        localStorage.setItem('code_verifier', codeVerifier);
+        try {
+            // Generate and store code verifier
+            const codeVerifier = generateCodeVerifier();
+            console.log('Generated new code verifier');
 
-        // Sử dụng URL tuyệt đối cho redirect
-        const redirectUrl = `${window.location.origin}/auth/callback`;
-        console.log('Using redirect URL:', redirectUrl);
+            // Clear any old verifiers first
+            localStorage.removeItem('code_verifier');
+            localStorage.setItem('code_verifier', codeVerifier);
+            console.log('Stored code verifier in localStorage');
 
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: redirectUrl,
-                queryParams: {
-                    // Thêm access_type để đảm bảo nhận được refresh token
-                    access_type: 'offline',
-                    // Thêm prompt để đảm bảo luôn nhận được token mới
-                    prompt: 'consent'
+            // Sử dụng URL tuyệt đối cho redirect
+            const redirectUrl = `${window.location.origin}/auth/callback`;
+            console.log('Using redirect URL:', redirectUrl);
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent'
+                    }
                 }
-            }
-        });
+            });
 
-        if (error) {
-            console.error('Login failed:', error);
+            if (error) {
+                console.error('Login failed:', error);
+                return { success: false, error };
+            } else {
+                console.log('OAuth URL generated successfully:', data.url);
+                // Ensure synchronous storage before redirect
+                setTimeout(() => {
+                    window.location.href = data.url;
+                }, 100);
+                setIsLoginGoogle(true);
+                return { success: true };
+            }
+        } catch (error) {
+            console.error('Error in loginWithGoogle:', error);
             return { success: false, error };
-        } else {
-            setIsLoginGoogle(true);
-            console.log('Redirecting to OAuth URL:', data.url);
-            window.location.href = data.url;
-            return { success: true };
         }
     };
 

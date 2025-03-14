@@ -54,23 +54,49 @@ async function exchangeAuthCodeForToken() {
             return { success: true, user: googleUser };
         }
 
-        // Check for auth code in URL
-        const params = new URLSearchParams(window.location.search);
-        const authCode = params.get('code');
+        // Check for auth code in URL from multiple sources
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, '?'));
+
+        // Log more details for debugging
+        console.log('Raw search params:', window.location.search);
+        console.log('Raw hash fragment:', window.location.hash);
+        console.log('Parsed search params:', Object.fromEntries(searchParams.entries()));
+        console.log('Parsed hash params:', Object.fromEntries(hashParams.entries()));
+
+        // Try to get code from search params first, then from hash params
+        const authCode = searchParams.get('code') || hashParams.get('code');
         const codeVerifier = localStorage.getItem('code_verifier');
+
+        console.log('Extracted auth code exists:', !!authCode);
+        console.log('Code verifier exists:', !!codeVerifier);
 
         if (!authCode || !codeVerifier) {
             console.error('Missing auth_code or code_verifier');
 
+            // Additional debug info
+            if (!authCode) console.error('Auth code not found in URL');
+            if (!codeVerifier) console.error('Code verifier not found in localStorage');
+
             // Try Supabase's built-in method as fallback
             console.log('Trying Supabase built-in exchangeCodeForSession...');
-            const { data, error } = await supabase.auth.exchangeCodeForSession(
-                window.location.search || window.location.hash.substring(1)
-            );
 
-            if (error || !data.session) {
+            // Pass both search and hash to be safe
+            const urlParamString = window.location.search ||
+                (window.location.hash ? window.location.hash.replace(/^#/, '?') : '');
+
+            console.log('Passing to exchangeCodeForSession:', urlParamString);
+
+            const { data, error } = await supabase.auth.exchangeCodeForSession(urlParamString);
+
+            if (error) {
                 console.error('Supabase exchange failed:', error);
-                return { success: false, error: error || new Error('No session created') };
+                return { success: false, error };
+            }
+
+            if (!data.session) {
+                console.error('No session created after code exchange');
+                return { success: false, error: new Error('No session created') };
             }
 
             const user = data.session.user;

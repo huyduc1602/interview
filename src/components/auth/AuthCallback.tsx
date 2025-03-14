@@ -7,6 +7,21 @@ export default function AuthCallback() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Check if localStorage is available and contains code_verifier
+        try {
+            const testStorage = 'test-storage';
+            localStorage.setItem(testStorage, testStorage);
+            localStorage.removeItem(testStorage);
+
+            const hasCodeVerifier = !!localStorage.getItem('code_verifier');
+            console.log('Local storage is available, code_verifier exists:', hasCodeVerifier);
+            if (!hasCodeVerifier) {
+                console.warn('No code_verifier found in localStorage!');
+            }
+        } catch (e) {
+            console.error('Local storage is not available:', e);
+        }
+
         let isMounted = true;
 
         async function handleAuth() {
