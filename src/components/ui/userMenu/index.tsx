@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@radix-ui/react-dropdown-menu';
-import { Button } from '../button';
+import { ButtonBase } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function UserMenu() {
@@ -19,10 +19,10 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center gap-2">
+        <ButtonBase variant="ghost" size="sm" className="flex items-center gap-2 px-0 w-fit sm:px-3 sm-w-full">
           <User className="h-4 w-4" />
           <span className="max-w-[150px] truncate">{user.email}</span>
-        </Button>
+        </ButtonBase>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 p-1 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
         <DropdownMenuItem

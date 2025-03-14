@@ -55,7 +55,7 @@ export function LanguageSwitcher() {
       value={i18n?.language || 'vi'}
       onValueChange={handleLanguageChange}
     >
-      <SelectTrigger className="w-[160px] fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-md z-50">
+      <SelectTrigger className="w-[130px] fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-md z-50">
         <SelectValue placeholder="Select Language">
           <div className="flex items-center gap-2">
             <Languages className="h-4 w-4" />
