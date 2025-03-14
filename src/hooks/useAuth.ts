@@ -28,7 +28,8 @@ export function useAuth() {
                     name: session.session.user.user_metadata.full_name ||
                         session.session.user.email?.split('@')[0] ||
                         'User',
-                    email: session.session.user.email
+                    email: session.session.user.email,
+                    isGoogle: true
                 } as User;
                 setUser(supabaseUser);
                 localStorage.setItem('current_user', JSON.stringify(supabaseUser));
@@ -80,7 +81,8 @@ export function useAuth() {
             const user = {
                 id: generateId(),
                 name: email.split('@')[0],
-                email
+                email,
+                isGoogle: false
             };
             setUser(user);
             localStorage.setItem('current_user', JSON.stringify(user));
@@ -88,13 +90,48 @@ export function useAuth() {
     };
 
     const loginWithGoogle = async () => {
-        await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + '/auth/callback'
+        try {
+            // Add timestamp to avoid cache
+            const timestamp = new Date().getTime();
+
+            // Use absolute URLs and add state to track
+            const redirectUrl = `${window.location.origin}/auth/callback?timestamp=${timestamp}`;
+            console.log('Using redirect URL with timestamp:', redirectUrl);
+
+            // Delete old session if any
+            await supabase.auth.signOut();
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl,
+                    // Make sure to get the refresh_token and override the consent screen
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
+                    // Set mode to 'token' to use implicit flow
+                    // mode is an option in PKCE flow
+                    skipBrowserRedirect: false
+                }
+            });
+
+            if (error) {
+                console.error('Login with Google failed:', error);
+                return { success: false, error };
             }
-        });
-        setIsLoginGoogle(true);
+
+            if (!data || !data.url) {
+                console.error('Login with Google failed: No data or URL');
+                return { success: false, error: 'No data or URL' };
+            }
+            console.log('Google login initiated. Redirect URL data:', data);
+            setIsLoginGoogle(true);
+            return { success: true };
+        } catch (error) {
+            console.error('Exception in loginWithGoogle:', error);
+            return { success: false, error };
+        }
     };
 
     const logout = async () => {
@@ -103,7 +140,7 @@ export function useAuth() {
     };
 
     const isGoogleUser = (): boolean => {
-        if (user && user.email && user.email.endsWith('@gmail.com')) return true
+        if (user && user.isGoogle && user.email && user.email.endsWith('@gmail.com')) return true
         return false;
     };
 

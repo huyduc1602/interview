@@ -233,6 +233,14 @@ export default {
     logout: "Sign Out",
     enterEmail: "Enter your email",
     requestLogin: "Login to Save Your Chat History",
+    error: {
+      title: "Authentication Error",
+      returnToHome: "Return to Home",
+      authFailed: "Authentication failed. Please try again.",
+      duringAuth: "Error during authentication. Please try again.",
+    },
+    processingAuthentication: "Processing authentication...",
+    pleaseWait: "Please wait..."
   },
   settings: {
     title: "Settings",
