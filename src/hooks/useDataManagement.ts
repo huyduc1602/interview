@@ -144,6 +144,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
                                 resolve();
                             }
                         }));
+                        dataLoadedRef.current = true;
                     });
                 } catch (reduxError) {
                     console.error(`Redux operation #${operationId} failed:`, reduxError);
@@ -167,7 +168,6 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         } catch (error) {
             console.error(`Error loading ${dataType} data:`, error);
         } finally {
-            dataLoadedRef.current = true;
             setLoading(false); // Decrement operation #1
 
             // Add safety check to fix any imbalance
