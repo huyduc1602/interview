@@ -3,9 +3,8 @@ import { useDispatch } from 'react-redux';
 import { fetchDataRequest } from '@/store/interview/slice';
 import { ResponseAnswer, SharedCategory, SharedCategoryShuffled, SharedItem } from '@/types/common';
 import { useAuth } from './useAuth';
-import { useApiKeys } from './useApiKeys';
-import { ApiKeyService } from './useApiKeys';
 import { generateId } from '@/utils/supabaseUtils';
+import { ApiKeyService, useApiKeys } from './useApiKeys';
 
 interface DataManagementOptions {
     dataType: 'knowledge' | 'interview';
@@ -16,7 +15,7 @@ interface DataManagementOptions {
 export function useDataManagement({ dataType, data, fetchDataFromSupabase }: DataManagementOptions) {
     const { user, isGoogleUser } = useAuth();
     const dispatch = useDispatch();
-    const { getApiKey } = useApiKeys();
+    const { getApiKeyByService } = useApiKeys();
 
     const [expandedCategories, setExpandedCategories] = useState<{ [key: number]: boolean }>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -53,14 +52,14 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
     }, []);
 
     // Memoize API keys to prevent recreation
-    const apiKey = useMemo(() => getApiKey(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKey]);
-    const spreadsheetId = useMemo(() => getApiKey(ApiKeyService.SPREADSHEET_ID), [getApiKey]);
+    const apiKey = useMemo(() => getApiKeyByService(ApiKeyService.GOOGLE_SHEET_API_KEY), [getApiKeyByService]);
+    const spreadsheetId = useMemo(() => getApiKeyByService(ApiKeyService.SPREADSHEET_ID), [getApiKeyByService]);
     const sheetName = useMemo(() => {
         if (dataType === 'knowledge') {
-            return getApiKey(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE);
+            return getApiKeyByService(ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE);
         }
-        return getApiKey(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
-    }, [dataType, getApiKey]);
+        return getApiKeyByService(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
+    }, [dataType, getApiKeyByService]);
 
     // Memoize isGoogle check to maintain stable reference
     const isGoogle = useMemo(() => isGoogleUser(), [isGoogleUser]);
@@ -145,6 +144,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
                                 resolve();
                             }
                         }));
+                        dataLoadedRef.current = true;
                     });
                 } catch (reduxError) {
                     console.error(`Redux operation #${operationId} failed:`, reduxError);
@@ -168,7 +168,6 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         } catch (error) {
             console.error(`Error loading ${dataType} data:`, error);
         } finally {
-            dataLoadedRef.current = true;
             setLoading(false); // Decrement operation #1
 
             // Add safety check to fix any imbalance
