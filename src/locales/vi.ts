@@ -229,6 +229,8 @@ export default {
     error: {
       title: "Lỗi xác thực",
       returnToHome: "Quay lại trang chủ",
+      authFailed: "Xác thực không thành công. Vui lòng thử lại.",
+      duringAuth: "Lỗi trong quá trình xác thực. Vui lòng thử lại.",
     },
     processingAuthentication: "Đang xử lý xác thực...",
     pleaseWait: "Vui lòng chờ..."
