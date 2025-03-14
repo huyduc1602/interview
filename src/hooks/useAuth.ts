@@ -87,29 +87,6 @@ export function useAuth() {
         }
     };
 
-    async function exchangeAuthCodeForToken() {
-        const params = new URLSearchParams(window.location.search);
-        const authCode = params.get('code');
-        const codeVerifier = localStorage.getItem('code_verifier');
-
-        if (!authCode || !codeVerifier) {
-            console.error('Missing auth_code or code_verifier');
-            return;
-        }
-
-        const response = await fetch(
-            "https://nusledxyrnjehfiohsmz.supabase.co/auth/v1/token?grant_type=pkce",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ auth_code: authCode, code_verifier: codeVerifier }),
-            }
-        );
-
-        const data = await response.json();
-        console.log('Access Token:', data);
-    }
-
     const loginWithGoogle = async () => {
         const codeVerifier = generateCodeVerifier();
         localStorage.setItem('code_verifier', codeVerifier);
