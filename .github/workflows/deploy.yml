@@ -46,14 +46,20 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Prepare for deployment
+        run: |
+          # Remove any Git-related files from dist directory
+          [ -d "dist/.git" ] && rm -rf dist/.git
+          [ -f "dist/.gitmodules" ] && rm -f dist/.gitmodules
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          cname: interview.hoanghuyduc.com # Optional: Add if you have a custom domain
+          cname: interview.hoanghuyduc.com
+          force_orphan: true # Creates a new orphan branch with a single commit containing dist contents
           allow_empty_commit: true
-          keep_files: true
 
       - name: Send Telegram Message
         run: |
