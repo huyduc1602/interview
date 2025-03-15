@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { SavedItem, SharedCategoryShuffled, SharedItem, PromptType, PromptOptions, LevelTranslations } from '@/types/common';
+import { SavedItem, SharedCategoryShuffled, SharedItem, PromptType, PromptOptions } from '@/types/common';
 import { useAIResponse } from './useAIResponse';
 import { createPromptByType } from '@/utils/promptUtils';
 import { useSettings } from '@/hooks/useSettings';
+import { useTranslation } from 'react-i18next';
 
 interface ItemInteractionsOptions {
     type: 'knowledge' | 'interview';
@@ -37,6 +38,7 @@ export function useItemInteractions({
 }: ItemInteractionsOptions) {
     // Get settings from useSettings hook
     const { settings } = useSettings();
+    const { t } = useTranslation();
 
     // State declarations
     const [selectedItem, setSelectedItem] = useState<SharedItem | null>(null);
@@ -55,7 +57,7 @@ export function useItemInteractions({
     // Function to create prompt options based on item data
     const createPromptOptions = useCallback((item: SharedItem | any): PromptOptions => {
         const language = getUserLanguage();
-        const defaultRole = language === 'vi' ? 'Lập trình viên' : 'Software Engineer';
+        const defaultRole = t('prompts.defaults.role');
 
         return {
             language,
@@ -66,7 +68,7 @@ export function useItemInteractions({
             role: type === 'interview' ? (item.role || defaultRole) : undefined,
             includeCodeExamples: true
         };
-    }, [getUserLanguage, type]);
+    }, [getUserLanguage, type, t]);
 
     // Success handler for AI response
     const handleSuccess = useCallback((content: string) => {

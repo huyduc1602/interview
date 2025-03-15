@@ -39,34 +39,26 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
   const [answer, setAnswer] = useState<string | null>(null);
   const [isFirstQuestion, setIsFirstQuestion] = useState(true);
   const [error] = useState<string | null>(null);
-  const { i18n } = useTranslation();
-  const language = i18n.language;
+  const { t } = useTranslation();
 
   const getSystemContext = useCallback(() => {
     switch (type) {
       case 'chat':
-        return language === 'vi' ? 'Bạn là một trợ lý AI hữu ích ' : 'You are a helpful AI assistant ';
+        return t('ai.systemContext.chat');
       case 'interview':
-        return language === 'vi' ? 'Hãy trả lời cho câu hỏi phỏng vấn sau: ' : 'Please answer the following interview question: ';
+        return t('ai.systemContext.interview');
       case 'knowledge':
-        return language === 'vi' ? 'Bạn là trợ lý cơ sở kiến ​​thức, hãy tìm kiến thức về: ' : 'You are a knowledge base assistant, find out about: ';
+        return t('ai.systemContext.knowledge');
       default:
-        return language === 'vi' ? 'Bạn là một trợ lý AI hữu ích' : 'You are a helpful AI assistant ';
+        return t('ai.systemContext.default');
     }
-  }, [type]);
+  }, [t, type]);
 
   const generateAnswer = useCallback(async (input: string): Promise<string> => {
     try {
       setLoading(true);
 
-      const suggestAnswerByLanguage = language === 'vi'
-        ? `.Hãy trả lời bằng tiếng Việt`
-        : `.Please answer in English`
-      // const finalInput = (isFirstQuestion
-      //   ? `${getSystemContext()}\n\n${input}`
-      //   : input )+ suggestAnswerByLanguage;
-
-      const finalInput = `${getSystemContext()}\n\n${input}` + suggestAnswerByLanguage;
+      const finalInput = `${getSystemContext()} ${input}.`;
 
       let response: AIResponse;
 

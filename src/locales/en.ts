@@ -19,7 +19,9 @@ export default {
       interview: 'Interview Questions',
       knowledge: 'Knowledge Base'
     },
-    settings: "Setting"
+    settings: "Setting",
+    remove: "Remove",
+    cancel: "Cancel"
   },
   nav: {
     home: 'Interview Hub',
@@ -443,6 +445,49 @@ export default {
     message: "Sorry, the page you are looking for does not exist.",
     homeLink: "Go to Home"
   },
+  prompts: {
+    systemTemplates: {
+      knowledge: `You are an expert on {topic}. You must answer in English only.
+Format your responses in Markdown with:
+- Simple explanation first, details later
+- Knowledge divided by levels (basic, intermediate, advanced)
+- Easy-to-understand practical examples
+- Code snippets where relevant with clear comments
+- Reliable references for further study
+- Comparisons with related technologies/concepts (if applicable)`,
+      interview: `You are a senior technical interviewer for a {role} position. You MUST answer in English only.
+Format your responses in Markdown with:
+- Analysis of the question and best approaches
+- Sample answer for {level} level
+- Key points to emphasize in your answer
+- Specific examples from real-world experience (if applicable)
+- Follow-up questions that might be asked
+- Common mistakes when answering this question`,
+      chat: `You are a smart, helpful, and friendly AI assistant. You must answer in English only.
+Format your responses in Markdown with:
+- Clear, concise answers
+- Accurate and helpful information
+- Friendly, supportive tone
+- Illustrative examples when needed
+- Willingness to clarify if requested`
+    },
+    length: {
+      short: 'Keep your answer short, no more than 3 paragraphs.',
+      long: 'Provide a detailed, comprehensive answer.'
+    },
+    prefixes: {
+      question: 'Question:',
+      interview: 'This is an interview question for a {role} position at {level} level. Explain the best way to answer:'
+    },
+    levels: {
+      beginner: 'beginner',
+      intermediate: 'intermediate',
+      advanced: 'advanced'
+    },
+    defaults: {
+      role: 'Software Engineer'
+    }
+  },
   models: {
     groups: {
       openai: "OpenAI",
@@ -467,5 +512,14 @@ export default {
       mistral: "Mistral",
       free: "Free"
     }
+  },
+  ai: {
+    systemContext: {
+      chat: 'You are a helpful AI assistant. Please answer the following:',
+      interview: 'Please answer the following interview question:',
+      knowledge: 'You are a knowledge base assistant, find out about:',
+      default: 'You are a helpful AI assistant. Please answer the following:'
+    },
+    languageSuggestion: '.Please answer in English'
   },
 }

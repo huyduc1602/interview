@@ -1,62 +1,51 @@
-import { PromptType } from '@/types/common';
-import { PromptOptions } from '@/types/common';
+import { PromptType, PromptOptions } from '@/types/common';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 /**
- * System prompt templates for different use cases
+ * Get translation based on key and language
+ * @param key Translation key
+ * @param language Target language
+ * @returns Translated string
  */
-const systemPromptTemplates = {
+const getTranslation = (key: string, language: string = 'vi', replacements?: Record<string, string>): string => {
+    // Force language change temporarily to get the correct translation
+    const currentLanguage = i18n.language;
+    i18n.changeLanguage(language);
+    let translation = i18n.t(key);
+
+    // Apply any replacements if provided
+    if (replacements) {
+        Object.entries(replacements).forEach(([key, value]) => {
+            translation = translation.replace(new RegExp(`{${key}}`, 'g'), value);
+        });
+    }
+
+    i18n.changeLanguage(currentLanguage); // Restore original language
+    return translation;
+};
+
+/**
+ * Translation keys for prompt templates
+ */
+const promptTranslationKeys = {
     knowledge: {
-        vi: `Bạn là một chuyên gia về chủ đề {topic}. PHẢI trả lời hoàn toàn bằng tiếng Việt.
-Định dạng câu trả lời theo Markdown với:
-- Giải thích khái niệm đơn giản trước, chi tiết sau
-- Phân chia kiến thức theo mức độ (cơ bản, trung bình, nâng cao)
-- Ví dụ thực tế dễ hiểu
-- Mã nguồn minh họa (nếu cần) với chú thích tiếng Việt
-- Tài liệu tham khảo đáng tin cậy
-- So sánh với các công nghệ/khái niệm liên quan (nếu có)`,
-        en: `You are an expert on {topic}. You MUST answer in English only.
-Format your responses in Markdown with:
-- Simple explanation first, details later
-- Knowledge divided by levels (basic, intermediate, advanced)
-- Easy-to-understand practical examples
-- Code snippets where relevant with clear comments
-- Reliable references for further study
-- Comparisons with related technologies/concepts (if applicable)`
+        template: 'prompts.systemTemplates.knowledge',
+        questionPrefix: 'prompts.prefixes.question'
     },
     interview: {
-        vi: `Bạn là một người phỏng vấn kỹ thuật cấp cao cho vị trí {role}. PHẢI trả lời hoàn toàn bằng tiếng Việt.
-Định dạng câu trả lời theo Markdown với:
-- Phân tích câu hỏi và cách tiếp cận tốt nhất
-- Mẫu câu trả lời cho cấp độ {level}
-- Các điểm cần nhấn mạnh khi trả lời
-- Ví dụ cụ thể từ kinh nghiệm thực tế (nếu phù hợp)
-- Câu hỏi phụ có thể được hỏi thêm
-- Lỗi thường gặp khi trả lời câu hỏi này`,
-        en: `You are a senior technical interviewer for a {role} position. You MUST answer in English only.
-Format your responses in Markdown with:
-- Analysis of the question and best approaches
-- Sample answer for {level} level
-- Key points to emphasize in your answer
-- Specific examples from real-world experience (if applicable)
-- Follow-up questions that might be asked
-- Common mistakes when answering this question`
+        template: 'prompts.systemTemplates.interview',
+        questionPrefix: 'prompts.prefixes.interview'
     },
     chat: {
-        vi: `Bạn là một trợ lý AI thông minh, hữu ích và thân thiện. PHẢI trả lời hoàn toàn bằng tiếng Việt.
-Định dạng câu trả lời theo Markdown với:
-- Câu trả lời rõ ràng, súc tích
-- Thông tin chính xác và hữu ích
-- Giọng điệu thân thiện, hỗ trợ
-- Ví dụ minh họa khi cần thiết
-- Sẵn sàng làm rõ nếu có yêu cầu`,
-        en: `You are a smart, helpful, and friendly AI assistant. You MUST answer in English only.
-Format your responses in Markdown with:
-- Clear, concise answers
-- Accurate and helpful information
-- Friendly, supportive tone
-- Illustrative examples when needed
-- Willingness to clarify if requested`
-    }
+        template: 'prompts.systemTemplates.chat',
+        default: 'chat.prompts.default'
+    },
+    length: {
+        short: 'prompts.length.short',
+        long: 'prompts.length.long'
+    },
+    levels: 'prompts.levels'
 };
 
 /**
@@ -66,19 +55,26 @@ Format your responses in Markdown with:
  * @returns Formatted prompt with system instructions
  */
 export const generateKnowledgePrompt = (userPrompt: string, options: PromptOptions): string => {
-    const { language, topic = 'lập trình', includeCodeExamples = true } = options;
+    const { language = 'vi', topic = language === 'vi' ? 'lập trình' : 'programming', includeCodeExamples = true } = options;
 
-    let systemPrompt = systemPromptTemplates.knowledge[language]
-        .replace('{topic}', topic);
+    // Get template from localization
+    let systemPrompt = getTranslation(promptTranslationKeys.knowledge.template, language, { topic });
 
     if (!includeCodeExamples) {
-        systemPrompt = systemPrompt.replace(/- Mã nguồn minh họa.*\n/g, '');
-        systemPrompt = systemPrompt.replace(/- Code snippets.*\n/g, '');
+        // Remove code examples section based on language
+        if (language === 'vi') {
+            systemPrompt = systemPrompt.replace(/- Mã nguồn minh họa.*\n/g, '');
+        } else {
+            systemPrompt = systemPrompt.replace(/- Code snippets.*\n/g, '');
+        }
     }
+
+    // Get the appropriate question prefix based on language
+    const questionPrefix = getTranslation(promptTranslationKeys.knowledge.questionPrefix, language);
 
     return `${systemPrompt}
 
-Câu hỏi: ${userPrompt}`;
+${questionPrefix} ${userPrompt}`;
 };
 
 /**
@@ -89,26 +85,25 @@ Câu hỏi: ${userPrompt}`;
  */
 export const generateInterviewPrompt = (userPrompt: string, options: PromptOptions): string => {
     const {
-        language,
+        language = 'vi',
         role = language === 'vi' ? 'Lập trình viên' : 'Software Developer',
         level = 'intermediate'
     } = options;
 
-    const levelTranslations = {
-        beginner: language === 'vi' ? 'cơ bản' : 'beginner',
-        intermediate: language === 'vi' ? 'trung cấp' : 'intermediate',
-        advanced: language === 'vi' ? 'nâng cao' : 'advanced'
-    };
+    // Translate level using localization
+    const translatedLevel = getTranslation(`${promptTranslationKeys.levels}.${level}`, language);
 
-    const translatedLevel = levelTranslations[level];
+    // Get system prompt template and replace placeholders
+    const systemPrompt = getTranslation(promptTranslationKeys.interview.template, language, {
+        role,
+        level: translatedLevel
+    });
 
-    const systemPrompt = systemPromptTemplates.interview[language]
-        .replace('{role}', role)
-        .replace('{level}', translatedLevel);
-
-    const prefix = language === 'vi'
-        ? `Đây là câu hỏi phỏng vấn cho vị trí ${role}, cấp độ ${translatedLevel}. Hãy giải thích cách trả lời tốt nhất:`
-        : `This is an interview question for a ${role} position at ${translatedLevel} level. Explain the best way to answer:`;
+    // Generate prefix with role and level information
+    const prefix = getTranslation(promptTranslationKeys.interview.questionPrefix, language, {
+        role,
+        level: translatedLevel
+    });
 
     return `${systemPrompt}
 
@@ -122,19 +117,16 @@ ${prefix} ${userPrompt}`;
  * @returns Formatted prompt with system instructions
  */
 export const generateChatPrompt = (userPrompt: string, options: PromptOptions): string => {
-    const { language, maxResponseLength = 'medium' } = options;
+    const { language = 'vi', maxResponseLength = 'medium' } = options;
 
-    let systemPrompt = systemPromptTemplates.chat[language];
+    // Get system prompt from localization
+    let systemPrompt = getTranslation(promptTranslationKeys.chat.template, language);
 
     // Add length guidance if specified
     if (maxResponseLength === 'short') {
-        systemPrompt += language === 'vi'
-            ? '\nHãy trả lời ngắn gọn, không quá 3 đoạn văn.'
-            : '\nKeep your answer short, no more than 3 paragraphs.';
+        systemPrompt += '\n' + getTranslation(promptTranslationKeys.length.short, language);
     } else if (maxResponseLength === 'long') {
-        systemPrompt += language === 'vi'
-            ? '\nHãy cung cấp câu trả lời chi tiết, đầy đủ.'
-            : '\nProvide a detailed, comprehensive answer.';
+        systemPrompt += '\n' + getTranslation(promptTranslationKeys.length.long, language);
     }
 
     return `${systemPrompt}
@@ -143,24 +135,68 @@ ${userPrompt}`;
 };
 
 /**
- * Creates an appropriate prompt based on the prompt type
+ * Support for future language additions
+ * @param language The language code
+ * @returns Whether the language is supported
+ */
+export const isLanguageSupported = (language: string): boolean => {
+    return ['vi', 'en'].includes(language);
+};
+
+/**
+ * Creates an appropriate prompt based on the prompt type with language support
  * @param userPrompt - The user's original question 
  * @param promptType - The type of prompt to generate
  * @param options - Configuration options for the prompt
- * @returns Formatted prompt with system instructions
+ * @returns Formatted prompt with system instructions in the specified language
  */
 export const createPromptByType = (
     userPrompt: string,
     promptType: PromptType,
     options: PromptOptions
 ): string => {
+    // Ensure language is valid, fallback to 'vi' if not supported
+    const language = options.language && isLanguageSupported(options.language)
+        ? options.language
+        : 'vi';
+
+    // Update options with validated language
+    const validatedOptions = {
+        ...options,
+        language
+    };
+
+    console.log(`Creating ${promptType} prompt in ${language} language`);
+
     switch (promptType) {
         case PromptType.KNOWLEDGE:
-            return generateKnowledgePrompt(userPrompt, options);
+            return generateKnowledgePrompt(userPrompt, validatedOptions);
         case PromptType.INTERVIEW:
-            return generateInterviewPrompt(userPrompt, options);
+            return generateInterviewPrompt(userPrompt, validatedOptions);
         case PromptType.CHAT:
         default:
-            return generateChatPrompt(userPrompt, options);
+            return generateChatPrompt(userPrompt, validatedOptions);
     }
+};
+
+/**
+ * Hook for accessing translated prompt templates in components
+ * @returns Object with translated prompt templates
+ */
+export const usePromptTemplates = () => {
+    const { t } = useTranslation();
+
+    return {
+        knowledgePromptTemplate: (topic: string) => {
+            return t(promptTranslationKeys.knowledge.template, { topic });
+        },
+        interviewPromptTemplate: (role: string, level: string) => {
+            const translatedLevel = t(`${promptTranslationKeys.levels}.${level}`);
+            return t(promptTranslationKeys.interview.template, { role, level: translatedLevel });
+        },
+        chatPromptTemplate: () => t(promptTranslationKeys.chat.template),
+        translateLevel: (level: string) => {
+            return t(`${promptTranslationKeys.levels}.${level}`) || level;
+        }
+    };
 };

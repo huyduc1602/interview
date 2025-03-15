@@ -49,4 +49,19 @@ export interface Translations {
         login: string;
         loginTitle: string;
     };
+    prompts: {
+        systemTemplates: {
+            knowledge: string;
+            interview: string;
+            chat: string;
+        };
+        length: {
+            short: string;
+            long: string;
+        };
+        prefixes: {
+            question: string;
+            interview: string;
+        };
+    };
 }
