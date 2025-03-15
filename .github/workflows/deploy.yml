@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [bugfix/setting_and_get_provider_user_login] #test deploy
   workflow_dispatch:
 
 permissions:
