@@ -117,9 +117,36 @@ interview/
 |----------|-------------|----------|
 | `VITE_GOOGLE_SHEET_API_KEY` | Google Sheets API key | Yes |
 | `VITE_SPREADSHEET_ID` | ID of your Google Sheet | Yes |
-| `VITE_OPENCHAT_API_KEY` | OpenAI API key | Yes |
-| `VITE_GEMINI_API_KEY` | Gemini API key	| Yes |
-| `VITE_MISTRAL_API_KEY` | Mistral API key	| Yes |
+| `VITE_OPENAI_API_KEY` | OpenAI API key | Yes |
+| `VITE_OPENCHAT_API_KEY` | OpenChat API key | Yes |
+| `VITE_GEMINI_API_KEY` | Gemini API key | Yes |
+| `VITE_MISTRAL_API_KEY` | Mistral API key | Yes |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes |
+| `VITE_GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Yes |
+| `VITE_GOOGLE_REFRESH_TOKEN` | Google OAuth Refresh Token | Yes |
+| `VITE_GITHUB_CLIENT_ID` | GitHub OAuth Client ID | Yes |
+| `VITE_SUPABASE_URL` | Supabase URL | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Supabase Anonymous Key | Yes |
+| `VITE_PORT` | Development server port | No |
+
+## Repository Secrets for Deployment
+
+For GitHub Actions deployment, add these secrets to your repository:
+
+| Secret Name | Description | Required |
+|-------------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for AI responses | Yes |
+| `GEMINI_API_KEY` | Google Gemini API key for AI responses | Yes |
+| `MISTRAL_API_KEY` | Mistral AI API key for AI responses | Yes |
+| `OPENCHAT_API_KEY` | OpenChat API key for AI responses | Yes |
+| `GOOGLE_SHEET_API_KEY` | API key for Google Sheets integration | Yes |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Yes |
+| `GOOGLE_REFRESH_TOKEN` | Google OAuth Refresh Token | Yes |
+| `SUPABASE_URL` | Supabase project URL | Yes |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+| `GITHUB_TOKEN` | Automatically provided by GitHub Actions | Yes |
+| `BASE_URL` | Base URL path for deployment (e.g., '/interview/') | Yes |
 
 ## Development
 
