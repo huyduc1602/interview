@@ -7,7 +7,7 @@ import { generateId } from '@/utils/supabaseUtils';
 import { FollowUpQuestion } from '../types/common';
 
 export function useSavedItems(type: ItemTypeSaved) {
-  const { user, isSocialUser: isSocialUser } = useAuth();
+  const { user, isGoogleUser } = useAuth();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
 
@@ -16,8 +16,8 @@ export function useSavedItems(type: ItemTypeSaved) {
 
   // Create a stable debounce function outside of useCallback
   const stableDebouncedLoad = useRef(
-    debounce(async (userId: string, isSocialLogin: boolean, itemType: string) => {
-      if (isSocialLogin) {
+    debounce(async (userId: string, isGoogle: boolean, itemType: string) => {
+      if (isGoogle) {
         const { data, error } = await fetchUserData(itemType as ItemTypeSaved, userId);
 
         if (error) {
@@ -55,10 +55,10 @@ export function useSavedItems(type: ItemTypeSaved) {
     if (user && user.id !== userIdRef.current) {
       userIdRef.current = user.id;
 
-      const isSocialLogin = isSocialUser() == true;
-      stableDebouncedLoad(user.id, isSocialLogin, type);
+      const isGoogle = isGoogleUser() == true;
+      stableDebouncedLoad(user.id, isGoogle, type);
     }
-  }, [user, isSocialUser, type, stableDebouncedLoad]);
+  }, [user, isGoogleUser, type, stableDebouncedLoad]);
 
   // Helper function for finding existing items
   const findExistingItem = useCallback((items: SavedItem[], question: string, userId: string) => {
@@ -85,14 +85,14 @@ export function useSavedItems(type: ItemTypeSaved) {
   ) => {
     if (!user) return;
 
-    const isSocialLogin = isSocialUser();
+    const isGoogle = isGoogleUser();
 
     // Update local state
     setChatHistories(prev => {
       const updated = { ...prev, [question]: messages };
 
       // Save to localStorage if not Google user
-      if (!isSocialLogin) {
+      if (!isGoogle) {
         localStorage.setItem(`chat_histories_${type}_${user.id}`, JSON.stringify(updated));
       }
 
@@ -100,10 +100,10 @@ export function useSavedItems(type: ItemTypeSaved) {
     });
 
     // Save to Supabase if Google user
-    if (isSocialLogin) {
+    if (isGoogle) {
       await saveChatHistory(itemId, user.id, messages);
     }
-  }, [user, isSocialUser, type]);
+  }, [user, isGoogleUser, type]);
 
   // Save or update item
   const saveItem = useCallback(async (item: SavedItem) => {
@@ -117,7 +117,7 @@ export function useSavedItems(type: ItemTypeSaved) {
     );
 
     // Determine if user is a Google user
-    const isSocialLogin = isSocialUser();
+    const isGoogle = isGoogleUser();
 
     if (existingItem) {
       // Update existing item
@@ -130,7 +130,7 @@ export function useSavedItems(type: ItemTypeSaved) {
       };
 
       // Update in Supabase if Google user
-      if (isSocialLogin) {
+      if (isGoogle) {
         await updateData(type, existingItem.id, user.id, {
           answer: updatedItem.answer,
           model: updatedItem.model,
@@ -145,7 +145,7 @@ export function useSavedItems(type: ItemTypeSaved) {
         updated[existingIndex] = updatedItem;
 
         // Update localStorage if not Google user
-        if (!isSocialLogin) {
+        if (!isGoogle) {
           updateLocalStorage(user.id, type, updated);
         }
 
@@ -168,7 +168,7 @@ export function useSavedItems(type: ItemTypeSaved) {
       };
 
       // Save to Supabase if Google user
-      if (isSocialLogin) {
+      if (isGoogle) {
         await saveData(type, newItem);
       }
 
@@ -177,7 +177,7 @@ export function useSavedItems(type: ItemTypeSaved) {
         const updated = [...prev, newItem];
 
         // Update localStorage if not Google user
-        if (!isSocialLogin) {
+        if (!isGoogle) {
           updateLocalStorage(user.id, type, updated);
         }
 
@@ -186,10 +186,10 @@ export function useSavedItems(type: ItemTypeSaved) {
 
       return newItem.id;
     }
-  }, [savedItems, user, isSocialUser, type, findExistingItem, updateLocalStorage]);
+  }, [savedItems, user, isGoogleUser, type, findExistingItem, updateLocalStorage]);
 
   // Add follow-up question
-  const addFollowUpQuestion = useCallback(async ({ itemId, question, answer }: FollowUpQuestion) => {
+  const addFollowUpQuestion = useCallback(async ({itemId, question, answer}: FollowUpQuestion) => {
     if (!user) return;
 
     const item = savedItems.find(item => item.id === itemId);
@@ -220,7 +220,7 @@ export function useSavedItems(type: ItemTypeSaved) {
 
     try {
       // For Google users, delete from Supabase first
-      if (isSocialUser()) {
+      if (isGoogleUser()) {
         const { error } = await deleteData(type, itemId, user.id);
 
         if (error) {
@@ -236,7 +236,7 @@ export function useSavedItems(type: ItemTypeSaved) {
         const updated = prev.filter(item => item.id !== itemId);
 
         // For non-Google users, update localStorage
-        if (!isSocialUser()) {
+        if (!isGoogleUser()) {
           updateLocalStorage(user.id, type, updated);
         }
 
@@ -250,7 +250,7 @@ export function useSavedItems(type: ItemTypeSaved) {
           delete updated[item.question];
 
           // Update localStorage for non-Google users
-          if (!isSocialUser()) {
+          if (!isGoogleUser()) {
             localStorage.setItem(`chat_histories_${type}_${user.id}`, JSON.stringify(updated));
           }
         }
@@ -260,7 +260,7 @@ export function useSavedItems(type: ItemTypeSaved) {
     } catch (error) {
       console.error('Unexpected error during item deletion:', error);
     }
-  }, [user, isSocialUser, type, updateLocalStorage, savedItems]);
+  }, [user, isGoogleUser, type, updateLocalStorage, savedItems]);
 
   return {
     savedItems,

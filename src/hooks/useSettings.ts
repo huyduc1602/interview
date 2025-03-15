@@ -46,8 +46,8 @@ export interface SettingsState {
 
 export const useSettings = () => {
     const { i18n } = useTranslation();
-    const { user, isSocialUser: isSocialUser } = useAuth();
-    const isSocialLogin = user ? isSocialUser() : false; // computed once
+    const { user, isGoogleUser } = useAuth();
+    const isGoogle = user ? isGoogleUser() : false; // computed once
     const langActive = i18n.language === 'en' ? 'vi' : 'en';
     const [settings, setSettings] = useState<SettingsState>({
         apiSettings: {},
@@ -76,7 +76,7 @@ export const useSettings = () => {
             if (!user) return;
             setLoading(true);
             try {
-                if (isSocialLogin) {
+                if (isGoogle) {
                     const dbSettings = {
                         // Direct API keys
                         openai: settingsToSave.openai,
@@ -111,7 +111,7 @@ export const useSettings = () => {
                 setLoading(false);
             }
         },
-        [user, isSocialLogin]
+        [user, isGoogle]
     );
 
     // Create a debounced save function to avoid excessive saves
@@ -185,7 +185,7 @@ export const useSettings = () => {
         setSkipNextSave(true); // Skip auto-save after loading
         setLoading(true);
 
-        if (isSocialLogin) {
+        if (isGoogle) {
             loadSettingsFromSupabase();
         } else {
             loadSettingsLocal();
@@ -193,7 +193,7 @@ export const useSettings = () => {
 
         // Mark initial load as complete
         setInitialLoadComplete(true);
-    }, [user, isSocialLogin, loadSettingsFromSupabase, loadSettingsLocal]);
+    }, [user, isGoogle, loadSettingsFromSupabase, loadSettingsLocal]);
 
     // Load settings when user changes
     useEffect(() => {
@@ -287,7 +287,7 @@ export const useSettings = () => {
             // Update local state
             updateSetting('featureFlags', key, value, true); // Skip auto-save
 
-            if (isSocialLogin) {
+            if (isGoogle) {
                 // Update in Supabase
                 await updateFeatureFlag(user.id, key, value);
             } else {
@@ -420,7 +420,7 @@ export const useSettings = () => {
         loading,
         showKeys,
         setShowKeys,
-        isSocialUser,
+        isGoogleUser,
 
         // Methods
         saveSettings,

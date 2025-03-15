@@ -18,18 +18,11 @@ export interface SavedItem {
     updated_at: string;
 }
 
-export enum AuthProvider {
-    GOOGLE = 'google',
-    GITHUB = 'github',
-    LOCAL = 'local'
-}
-
 export interface User {
     id: string;
     name: string;
     email: string;
-    isSocialLogin?: boolean;
-    provider?: AuthProvider;
+    isGoogle?: boolean;
     preferredLanguage?: string;
     [key: string]: unknown;
 }

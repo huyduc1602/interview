@@ -43,6 +43,4 @@ declare module 'lucide-react' {
   export const Loader2: React.FC<LucideProps>;
   export const Languages: React.FC<LucideProps>;
   export const Github: React.FC<LucideProps>;
-  export const Mail: React.FC<LucideProps>;
-  export const Laptop: React.FC<LucideProps>;
 }

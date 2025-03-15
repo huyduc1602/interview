@@ -29,6 +29,11 @@ const generateCodeVerifier = () => {
 
 async function exchangeAuthCodeForToken() {
     try {
+        console.log('Starting auth code exchange process');
+        console.log('Current URL:', window.location.href);
+        console.log('Search params:', window.location.search);
+        console.log('Hash fragment:', window.location.hash);
+
         // First, check if we have a session already
         const { data: sessionData } = await supabase.auth.getSession();
 
@@ -41,7 +46,7 @@ async function exchangeAuthCodeForToken() {
                 id: user.id,
                 name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
                 email: user.email,
-                provider: user.app_metadata.provider || 'google'
+                provider: 'google'
             } as User;
 
             // Store user in localStorage for persistence
@@ -117,7 +122,7 @@ async function exchangeAuthCodeForToken() {
                     id: user.id,
                     name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                     email: user.email,
-                    provider: user.app_metadata.provider || 'google'
+                    provider: 'google'
                 } as User;
 
                 // Store user in localStorage for persistence
@@ -136,7 +141,7 @@ async function exchangeAuthCodeForToken() {
                             id: user.id,
                             name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                             email: user.email,
-                            provider: user.app_metadata.provider || 'google'
+                            provider: 'google'
                         } as User;
                         localStorage.setItem('current_user', JSON.stringify(googleUser));
                         return { success: true, user: googleUser };
@@ -181,7 +186,7 @@ async function exchangeAuthCodeForToken() {
             id: userData.user.id,
             name: userData.user.user_metadata.full_name || userData.user.email?.split('@')[0] || 'User',
             email: userData.user.email,
-            provider: userData.user.app_metadata.provider || 'google'
+            provider: 'google'
         } as User;
 
         // Store user in localStorage for persistence

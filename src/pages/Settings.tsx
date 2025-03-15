@@ -17,7 +17,7 @@ export default function Settings() {
     updateSetting,
     handleFileUpload,
     handleDownloadSampleSettings,
-    isSocialUser
+    isGoogleUser
   } = useSettings();
 
   return (
@@ -42,14 +42,14 @@ export default function Settings() {
             </Alert>
 
             {/* Storage location indicator */}
-            <Alert className={isSocialUser() ? 'bg-blue-50' : 'bg-gray-50'}>
-              {isSocialUser() ? (
+            <Alert className={isGoogleUser() ? 'bg-blue-50' : 'bg-gray-50'}>
+              {isGoogleUser() ? (
                 <Cloud className="w-4 h-4 text-blue-500" />
               ) : (
                 <Database className="w-4 h-4 text-gray-500" />
               )}
               <AlertDescription>
-                {isSocialUser()
+                {isGoogleUser()
                   ? t('settings.storageInfo.cloud')
                   : t('settings.storageInfo.local')}
               </AlertDescription>
