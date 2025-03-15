@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "yarn build",
-  "installCommand": "yarn install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "vite",
   "outputDirectory": "dist",
   "builds": [
@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/auth/callback",
+      "src": "/(.*)",
       "dest": "/index.html"
     },
     {
