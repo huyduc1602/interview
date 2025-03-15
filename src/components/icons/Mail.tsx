@@ -1,7 +1,8 @@
 import React from 'react';
 import { LucideProps } from 'lucide-react';
 
-export const Mail: React.FC<LucideProps> = ({
+// Rename to avoid conflict with Lucide's Mail component
+export const CustomMail: React.FC<LucideProps> = ({
     size = 24,
     color = 'currentColor',
     strokeWidth = 2,
@@ -28,4 +29,4 @@ export const Mail: React.FC<LucideProps> = ({
     );
 };
 
-export default Mail;
+export default CustomMail;
