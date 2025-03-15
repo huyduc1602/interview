@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
-import { User } from '@/types/common';
+import { User, AuthProvider } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
 import { getVitePort } from '@/utils/viteUtils';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -30,6 +30,11 @@ declare global {
     }
 }
 
+// Helper function to get provider from app_metadata
+const getProviderFromMetadata = (appMetadata: { provider?: string }): AuthProvider => {
+    return appMetadata?.provider === 'github' ? AuthProvider.GITHUB : AuthProvider.GOOGLE;
+};
+
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
@@ -55,7 +60,8 @@ export function useAuth() {
                         session.session.user.email?.split('@')[0] ||
                         'User',
                     email: session.session.user.email,
-                    isGoogle: true
+                    isSocialLogin: true,
+                    provider: getProviderFromMetadata(session.session.user.app_metadata)
                 } as User;
                 setUser(supabaseUser);
                 localStorage.setItem('current_user', JSON.stringify(supabaseUser));
@@ -93,7 +99,9 @@ export function useAuth() {
         return supabaseUser ? {
             id: supabaseUser?.id,
             name: supabaseUser.user_metadata?.full_name || supabaseUser?.email?.split('@')[0] || 'User',
-            email: supabaseUser?.email || ''
+            email: supabaseUser?.email || '',
+            isSocialLogin: true,
+            provider: getProviderFromMetadata(supabaseUser.app_metadata)
         } : null
     }
 
@@ -108,7 +116,8 @@ export function useAuth() {
                 id: generateId(),
                 name: email.split('@')[0],
                 email,
-                isGoogle: false
+                isSocialLogin: false,
+                provider: AuthProvider.LOCAL
             };
             setUser(user);
             localStorage.setItem('current_user', JSON.stringify(user));
@@ -234,10 +243,10 @@ export function useAuth() {
         setUser(null);
     };
 
-    const isGoogleUser = (): boolean => {
-        if (user && user.isGoogle && user.email && user.email.endsWith('@gmail.com')) return true
+    const isSocialUser = (): boolean => {
+        if (user && user.isSocialLogin && user.email) return true
         return false;
     };
 
-    return { user, session, loading, login, loginWithGoogle, signInWithGithub, logout, isGoogleUser };
+    return { user, session, loading, login, loginWithGoogle, signInWithGithub, logout, isSocialUser };
 }

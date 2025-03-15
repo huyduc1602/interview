@@ -17,9 +17,7 @@ export default function AuthCallback() {
 
                 // Use the exchangeAuthCodeForToken function from supabaseClient
                 const result = await exchangeAuthCodeForToken();
-                console.debug('AUTH CALLBACK: result ', result);
                 if (!result.success) {
-                    console.debug('AUTH CALLBACK: result.error ', result.error)
                     throw new Error((result.error as ErrorCallback)?.name || 'Authentication failed');
                 }
 
