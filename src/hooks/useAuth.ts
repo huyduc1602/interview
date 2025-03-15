@@ -167,6 +167,8 @@ export function useAuth() {
 
             // Delete old session if any
             await supabase.auth.signOut();
+            // Thêm delay 500ms để đảm bảo quá trình đăng xuất hoàn tất
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Lấy token từ Google
             const googleIdToken = await getGoogleToken();
