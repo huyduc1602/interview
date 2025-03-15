@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { ModelSelector } from '@/components/ui/modelSelector';
 import { SaveDialog } from '@/components/ui/saveDialog';
-import { MessageItem } from '@/components/chat/message-item';
+import { MessageItem } from '@/components/chat/messageItem';
 import { SendHorizontal, AlertCircle, Sparkles } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';

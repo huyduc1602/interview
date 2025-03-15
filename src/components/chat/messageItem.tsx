@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Save, AlertCircle, User, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   role: 'user' | 'assistant' | 'error';
@@ -32,6 +33,7 @@ export function MessageItem({
 }: MessageItemProps) {
   const isUser = message.role === 'user';
   const isError = message.role === 'error';
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -85,7 +87,7 @@ export function MessageItem({
                 size="sm"
                 onClick={onSave}
                 className="h-8 w-8"
-                title="Save to questions"
+                title={t('chat.actions.save')}
               >
                 <Save className="h-4 w-4" />
               </Button>
