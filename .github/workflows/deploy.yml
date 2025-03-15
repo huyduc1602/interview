@@ -49,8 +49,8 @@ jobs:
       - name: Prepare for deployment
         run: |
           # Remove any Git-related files from dist directory
-          [ -d "dist/.git" ] && rm -rf dist/.git
-          [ -f "dist/.gitmodules" ] && rm -f dist/.gitmodules
+          [ -d "dist/.git" ] && rm -rf dist/.git || true
+          [ -f "dist/.gitmodules" ] && rm -f dist/.gitmodules || true
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
