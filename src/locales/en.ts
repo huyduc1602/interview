@@ -21,9 +21,6 @@ export default {
     },
     settings: "Setting"
   },
-  login: {
-    google: "Login with Google"
-  },
   nav: {
     home: 'Interview Hub',
     knowledgeBase: '📚 Knowledge Base',
@@ -228,13 +225,15 @@ export default {
     }
   },
   auth: {
-    login: "Sign In",
+    login: "Log in",
     loginTitle: "Welcome Back!",
     logout: "Sign Out",
     enterEmail: "Enter your email",
     requestLogin: "Login to Save Your Chat History",
     signInWithGithub: "Sign in with GitHub",
+    loginLocal: "Log in on your computer",
     signingIn: "Signing in...",
+    signInWithGoogle: "Sign in with Google",
     redirecting: "Redirecting...",
     pleaseWait: "Please wait...",
     error: {
@@ -242,6 +241,14 @@ export default {
       returnToHome: "Return to Home",
       authFailed: "Authentication failed. Please try again.",
       duringAuth: "Error during authentication. Please try again.",
+    },
+    loginSection: {
+      title: "Login Section",
+      description: "Please sign in to save your chat history.",
+      local: "Local Authentication",
+      social: "Social Login",
+      localNote: 'When logged in locally your data is saved on the browser and is not sent to our servers.',
+      socialNote: 'When you log in social, just log in again and the data will be saved according to the login account.'
     },
     processingAuthentication: "Processing authentication...",
     backToHome: 'Back to Home'
