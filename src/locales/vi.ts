@@ -22,9 +22,6 @@ export default {
       failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
     }
   },
-  login: {
-    google: "Đăng nhập với Google"
-  },
   nav: {
     home: 'Trung tâm Phỏng vấn',
     knowledgeBase: '📚 Cơ sở Kiến Thức',
@@ -226,7 +223,9 @@ export default {
     logout: "Đăng xuất",
     enterEmail: "Nhập địa chỉ email",
     requestLogin: "Đăng nhập để xem lịch sử chat",
+    loginLocal: "Đăng nhập trên máy",
     signInWithGithub: "Đăng nhập với GitHub",
+    signInWithGoogle: "Đăng nhập với Google",
     signingIn: "Đang đăng nhập...",
     redirecting: "Đang chuyển hướng...",
     pleaseWait: "Vui lòng đợi...",
@@ -235,6 +234,14 @@ export default {
       returnToHome: "Quay lại trang chủ",
       authFailed: "Xác thực không thành công. Vui lòng thử lại.",
       duringAuth: "Lỗi trong quá trình xác thực. Vui lòng thử lại.",
+    },
+    loginSection: {
+      title: "Phần đăng nhập",
+      description: "Vui lòng đăng nhập để lưu lịch sử trò chuyện của bạn.",
+      local: "Đăng nhập cục bộ",
+      social: "Đăng nhập tài khoản online",
+      localNote: 'Khi đăng nhập cục bộ dữ liệu của bạn được lưu trên trình duyệt và không gửi tới máy chủ của chúng tôi.',
+      socialNote: 'Khi đăng nhập online chỉ cần bạn đăng nhập lại dữ liệu sẽ được lưu theo tài khoản đăng nhập.'
     },
     processingAuthentication: "Đang xử lý xác thực...",
     backToHome: 'Về trang chủ'

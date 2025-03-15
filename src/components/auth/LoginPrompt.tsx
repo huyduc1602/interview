@@ -1,9 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { LoginForm } from '@/components/auth/LoginForm';
 import { Layout } from '@/layouts';
-import LoginGoogle from './LoginGoogle';
-import LoginGithub from './LoginGithub';
+import AuthButtons from './AuthButtons';
 
 interface LoginPromptProps {
     onSuccess: () => void;
@@ -14,12 +12,10 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ onSuccess }) => {
 
     return (
         <Layout>
-            <div className="max-w-md mx-auto mt-10 p-6">
-                <h1 className="text-2xl font-bold mb-6">{t('auth.requestLogin')}</h1>
-                <LoginForm onSuccess={onSuccess} />
-                <LoginGoogle />
-                <LoginGithub />
-            </div>
+            <AuthButtons
+                title={t('auth.requestLogin')}
+                onSuccess={onSuccess}
+            />
         </Layout>
     );
 };

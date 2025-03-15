@@ -42,4 +42,5 @@ declare module 'lucide-react' {
   export const ToggleRight: React.FC<LucideProps>;
   export const Loader2: React.FC<LucideProps>;
   export const Languages: React.FC<LucideProps>;
+  export const Github: React.FC<LucideProps>;
 }

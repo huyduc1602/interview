@@ -3,12 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { Button } from '@/components/ui/button';
-import { LoginForm } from '@/components/auth/LoginForm';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import MessageSquare from '@/components/icons/MessageSquare';
 import Send from '@/components/icons/Send';
-import LoginGoogle from '@/components/auth/LoginGoogle';
-import LoginGithub from '@/components/auth/LoginGithub';
+import AuthButtons from '@/components/auth/AuthButtons';
 
 const LoginChatSection: React.FC = () => {
     const { t } = useTranslation();
@@ -52,7 +50,7 @@ const LoginChatSection: React.FC = () => {
                 <div className="text-center">
                     <Button
                         onClick={() => setShowLoginForm(true)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white text-center"
+                        className="bg-purple-600 hover:bg-purple-700 text-white text-center w-[90%]"
                     >
                         {t('auth.login')}
                     </Button>
@@ -60,12 +58,10 @@ const LoginChatSection: React.FC = () => {
             )}
 
             {!user && showLoginForm && (
-                <div className="max-w-sm mx-auto">
-                    <h2 className="text-xl font-semibold mb-4">{t('auth.loginTitle')}</h2>
-                    <LoginForm onSuccess={() => window.location.reload()} />
-                    <LoginGoogle />
-                    <LoginGithub />
-                </div>
+                <AuthButtons
+                    title={t('auth.loginTitle')}
+                    onSuccess={() => window.location.reload()}
+                />
             )}
 
             {user && (
