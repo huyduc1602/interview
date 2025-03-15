@@ -39,7 +39,6 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isLoginGoogleOrGithub, setIsLoginGoogleOrGithub] = useState(true);
 
     useEffect(() => {
         // Load user from localStorage on mount
@@ -47,8 +46,6 @@ export function useAuth() {
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
-
-        if (!isLoginGoogleOrGithub) return;
 
         // Check if user is logged in with Supabase
         const fetchSession = async () => {
@@ -66,6 +63,7 @@ export function useAuth() {
                 setUser(supabaseUser);
                 localStorage.setItem('current_user', JSON.stringify(supabaseUser));
             }
+            setLoading(false);
         };
 
         fetchSession();
@@ -194,7 +192,6 @@ export function useAuth() {
                 return { success: false, error };
             }
             console.log('Đăng nhập Google thành công:', data);
-            setIsLoginGoogleOrGithub(true);
             return { success: true, data };
         } catch (error) {
             console.error('Lỗi trong quá trình loginWithGoogle:', error);
@@ -230,7 +227,6 @@ export function useAuth() {
                 return { success: false, error: 'No data or URL' };
             }
             console.log('GitHub login initiated. Redirect URL data:', data);
-            setIsLoginGoogleOrGithub(true);
             return { success: true };
         } catch (error) {
             console.error('Exception in signInWithGithub:', error);
