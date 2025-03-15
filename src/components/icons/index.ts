@@ -1,5 +1,3 @@
-import * as LucideIcons from 'lucide-react';
-
 // Re-export all Lucide icons
 export * from 'lucide-react';
 
