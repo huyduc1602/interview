@@ -38,7 +38,7 @@ jobs:
           echo "VITE_OPENCHAT_API_KEY=${{ secrets.OPENCHAT_API_KEY }}" >> .env.production
           echo "VITE_GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env.production
           echo "VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL}}" >> .env.production
-          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_URL}}" >> .env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY}}" >> .env.production
 
       - name: Install dependencies
         run: npm ci
