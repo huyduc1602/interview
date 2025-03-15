@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { User } from '@/types/common';
+import { getVitePort } from '@/utils/viteUtils';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:5173';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `http://localhost:${getVitePort()}`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const SITE_URL = window.location.origin;
 const REDIRECT_URL = `${SITE_URL}/auth/callback`;
