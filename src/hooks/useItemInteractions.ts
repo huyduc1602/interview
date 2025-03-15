@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
-import { SavedItem, SharedCategoryShuffled, SharedItem } from '@/types/common';
+import { SavedItem, SharedCategoryShuffled, SharedItem, PromptType, PromptOptions, LevelTranslations } from '@/types/common';
 import { useAIResponse } from './useAIResponse';
+import { createPromptByType } from '@/utils/promptUtils';
+import { useSettings } from '@/hooks/useSettings';
 
 interface ItemInteractionsOptions {
     type: 'knowledge' | 'interview';
@@ -8,23 +10,72 @@ interface ItemInteractionsOptions {
     savedItems: SavedItem[];
 }
 
+/**
+ * Custom hook to manage interactions with items, including generating and saving answers.
+ *
+ * @param {Object} options - Configuration options for the hook.
+ * @param {'knowledge' | 'interview'} options.type - The type of items being interacted with.
+ * @param {Function} options.generateAnswer - Function to generate an answer for a given question.
+ * @param {SavedItem[]} options.savedItems - List of saved items to check for existing answers.
+ *
+ * @returns {Object} - An object containing state and handlers for item interactions.
+ * @returns {SharedItem | null} return.selectedItem - The currently selected item.
+ * @returns {Function} return.setSelectedItem - Setter for the selected item.
+ * @returns {boolean} return.isSavedAnswer - Indicates if the selected item has a saved answer.
+ * @returns {Function} return.setIsSavedAnswer - Setter for the saved answer status.
+ * @returns {SavedItem | null} return.existingSavedItem - The saved item if it exists.
+ * @returns {Function} return.setExistingSavedItem - Setter for the existing saved item.
+ * @returns {Function} return.handleItemClick - Handler for selecting an item.
+ * @returns {Function} return.handleRegenerateAnswer - Handler for regenerating an answer.
+ * @returns {unknown} return.error - Error state from generating answers.
+ */
+
 export function useItemInteractions({
     type,
     generateAnswer,
     savedItems
 }: ItemInteractionsOptions) {
+    // Get settings from useSettings hook
+    const { settings } = useSettings();
+
+    // State declarations
     const [selectedItem, setSelectedItem] = useState<SharedItem | null>(null);
     const [isSavedAnswer, setIsSavedAnswer] = useState(false);
     const [existingSavedItem, setExistingSavedItem] = useState<SavedItem | null>(null);
 
-    // Memoize onSuccess callback
+    // Get user language from settings with fallback to Vietnamese
+    const getUserLanguage = useCallback(() => {
+        // Priority order:
+        // 1. settings.appPreferences.language (regular structure)
+        // 2. settings.language (simple structure)
+        // 3. Default to 'vi' if not found
+        return (settings?.appPreferences?.language || settings?.language || 'vi') as 'vi' | 'en';
+    }, [settings]);
+
+    // Function to create prompt options based on item data
+    const createPromptOptions = useCallback((item: SharedItem | any): PromptOptions => {
+        const language = getUserLanguage();
+        const defaultRole = language === 'vi' ? 'Lập trình viên' : 'Software Engineer';
+
+        return {
+            language,
+            topic: item.category || item.topic,
+            level: (item.level === 'beginner' || item.level === 'intermediate' || item.level === 'advanced')
+                ? item.level
+                : 'intermediate',
+            role: type === 'interview' ? (item.role || defaultRole) : undefined,
+            includeCodeExamples: true
+        };
+    }, [getUserLanguage, type]);
+
+    // Success handler for AI response
     const handleSuccess = useCallback((content: string) => {
         if (selectedItem) {
             setSelectedItem(prev => prev ? ({ ...prev, answer: content }) : null);
         }
     }, [selectedItem]);
 
-    // Memoize onError callback
+    // Error handler for AI response
     const handleError = useCallback(() => {
         setSelectedItem(null);
     }, []);
@@ -38,66 +89,63 @@ export function useItemInteractions({
         onError: handleError
     });
 
-    // Fetch data from saved items or generate new answer
+    // Function to fetch item data
     const fetchItemData = useCallback(async (item: any, existingSaved: SavedItem | null) => {
         if (existingSaved?.answer) {
             console.info('Using saved answer from previous session');
             setIsSavedAnswer(true);
-            // Use existing answer from savedItems
             setSelectedItem(prev => prev ? { ...prev, answer: existingSaved.answer } : null);
         } else {
             setIsSavedAnswer(false);
             try {
                 console.info('Generating new answer');
-                // No saved answer found, generate a new one
                 const questionContent = item.question;
-                const answer = await handleGenerateAnswer(questionContent);
+                const promptType = type === 'knowledge' ? PromptType.KNOWLEDGE : PromptType.INTERVIEW;
+                const promptOptions = createPromptOptions(item);
+
+                console.log(`Using language: ${promptOptions.language} from user settings`);
+
+                const enhancedPrompt = createPromptByType(questionContent, promptType, promptOptions);
+                const answer = await handleGenerateAnswer(enhancedPrompt);
                 setSelectedItem(prev => prev ? { ...prev, answer } : null);
             } catch (error) {
                 console.error('Failed to generate answer:', error);
                 setSelectedItem(null);
             }
         }
-    }, [handleGenerateAnswer, type]);
+    }, [handleGenerateAnswer, type, createPromptOptions]);
 
     // Handle item click
     const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | any) => {
-        // Cast to proper type based on data source
         const actualItem = item as any;
-
-        // First set the selected item (to display immediately even without an answer)
         setSelectedItem(actualItem);
-
         const questionContent = actualItem.question;
-
         const existingSaved = savedItems.find(savedItem =>
             savedItem.question === questionContent
         );
-
-        // Update state for use in other components
         setExistingSavedItem(existingSaved || null);
-
-        // Handle special case where the item is already selected
         if (existingSaved && existingSaved.id === selectedItem?.id) {
             setIsSavedAnswer(true);
         }
-
-        // Now fetch data with the found saved item
         await fetchItemData(actualItem, existingSaved || null);
+    }, [savedItems, fetchItemData, selectedItem?.id]);
 
-    }, [savedItems, fetchItemData, selectedItem?.id, type]);
-
+    // Handle regenerate answer
     const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
         if (!selectedItem) return;
 
         try {
-            const questionSend = selectedItem.question
-            const answer = await generateAnswer(questionSend);
+            const questionContent = selectedItem.question;
+            const promptType = type === 'knowledge' ? PromptType.KNOWLEDGE : PromptType.INTERVIEW;
+            const promptOptions = createPromptOptions(selectedItem);
+
+            const enhancedPrompt = createPromptByType(questionContent, promptType, promptOptions);
+            const answer = await generateAnswer(enhancedPrompt);
             setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {
             console.error('Failed to regenerate answer:', error);
         }
-    }, [selectedItem, generateAnswer, type]);
+    }, [selectedItem, generateAnswer, type, createPromptOptions]);
 
     return {
         selectedItem,

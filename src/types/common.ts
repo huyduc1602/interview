@@ -60,13 +60,37 @@ export interface SharedItem extends BaseItem {
     answer: string | null;
     order?: number;
     rowIndex: number;
-    status: string
-    notes: string
+    status: string;
+    notes: string;
+    level?: string;
+    role?: string;
+    topic?: string;
 }
 
 export enum ItemTypeSaved {
     KnowledgeAnswers = 'knowledge_answers',
     InterviewAnswers = 'interview_answers'
+}
+
+export enum PromptType {
+    KNOWLEDGE = 'knowledge',
+    INTERVIEW = 'interview',
+    CHAT = 'chat'
+}
+
+export enum LevelTranslations {
+    beginner = 'beginner',
+    intermediate = 'intermediate',    
+    advanced = 'advanced'
+}
+
+export interface PromptOptions {
+    language: 'vi' | 'en';
+    topic ?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    role ?: string;
+    includeCodeExamples ?: boolean;
+    maxResponseLength ?: 'short' | 'medium' | 'long';
 }
 
 export type FollowUpQuestion = {

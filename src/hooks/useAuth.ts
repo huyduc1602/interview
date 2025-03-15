@@ -124,19 +124,19 @@ export function useAuth() {
 
     const loginWithGoogle = async () => {
         try {
-            // Lấy Google ID token thông qua Google Identity API
+            // Get Google ID token through Google Identity API
             const getGoogleToken = () => {
                 return new Promise<string>((resolve, reject) => {
                     if (!window.google) {
-                        reject(new Error("Google API chưa được tải"));
+                        reject(new Error("Google API not loaded"));
                         return;
                     }
                     const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
                     if (!client_id) {
-                        reject(new Error("Google Client ID không được cấu hình"));
+                        reject(new Error("Google Client ID not configured"));
                         return;
                     }
-                    // Tạo element ẩn để render button đăng nhập Google
+                    // Create hidden element to render Google login button
                     const googleDiv = document.createElement('div');
                     googleDiv.style.display = 'none';
                     document.body.appendChild(googleDiv);
@@ -149,7 +149,7 @@ export function useAuth() {
                                 resolve(response.credential);
                             } else {
                                 document.body.removeChild(googleDiv);
-                                reject(new Error("Không thể lấy được Google credentials"));
+                                reject(new Error("Could not get Google credentials"));
                             }
                         },
                         auto_select: true
@@ -168,33 +168,33 @@ export function useAuth() {
                         googleButton.click();
                     } else {
                         document.body.removeChild(googleDiv);
-                        reject(new Error("Không thể tạo button đăng nhập Google"));
+                        reject(new Error("Could not create Google login button"));
                     }
                 });
             };
 
             // Delete old session if any
             await supabase.auth.signOut();
-            // Thêm delay 500ms để đảm bảo quá trình đăng xuất hoàn tất
+            // Add a 500ms delay to ensure logout process is completed
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Lấy token từ Google
+            // Get token from Google
             const googleIdToken = await getGoogleToken();
-            console.log('Đã lấy Google ID Token:', googleIdToken.substring(0, 20) + '...');
+            console.log('Google ID Token obtained:', googleIdToken.substring(0, 20) + '...');
 
-            // Sử dụng token với Supabase
+            // Use token with Supabase
             const { data, error } = await supabase.auth.signInWithIdToken({
                 provider: 'google',
                 token: googleIdToken
             });
             if (error) {
-                console.error('Đăng nhập Google thất bại:', error);
+                console.error('Google login failed:', error);
                 return { success: false, error };
             }
-            console.log('Đăng nhập Google thành công:', data);
+            console.log('Google login successful:', data);
             return { success: true, data };
         } catch (error) {
-            console.error('Lỗi trong quá trình loginWithGoogle:', error);
+            console.error('Error during loginWithGoogle process:', error);
             return { success: false, error };
         }
     };
