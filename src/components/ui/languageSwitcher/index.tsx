@@ -9,10 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { Languages } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { settings, updateSetting } = useSettings();
+  const { user } = useAuth();
 
   // Set initial language from settings or default to Vietnamese
   useEffect(() => {
@@ -28,6 +30,28 @@ export function LanguageSwitcher() {
       console.error("Language initialization error:", error);
     }
   }, [settings, i18n]);
+
+  // Update language when a user is available
+  useEffect(() => {
+    if (user) {
+      try {
+        // Get user's preferred language from their profile or settings
+        // This assumes user profile contains language preference
+        const userLanguage: string = user.preferredLanguage || settings?.appPreferences?.language || 'vi';
+
+        if (i18n && i18n.language !== userLanguage) {
+          i18n.changeLanguage(userLanguage);
+
+          // Update the setting if it's different from the user's preference
+          if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
+            updateSetting('appPreferences', 'language', userLanguage);
+          }
+        }
+      } catch (error) {
+        console.error("Error updating language after login:", error);
+      }
+    }
+  }, [user, i18n, settings, updateSetting]);
 
   const handleLanguageChange = (value: string) => {
     if (!i18n) return;

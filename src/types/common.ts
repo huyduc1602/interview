@@ -23,6 +23,7 @@ export interface User {
     name: string;
     email: string;
     isGoogle?: boolean;
+    preferredLanguage?: string;
     [key: string]: unknown;
 }
 
