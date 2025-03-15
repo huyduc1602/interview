@@ -21,12 +21,9 @@ const commonClasses = {
 
 export function Navigation() {
     const location = useLocation();
-    const isHome = location.pathname === '/';
     const { t } = useTranslation();
     const user = true; // Assuming user is defined for demonstration purposes
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    if (isHome) return null;
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
