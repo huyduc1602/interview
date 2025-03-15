@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
 import { User } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
+import { getVitePort } from '@/utils/viteUtils';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 // Add type declaration for Google Identity API
@@ -33,7 +34,7 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isLoginGoogle, setIsLoginGoogle] = useState(true);
+    const [isLoginGoogleOrGithub, setIsLoginGoogleOrGithub] = useState(true);
 
     useEffect(() => {
         // Load user from localStorage on mount
@@ -42,7 +43,7 @@ export function useAuth() {
             setUser(JSON.parse(savedUser));
         }
 
-        if (!isLoginGoogle) return;
+        if (!isLoginGoogleOrGithub) return;
 
         // Check if user is logged in with Supabase
         const fetchSession = async () => {
@@ -184,7 +185,7 @@ export function useAuth() {
                 return { success: false, error };
             }
             console.log('Đăng nhập Google thành công:', data);
-            setIsLoginGoogle(true);
+            setIsLoginGoogleOrGithub(true);
             return { success: true, data };
         } catch (error) {
             console.error('Lỗi trong quá trình loginWithGoogle:', error);
@@ -194,19 +195,9 @@ export function useAuth() {
 
     const signInWithGithub = async () => {
         try {
-            // Add timestamp to avoid cache
-            const timestamp = new Date().getTime();
-
-            // Check if we're on localhost and use appropriate redirect URL
-            let baseUrl = window.location.origin;
-            // For local development, ensure we're using localhost
-            if (!baseUrl.includes('localhost') && process.env.NODE_ENV === 'development') {
-                // Get port from environment variables or window.location
-                const port = import.meta.env.VITE_PORT || window.location.port || '5173';
-                baseUrl = `http://localhost:${port}`;
-            }
-
-            const redirectUrl = `${baseUrl}/auth/callback?timestamp=${timestamp}`;
+            const redirectUrl = window.location.origin.includes("localhost")
+                ? `http://localhost:${getVitePort()}/auth/callback`
+                : `${import.meta.env.SUPABASE_URL}/auth/callback`;
             console.log('Using redirect URL with timestamp:', redirectUrl);
 
             // Delete old session if any
@@ -230,7 +221,7 @@ export function useAuth() {
                 return { success: false, error: 'No data or URL' };
             }
             console.log('GitHub login initiated. Redirect URL data:', data);
-            setIsLoginGoogle(true);
+            setIsLoginGoogleOrGithub(true);
             return { success: true };
         } catch (error) {
             console.error('Exception in signInWithGithub:', error);
