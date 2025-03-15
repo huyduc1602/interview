@@ -1,4 +1,5 @@
-import { LogOut, User, Github, Mail, Laptop } from 'lucide-react';
+import { LogOut, User, Github } from 'lucide-react';
+import { Mail, Laptop } from '@/components/icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import {

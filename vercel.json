@@ -7,10 +7,7 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -22,5 +19,18 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "development": true,
+      "preview": true
+    },
+    "autoAlias": true
+  },
+  "github": {
+    "enabled": true,
+    "silent": false,
+    "autoJobCancelation": true
+  }
 }
