@@ -39,7 +39,7 @@ const getProvider = (user: any): string => {
         const latestIdentity = user.identities.reduce((latest: any, current: any) => {
             const latestTime = new Date(latest.last_sign_in_at).getTime();
             const currentTime = new Date(current.last_sign_in_at).getTime();
-            return currentTime > latestTime ? current : latest;
+            return currentTime > latestTime ? latest : current;
         }, user.identities[0]);
 
         const actualProvider = latestIdentity.provider;
