@@ -84,7 +84,7 @@ export function LanguageSwitcher() {
         defaultValue={currentLanguage}
         onValueChange={handleLanguageChange}
       >
-        <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800">
+        <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800 sm:px-0">
           <SelectValue placeholder={
             <div className="flex items-center gap-2">
               <Languages className="h-4 w-4" />

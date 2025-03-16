@@ -32,15 +32,15 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ButtonBase variant="ghost" size="sm" className="flex items-center gap-2 px-0 w-fit sm:px-3 sm-w-full">
+        <ButtonBase variant="ghost" size="sm" className="flex items-center gap-2 px-0 w-fit sm:px-0 sm-w-full">
           <User className="h-4 w-4" />
           <div className="flex items-center max-w-[150px]">
             {user.provider && <ProviderIcon provider={user.provider} />}
-            <span className="truncate">{user.email}</span>
+            <span className="md:hidden">{user.email}</span>
           </div>
         </ButtonBase>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 p-1 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+      <DropdownMenuContent align="end" className="w-48 md:w-auto p-1 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
         <DropdownMenuItem
           onClick={logout}
           className={cn(
