@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import ButtonLogin from '@/components/common/ButtonLogin';
-import { Github } from 'lucide-react';
+import { Github } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 
 const LoginGithub: React.FC = () => {

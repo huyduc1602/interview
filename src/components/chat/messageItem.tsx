@@ -1,7 +1,7 @@
 import React from 'react';
 import { MarkdownContent } from '@/components/ui/markdownContent';
 import { Button } from '@/components/ui/button';
-import { Save, AlertCircle, User, Bot } from 'lucide-react';
+import { Save, AlertCircle, User, Bot } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';

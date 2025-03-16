@@ -4,8 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { Button } from '@/components/ui/button';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
-import MessageSquare from '@/components/icons/MessageSquare';
-import Send from '@/components/icons/Send';
+import { MessageSquare, Send } from '@/components/icons';
 import AuthButtons from '@/components/auth/AuthButtons';
 
 const LoginChatSection: React.FC = () => {

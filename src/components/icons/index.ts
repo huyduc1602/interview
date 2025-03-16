@@ -1,6 +1,47 @@
 // Re-export all Lucide icons
 export * from 'lucide-react';
 
-// If you need any custom icons, export them distinctly
-// For example:
-// export { default as CustomIcon } from './CustomIcon';
+// Export custom icons
+export { default as AlertCircle } from './AlertCircle';
+export { default as ArrowRight } from './ArrowRight';
+export { default as BookOpen } from './BookOpen';
+export { default as BookmarkPlus } from './BookmarkPlus';
+export { default as Bot } from './Bot';
+export { default as Brain } from './Brain';
+export { default as CSV } from './CSV';
+export { default as Check } from './Check';
+export { default as ChevronDown } from './ChevronDown';
+export { default as ChevronLeft } from './ChevronLeft';
+export { default as ChevronRight } from './ChevronRight';
+export { default as ChevronUp } from './ChevronUp';
+export { default as Cloud } from './Cloud';
+export { default as CloseIcon } from './CloseIcon';
+export { default as Computer } from './Computer';
+export { default as Database } from './Database';
+export { default as Eye } from './Eye';
+export { default as EyeOff } from './EyeOff';
+export { default as Github } from './Github';
+export { default as Info } from './Info';
+export { default as Key } from './Key';
+export { default as Languages } from './Languages';
+export { CustomMail as Mail } from './Mail';
+export { Laptop } from './Laptop';
+export { default as Loader2 } from './Loader2';
+export { default as LogOut } from './LogOut';
+export { default as MessageSquare } from './MessageSquare';
+export { default as RefreshCw } from './RefreshCw';
+export { default as Save } from './Save';
+export { default as Search } from './Search';
+export { default as Send } from './Send';
+export { default as SendHorizontal } from './SendHorizontal';
+export { default as Settings } from './Settings';
+export { default as Shuffle } from './Shuffle';
+export { default as Sparkles } from './Sparkles';
+export { default as Tag } from './Tag';
+export { default as ToggleLeft } from './ToggleLeft';
+export { default as ToggleRight } from './ToggleRight';
+export { default as Trash2 } from './Trash2';
+export { default as Upload } from './Upload';
+export { default as User } from './User';
+export { default as X } from './X';
+export { default as Zap } from './Zap';

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ModelSelector } from '@/components/ui/modelSelector';
 import { SaveDialog } from '@/components/ui/saveDialog';
 import { MessageItem } from '@/components/chat/messageItem';
-import { SendHorizontal, AlertCircle, Sparkles } from 'lucide-react';
+import { SendHorizontal, AlertCircle, Sparkles } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { AIModel, AIModelType, TokenUsage } from '../services/aiServices/types';
