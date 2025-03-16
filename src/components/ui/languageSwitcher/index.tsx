@@ -30,8 +30,7 @@ export function LanguageSwitcher() {
       }
     } catch (error) {
       console.error("Language initialization error:", error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    } 
   }, []);  // Empty dependency array means this runs once on mount
 
   // Update language when user changes
@@ -49,7 +48,7 @@ export function LanguageSwitcher() {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [user]);  // Only depend on user to avoid loops
 
   const handleLanguageChange = (value: string) => {
