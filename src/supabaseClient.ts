@@ -32,7 +32,11 @@ const getProvider = (user: any): string => {
     // First check localStorage for explicitly set provider
     const savedProvider = localStorage.getItem('auth_provider');
     if (savedProvider) {
-        return savedProvider == AuthProvider.LOCAL ? AuthProvider.LOCAL : (AuthProvider.GOOGLE ? AuthProvider.GITHUB : AuthProvider.GOOGLE);
+        return savedProvider;
+    }
+
+    if (user.app_metadata?.provider) {
+        return user.app_metadata.provider == AuthProvider.LOCAL ? AuthProvider.LOCAL : (AuthProvider.GOOGLE ? AuthProvider.GITHUB : AuthProvider.GOOGLE)
     }
 
     if (!user.identities || user.identities.length === 0) {
