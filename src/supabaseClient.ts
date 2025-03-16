@@ -27,6 +27,23 @@ const generateCodeVerifier = () => {
         .replace(/=+$/, '');
 };
 
+// Common function to retrieve the provider
+const getProvider = (user: any): string => {
+    // First check localStorage for explicitly set provider
+    const savedProvider = localStorage.getItem('auth_provider');
+    if (savedProvider) {
+        return savedProvider;
+    }
+
+    // Next check the user metadata
+    if (user?.app_metadata?.provider) {
+        return user.app_metadata.provider;
+    }
+
+    // Default to Google as fallback
+    return 'google';
+};
+
 async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
     try {
         // First, check if we have a session already
@@ -37,17 +54,17 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
             const user = sessionData.session.user;
 
             // Create user object with necessary properties
-            const googleUser = {
+            const socialUser = {
                 id: user.id,
                 name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
                 email: user.email,
-                provider: user.app_metadata.provider || 'google'
+                provider: getProvider(user)
             } as User;
 
             // Store user in localStorage for persistence
-            localStorage.setItem('current_user', JSON.stringify(googleUser));
+            localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-            return { success: true, user: googleUser };
+            return { success: true, user: socialUser };
         }
 
         // Check for auth code in URL from multiple sources
@@ -61,7 +78,7 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
         console.log('Parsed hash params:', Object.fromEntries(hashParams.entries()));
 
         let authCode = code;
-        if(!code) {
+        if (!code) {
             const codeFromSearch = new URLSearchParams(window.location.search).get('code');
             const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
             console.log('Code from search:', !!codeFromSearch);
@@ -116,17 +133,17 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
                 const user = data.session.user;
 
                 // Create user object with necessary properties
-                const googleUser = {
+                const socialUser = {
                     id: user.id,
                     name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                     email: user.email,
-                    provider: user.app_metadata.provider || 'google'
+                    provider: getProvider(user)
                 } as User;
 
                 // Store user in localStorage for persistence
-                localStorage.setItem('current_user', JSON.stringify(googleUser));
+                localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-                return { success: true, user: googleUser };
+                return { success: true, user: socialUser };
             } catch (exchangeError) {
                 console.error('Exception during code exchange:', exchangeError);
 
@@ -135,14 +152,14 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
                     const { data: refreshData } = await supabase.auth.refreshSession();
                     if (refreshData?.session) {
                         const user = refreshData.session.user;
-                        const googleUser = {
+                        const socialUser = {
                             id: user.id,
                             name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                             email: user.email,
-                            provider: user.app_metadata.provider || 'google'
+                            provider: getProvider(user)
                         } as User;
-                        localStorage.setItem('current_user', JSON.stringify(googleUser));
-                        return { success: true, user: googleUser };
+                        localStorage.setItem('current_user', JSON.stringify(socialUser));
+                        return { success: true, user: socialUser };
                     }
                 } catch (refreshError) {
                     console.error('Session refresh also failed:', refreshError);
@@ -154,7 +171,7 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
 
         console.log('Exchanging auth code for token...');
         const response = await fetch(
-            "https://nusledxyrnjehfiohsmz.supabase.co/auth/v1/token?grant_type=pkce",
+            `${SUPABASE_URL}/auth/v1/token?grant_type=pkce`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -180,21 +197,21 @@ async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
         }
 
         // Create user object with necessary properties
-        const googleUser = {
+        const socialUser = {
             id: userData.user.id,
             name: userData.user.user_metadata.full_name || userData.user.email?.split('@')[0] || 'User',
             email: userData.user.email,
-            provider: userData.user.app_metadata.provider || 'google'
+            provider: getProvider(userData.user)
         } as User;
 
         // Store user in localStorage for persistence
-        localStorage.setItem('current_user', JSON.stringify(googleUser));
+        localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-        return { success: true, user: googleUser };
+        return { success: true, user: socialUser };
     } catch (error) {
         console.error('Error in exchangeAuthCodeForToken:', error);
         return { success: false, error };
     }
 }
 
-export { supabase, generateCodeVerifier, exchangeAuthCodeForToken };
+export { supabase, generateCodeVerifier, exchangeAuthCodeForToken, getProvider };

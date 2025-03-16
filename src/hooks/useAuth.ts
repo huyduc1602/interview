@@ -124,6 +124,9 @@ export function useAuth() {
 
     const loginWithGoogle = async () => {
         try {
+            // Save the provider before initiating login
+            localStorage.setItem('auth_provider', AuthProvider.GOOGLE);
+
             // Get Google ID token through Google Identity API
             const getGoogleToken = () => {
                 return new Promise<string>((resolve, reject) => {
@@ -201,6 +204,9 @@ export function useAuth() {
 
     const signInWithGithub = async () => {
         try {
+            // Save the provider before initiating login
+            localStorage.setItem('auth_provider', AuthProvider.GITHUB);
+
             const redirectUrl = window.location.origin.includes("localhost")
                 ? `http://localhost:${getVitePort()}/auth/callback`
                 : `${import.meta.env.SUPABASE_URL}/auth/callback`;
