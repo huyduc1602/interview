@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { AuthProvider, User } from '@/types/common';
+import { User } from '@/types/common';
 import { getVitePort } from '@/utils/viteUtils';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `http://localhost:${getVitePort()}`;
