@@ -69,7 +69,10 @@ export function LanguageSwitcher() {
     if (!i18n || value === currentLanguage) return;
 
     try {
-      if (value === 'en' || value === 'vi') {
+      // Validate that the selected language is in our supported languages list
+      const isValidLanguage = languages.some(lang => lang.value === value);
+      
+      if (isValidLanguage) {
         // Update all language sources in the correct order
         i18n.changeLanguage(value);
         setCurrentLanguage(value);
@@ -77,16 +80,23 @@ export function LanguageSwitcher() {
         if (updateSetting) {
           updateSetting('appPreferences', 'language', value);
         }
+      } else {
+        console.error("Invalid language selected:", value);
       }
     } catch (error) {
       console.error("Language change error:", error);
     }
   };
 
+  // Ensure we always have a valid language value
+  const safeCurrentLanguage = languages.some(lang => lang.value === currentLanguage) 
+    ? currentLanguage 
+    : 'vi'; // Default to Vietnamese if current language is invalid
+
   return (
     <div className="relative inline-block">
       <Select
-        value={currentLanguage}
+        value={safeCurrentLanguage}
         onValueChange={handleLanguageChange}
       >
         <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800 sm:px-0">
