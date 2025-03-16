@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 import {
@@ -15,52 +15,54 @@ export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { settings, updateSetting } = useSettings();
   const { user } = useAuth();
+  // Local state to store current language to avoid re-renders
+  const [currentLanguage, setCurrentLanguage] = useState(i18n?.language || 'vi');
 
-  // Set initial language from settings or default to Vietnamese
+  // Set initial language from settings only once on mount
   useEffect(() => {
     try {
       const savedLanguage = settings?.appPreferences?.language;
       const defaultLanguage = savedLanguage || 'vi';
 
-      // Only change if different from current
-      if (i18n && i18n.language !== defaultLanguage) {
+      if (i18n && defaultLanguage !== currentLanguage) {
         i18n.changeLanguage(defaultLanguage);
+        setCurrentLanguage(defaultLanguage);
       }
     } catch (error) {
       console.error("Language initialization error:", error);
     }
-  }, [settings, i18n]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // Empty dependency array means this runs once on mount
 
-  // Update language when a user is available
+  // Update language when user changes
   useEffect(() => {
-    if (user) {
-      try {
-        // Get user's preferred language from their profile or settings
-        // This assumes user profile contains language preference
-        const userLanguage: string = user.preferredLanguage || settings?.appPreferences?.language || 'vi';
+    if (user && user.preferredLanguage && user.preferredLanguage !== currentLanguage) {
+      const userLanguage = user.preferredLanguage;
 
-        if (i18n && i18n.language !== userLanguage) {
-          i18n.changeLanguage(userLanguage);
+      if (i18n) {
+        i18n.changeLanguage(userLanguage);
+        setCurrentLanguage(userLanguage);
 
-          // Update the setting if it's different from the user's preference
-          if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
-            updateSetting('appPreferences', 'language', userLanguage);
-          }
+        // Only update settings if different
+        if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
+          updateSetting('appPreferences', 'language', userLanguage);
         }
-      } catch (error) {
-        console.error("Error updating language after login:", error);
       }
     }
-  }, [user, i18n, settings, updateSetting]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);  // Only depend on user to avoid loops
 
   const handleLanguageChange = (value: string) => {
-    if (!i18n) return;
+    if (!i18n || value === currentLanguage) return;
 
     if (value === 'en' || value === 'vi') {
-      // First update the i18n language immediately for UI
+      // Update local state first
+      setCurrentLanguage(value);
+
+      // Then update i18n
       i18n.changeLanguage(value);
 
-      // Then update the setting - this will trigger auto-save from our enhanced useSettings hook
+      // Finally update settings
       if (updateSetting) {
         updateSetting('appPreferences', 'language', value);
       }
@@ -73,32 +75,37 @@ export function LanguageSwitcher() {
     { value: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' }
   ];
 
+  // Find the current language display info
+  const currentLangDisplay = languages.find(lang => lang.value === currentLanguage) || languages[1];
+
   return (
-    <Select
-      defaultValue={i18n?.language || 'vi'}
-      value={i18n?.language || 'vi'}
-      onValueChange={handleLanguageChange}
-    >
-      <SelectTrigger className="w-[130px] fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-md z-50">
-        <SelectValue placeholder="Select Language">
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4" />
-            <span>
-              {i18n?.language === 'en' ? '🇺🇸 English' : '🇻🇳 Tiếng Việt'}
-            </span>
-          </div>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((lang) => (
-          <SelectItem key={lang.value} value={lang.value}>
+    <div className="relative inline-block">
+      <Select
+        defaultValue={currentLanguage}
+        onValueChange={handleLanguageChange}
+      >
+        <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800">
+          <SelectValue placeholder={
             <div className="flex items-center gap-2">
-              <span>{lang.flag}</span>
-              <span>{lang.label}</span>
+              <Languages className="h-4 w-4" />
+              <span>
+                {currentLangDisplay.flag} {currentLangDisplay.label}
+              </span>
             </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+          }>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((lang) => (
+            <SelectItem key={lang.value} value={lang.value}>
+              <div className="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span>{lang.label}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
