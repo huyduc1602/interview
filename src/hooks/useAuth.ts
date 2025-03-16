@@ -32,7 +32,7 @@ declare global {
 
 // Helper function to get provider from app_metadata
 const getProviderFromMetadata = (appMetadata: { provider?: string }): AuthProvider => {
-    return appMetadata?.provider === 'github' ? AuthProvider.GITHUB : AuthProvider.GOOGLE;
+    return appMetadata?.provider === 'github' ? AuthProvider.GOOGLE : (AuthProvider.GITHUB || AuthProvider.LOCAL);
 };
 
 export function useAuth() {

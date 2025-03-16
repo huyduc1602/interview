@@ -35,10 +35,6 @@ const getProvider = (user: any): string => {
         return savedProvider;
     }
 
-    if (user.app_metadata?.provider) {
-        return user.app_metadata.provider == AuthProvider.LOCAL ? AuthProvider.LOCAL : (AuthProvider.GOOGLE ? AuthProvider.GITHUB : AuthProvider.GOOGLE)
-    }
-
     if (!user.identities || user.identities.length === 0) {
         const latestIdentity = user.identities.reduce((latest: any, current: any) => {
             const latestTime = new Date(latest.last_sign_in_at).getTime();
