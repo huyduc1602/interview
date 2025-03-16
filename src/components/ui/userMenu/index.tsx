@@ -10,6 +10,7 @@ import {
 } from '@radix-ui/react-dropdown-menu';
 import { ButtonBase } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 // Helper function to get provider icon
 const ProviderIcon = ({ provider }: { provider?: string }) => {
@@ -26,6 +27,12 @@ const ProviderIcon = ({ provider }: { provider?: string }) => {
 export function UserMenu() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
+  const [currentProvider, setCurrentProvider] = useState<string | undefined>(user?.provider);
+
+  // Update currentProvider when user.provider changes
+  useEffect(() => {
+    setCurrentProvider(user?.provider);
+  }, [user?.provider]);
 
   if (!user) return null;
 
@@ -35,7 +42,7 @@ export function UserMenu() {
         <ButtonBase variant="ghost" size="sm" className="flex items-center gap-2 px-0 w-fit sm:px-0 sm-w-full">
           <User className="h-4 w-4" />
           <div className="flex items-center max-w-[150px]">
-            {user.provider && <ProviderIcon provider={user.provider} />}
+            {currentProvider && <ProviderIcon provider={currentProvider} />}
             <span className="md:hidden">{user.email}</span>
           </div>
         </ButtonBase>

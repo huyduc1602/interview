@@ -104,6 +104,7 @@ export function useAuth() {
     }
 
     const login = (email: string) => {
+        localStorage.setItem('auth_provider', AuthProvider.LOCAL);
         const currentUserExist = localStorage.getItem('current_user');
         const currentUserExistObject: User | null = currentUserExist ? JSON.parse(currentUserExist) : null
 
