@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { User } from '@/types/common';
+import { AuthProvider, User } from '@/types/common';
 import { getVitePort } from '@/utils/viteUtils';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `http://localhost:${getVitePort()}`;
@@ -32,14 +32,14 @@ const getProvider = (user: any): string => {
     // First check localStorage for explicitly set provider
     const savedProvider = localStorage.getItem('auth_provider');
     if (savedProvider) {
-        return savedProvider;
+        return savedProvider == AuthProvider.LOCAL ? AuthProvider.LOCAL : (AuthProvider.GOOGLE ? AuthProvider.GITHUB : AuthProvider.GOOGLE);
     }
 
     if (!user.identities || user.identities.length === 0) {
         const latestIdentity = user.identities.reduce((latest: any, current: any) => {
             const latestTime = new Date(latest.last_sign_in_at).getTime();
             const currentTime = new Date(current.last_sign_in_at).getTime();
-            return currentTime > latestTime ? latest : current;
+            return currentTime > latestTime ? current : latest;
         }, user.identities[0]);
 
         const actualProvider = latestIdentity.provider;
