@@ -1,4 +1,4 @@
-import React, { Dispatch, JSX, SetStateAction } from 'react';
+import React, { Dispatch, JSX, SetStateAction, use, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';
@@ -52,6 +52,15 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
     loading,
 }) => {
     const { t } = useTranslation();
+    const [title, setTitle] = useState('');
+
+    useEffect(() => {
+        if (type == 'knowledge') {
+            setTitle(t('knowledgeBase.title'));
+        } else {
+            setTitle(t('interviewQuestions.title'));
+        }
+    }, [type]);
 
     const getItems = (category: SharedCategory) => {
         if (shuffledQuestions.length > 0) {
@@ -150,7 +159,7 @@ const SharedSidebar: React.FC<SharedSidebarProps> = ({
         <>
             <div className={cn("sticky top-0 z-10 pb-4 px-4 bg-white dark:bg-gray-900 w-100")}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className={cn("text-xl font-semibold pt-2")}>{t('interviewQuestions.title')}</h2>
+                    <h2 className={cn("text-xl font-semibold pt-2")}>{title}</h2>
                 </div>
                 <div className="space-y-4 mb-4">
                     <div className="flex items-center justify-between">
