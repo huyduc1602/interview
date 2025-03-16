@@ -11,9 +11,40 @@ import { AuthProvider } from '@/contexts/AuthProvider';
 import AuthCallback from '@/pages/AuthCallback';
 import AuthorizeRedirect from '@/pages/AuthorizeRedirect';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useTranslation } from 'react-i18next';
+import { Suspense, useEffect, useState } from 'react';
 import './i18n';
 
-const App: React.FC = () => {
+// Simple loading component
+const AppLoading = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p className="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Loading...</p>
+    </div>
+  </div>
+);
+
+const AppContent: React.FC = () => {
+  const { i18n, ready } = useTranslation();
+  const [isI18nReady, setIsI18nReady] = useState(false);
+
+  // Wait for i18n to be ready
+  useEffect(() => {
+    if (ready) {
+      // Small delay to ensure translations are applied
+      const timer = setTimeout(() => {
+        setIsI18nReady(true);
+        document.documentElement.lang = i18n.language;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [ready, i18n.language]);
+
+  if (!isI18nReady) {
+    return <AppLoading />;
+  }
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -35,6 +66,14 @@ const App: React.FC = () => {
         </ErrorBoundary>
       </div>
     </AuthProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Suspense fallback={<AppLoading />}>
+      <AppContent />
+    </Suspense>
   );
 };
 

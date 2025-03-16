@@ -4,6 +4,7 @@ import { fetchUserSettings, saveUserSettings, updateFeatureFlag } from '@/utils/
 import { useTranslation } from 'react-i18next';
 import { debounce } from 'lodash';
 import { settingsBridge } from '@/utils/settingsBridge';
+import { detectBrowserLanguage } from '@/utils/languageUtils';
 
 // Define data types for settings
 export interface SettingsState {
@@ -44,21 +45,35 @@ export interface SettingsState {
     [key: string]: any;
 }
 
+// Default settings object that can be reused across the application
+export const DEFAULT_SETTINGS: SettingsState = {
+    apiSettings: {},
+    appPreferences: {
+        theme: 'light',
+        language: 'vi' // Default will be replaced with detected browser language if supported
+    },
+    featureFlags: {
+        autoSaveKnowledge: true,
+        autoSaveInterview: true,
+        saveHistoryKnowledge: true,
+        saveHistoryInterview: true
+    }
+};
+
 export const useSettings = () => {
     const { i18n } = useTranslation();
     const { user, isSocialUser: isSocialUser } = useAuth();
     const isSocialLogin = user ? isSocialUser() : false; // computed once
-    const langActive = i18n.language === 'en' ? 'vi' : 'en';
-    const [settings, setSettings] = useState<SettingsState>({
-        apiSettings: {},
-        appPreferences: { theme: 'light', language: langActive },
-        featureFlags: {
-            autoSaveKnowledge: true,
-            autoSaveInterview: true,
-            saveHistoryKnowledge: true,
-            saveHistoryInterview: true
+    const langActive = i18n.language || detectBrowserLanguage('vi');
+
+    // Use DEFAULT_SETTINGS with langActive for language when available
+    const [settings, setSettings] = useState<SettingsState>(() => ({
+        ...DEFAULT_SETTINGS,
+        appPreferences: {
+            ...DEFAULT_SETTINGS.appPreferences,
+            language: langActive || DEFAULT_SETTINGS.appPreferences?.language || 'vi'
         }
-    });
+    }));
     const [saved, setSaved] = useState(false);
     const [showKeys, setShowKeys] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -122,11 +137,27 @@ export const useSettings = () => {
         [saveSettingsInternal]
     );
 
+    // Helper function to create default settings with current language
+    const createDefaultSettings = useCallback(() => {
+        // Get browser language if supported, otherwise use current i18n language or default 'vi'
+        const preferredLanguage = detectBrowserLanguage(i18n.language || 'vi');
+
+        return {
+            ...DEFAULT_SETTINGS,
+            appPreferences: {
+                ...DEFAULT_SETTINGS.appPreferences,
+                language: preferredLanguage
+            }
+        };
+    }, [i18n.language]);
+
     // Load settings from localStorage
     const loadSettingsLocal = useCallback(async () => {
         if (!user) return;
 
-        const savedSettings = localStorage.getItem(`user_settings_${user.id}`);
+        const userSettingsKey = `user_settings_${user.id}`;
+        const savedSettings = localStorage.getItem(userSettingsKey);
+
         if (savedSettings) {
             try {
                 const parsedSettings = JSON.parse(savedSettings);
@@ -134,10 +165,32 @@ export const useSettings = () => {
                 previousSettingsRef.current = parsedSettings;
             } catch (error) {
                 console.error('Failed to parse settings from localStorage:', error);
-                localStorage.removeItem(`user_settings_${user.id}`);
+                localStorage.removeItem(userSettingsKey);
+
+                // Initialize with default settings if parsing fails
+                const defaultSettings = createDefaultSettings();
+                localStorage.setItem(userSettingsKey, JSON.stringify(defaultSettings));
+                setSettings(defaultSettings);
+                previousSettingsRef.current = defaultSettings;
             }
+        } else {
+            // First-time user login - create default settings
+            console.log(`First login for user ${user.id} - creating default settings`);
+            const defaultSettings = createDefaultSettings();
+
+            // Save to localStorage
+            localStorage.setItem(userSettingsKey, JSON.stringify(defaultSettings));
+
+            // Update in-memory settings
+            setSettings(defaultSettings);
+            previousSettingsRef.current = defaultSettings;
+
+            // Also update settings bridge
+            settingsBridge.updateSettings(defaultSettings, user.id);
+
+            console.log('Default settings created:', defaultSettings);
         }
-    }, [user]);
+    }, [user, createDefaultSettings]);
 
     // Load settings from Supabase
     const loadSettingsFromSupabase = useCallback(async () => {
@@ -149,6 +202,30 @@ export const useSettings = () => {
 
             if (error) {
                 console.error('Failed to fetch settings from Supabase:', error);
+                // Initialize with default settings if fetching fails
+                const defaultSettings = createDefaultSettings();
+                setSettings(defaultSettings);
+                previousSettingsRef.current = defaultSettings;
+
+                // Save default settings to Supabase for first-time users
+                const dbSettings = {
+                    // Direct API keys
+                    openai: defaultSettings.openai,
+                    gemini: defaultSettings.gemini,
+                    mistral: defaultSettings.mistral,
+                    openchat: defaultSettings.openchat,
+                    googleSheetApiKey: defaultSettings.googleSheetApiKey,
+                    // Structured settings
+                    api_settings: {
+                        ...defaultSettings.apiSettings,
+                        spreadsheetId: defaultSettings.spreadsheetId,
+                        sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
+                        sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
+                    },
+                    app_preferences: defaultSettings.appPreferences || {},
+                    feature_flags: defaultSettings.featureFlags || {}
+                };
+                await saveUserSettings(user.id, dbSettings);
             } else if (data) {
                 // Convert database schema to settings state
                 const mappedSettings: SettingsState = {
@@ -172,13 +249,44 @@ export const useSettings = () => {
 
                 setSettings(mappedSettings);
                 previousSettingsRef.current = mappedSettings;
+            } else {
+                // No data returned but no error - likely first login
+                console.log(`First login for user ${user.id} - creating default settings in Supabase`);
+                const defaultSettings = createDefaultSettings();
+
+                // Save default settings to Supabase
+                const dbSettings = {
+                    // Direct API keys
+                    openai: defaultSettings.openai,
+                    gemini: defaultSettings.gemini,
+                    mistral: defaultSettings.mistral,
+                    openchat: defaultSettings.openchat,
+                    googleSheetApiKey: defaultSettings.googleSheetApiKey,
+                    // Structured settings
+                    api_settings: {
+                        ...defaultSettings.apiSettings,
+                        spreadsheetId: defaultSettings.spreadsheetId,
+                        sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
+                        sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
+                    },
+                    app_preferences: defaultSettings.appPreferences || {},
+                    feature_flags: defaultSettings.featureFlags || {}
+                };
+
+                await saveUserSettings(user.id, dbSettings);
+
+                // Update in-memory settings
+                setSettings(defaultSettings);
+                previousSettingsRef.current = defaultSettings;
+
+                console.log('Default settings created in Supabase:', defaultSettings);
             }
         } catch (error) {
             console.error('Error loading settings:', error);
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, createDefaultSettings]);
 
     const loadSettings = useCallback(async () => {
         if (!user) return;
@@ -231,11 +339,11 @@ export const useSettings = () => {
     }, [user, settings, initialLoadComplete]);
 
     // Manual save - can be used to force immediate save
-    const saveSettings = async () => {
+    const saveSettings = async (newSettings?: SettingsState) => {
         setSkipNextSave(true); // Prevent auto-save from double-saving
         debouncedSave.cancel(); // Cancel any pending auto-saves
 
-        await saveSettingsInternal(settings);
+        await saveSettingsInternal(newSettings || settings);
     };
 
     // Update a setting value with optional auto-save control
@@ -407,6 +515,42 @@ export const useSettings = () => {
     // Get feature flags (for components expecting the old format)
     const getFeatureFlags = () => settings.featureFlags || {};
 
+    /**
+     * Initialize settings with default values
+     * This is useful when settings don't exist yet or need to be reset
+     * @param defaultSettings - Default settings to initialize with
+     */
+    const initializeSettings = useCallback((customSettings?: Partial<SettingsState>) => {
+        // Use browser language if available and not overridden by customSettings
+        const defaultsWithDetectedLang = createDefaultSettings();
+
+        const defaultSettings = customSettings || defaultsWithDetectedLang;
+
+        setSettings(prevSettings => {
+            // Start with existing settings to preserve any values not in defaultSettings
+            const newSettings = { ...prevSettings };
+
+            // Recursively merge default settings with existing settings
+            const mergeSettings = (target: any, source: any) => {
+                Object.keys(source).forEach(key => {
+                    if (source[key] instanceof Object && key in target) {
+                        mergeSettings(target[key], source[key]);
+                    } else {
+                        target[key] = source[key];
+                    }
+                });
+            };
+
+            // Apply defaults
+            mergeSettings(newSettings, defaultSettings);
+
+            // Save the initialized settings
+            saveSettings(newSettings);
+
+            return newSettings;
+        });
+    }, [saveSettings, createDefaultSettings]);
+
     return {
         // Full settings object
         settings,
@@ -432,6 +576,7 @@ export const useSettings = () => {
         handleDownloadSampleSettings,
         loadSettings,
         saveMultipleApiKeys,
-        saveApiKey
+        saveApiKey,
+        initializeSettings
     };
 };

@@ -1,6 +1,3 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSettings } from '@/hooks/useSettings';
 import {
   Select,
   SelectContent,
@@ -9,95 +6,21 @@ import {
   SelectValue,
 } from "@/components/ui/select/select";
 import { Languages } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-
-type Language = {
-  value: string;
-  label: string;
-  flag: string;
-};
+import { useLanguageManager } from '@/hooks/useLanguageManager';
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
-  const { settings, updateSetting } = useSettings();
-  const { user } = useAuth();
-  const [currentLanguage, setCurrentLanguage] = useState<string>(i18n?.language || 'vi');
-
-  // Available languages with their labels - memoized to avoid recreation on each render
-  const languages: Language[] = useMemo(() => [
-    { value: 'en', label: 'English', flag: '🇺🇸' },
-    { value: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' }
-  ], []);
-
-  // Memoize current language display to avoid recalculation on each render
-  const currentLangDisplay = useMemo(() =>
-    languages.find(lang => lang.value === currentLanguage) || languages[1],
-    [currentLanguage, languages]
-  );
-
-  // Combined effect for language initialization and user preference handling
-  useEffect(() => {
-    try {
-      // First check for user preference if logged in
-      if (user?.preferredLanguage) {
-        const userLanguage = user.preferredLanguage;
-        if (i18n && userLanguage !== i18n.language) {
-          i18n.changeLanguage(userLanguage);
-          setCurrentLanguage(userLanguage);
-
-          if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
-            updateSetting('appPreferences', 'language', userLanguage);
-          }
-          return; // Exit early if we applied user preference
-        }
-      }
-
-      // Otherwise use saved setting or default
-      const savedLanguage = settings?.appPreferences?.language;
-      const defaultLanguage = savedLanguage || 'vi';
-
-      if (i18n && defaultLanguage !== i18n.language) {
-        i18n.changeLanguage(defaultLanguage);
-        setCurrentLanguage(defaultLanguage);
-      }
-    } catch (error) {
-      console.error("Language initialization error:", error);
-    }
-  }, [i18n, settings?.appPreferences?.language, updateSetting, user]);
-
-  const handleLanguageChange = (value: string) => {
-    if (!i18n || value === currentLanguage) return;
-
-    try {
-      // Validate that the selected language is in our supported languages list
-      const isValidLanguage = languages.some(lang => lang.value === value);
-      
-      if (isValidLanguage) {
-        // Update all language sources in the correct order
-        i18n.changeLanguage(value);
-        setCurrentLanguage(value);
-
-        if (updateSetting) {
-          updateSetting('appPreferences', 'language', value);
-        }
-      } else {
-        console.error("Invalid language selected:", value);
-      }
-    } catch (error) {
-      console.error("Language change error:", error);
-    }
-  };
-
-  // Ensure we always have a valid language value
-  const safeCurrentLanguage = languages.some(lang => lang.value === currentLanguage) 
-    ? currentLanguage 
-    : 'vi'; // Default to Vietnamese if current language is invalid
+  const {
+    currentLanguage,
+    currentLangDisplay,
+    languages,
+    changeLanguage
+  } = useLanguageManager();
 
   return (
     <div className="relative inline-block">
       <Select
-        value={safeCurrentLanguage}
-        onValueChange={handleLanguageChange}
+        value={currentLanguage}
+        onValueChange={changeLanguage}
       >
         <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800 sm:px-0">
           <SelectValue>
