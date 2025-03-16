@@ -1,4 +1,4 @@
-import React, { Dispatch, JSX, SetStateAction, use, useEffect, useState } from 'react';
+import React, { Dispatch, JSX, SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchInput, HighlightText } from '@/components/ui';
 import { CategoryHeader } from '@/layouts';

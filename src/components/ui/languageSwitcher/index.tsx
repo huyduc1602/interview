@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 import {
@@ -11,87 +11,92 @@ import {
 import { Languages } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+type Language = {
+  value: string;
+  label: string;
+  flag: string;
+};
+
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { settings, updateSetting } = useSettings();
   const { user } = useAuth();
-  // Local state to store current language to avoid re-renders
-  const [currentLanguage, setCurrentLanguage] = useState(i18n?.language || 'vi');
+  const [currentLanguage, setCurrentLanguage] = useState<string>(i18n?.language || 'vi');
 
-  // Set initial language from settings only once on mount
+  // Available languages with their labels - memoized to avoid recreation on each render
+  const languages: Language[] = useMemo(() => [
+    { value: 'en', label: 'English', flag: '🇺🇸' },
+    { value: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' }
+  ], []);
+
+  // Memoize current language display to avoid recalculation on each render
+  const currentLangDisplay = useMemo(() =>
+    languages.find(lang => lang.value === currentLanguage) || languages[1],
+    [currentLanguage, languages]
+  );
+
+  // Combined effect for language initialization and user preference handling
   useEffect(() => {
     try {
+      // First check for user preference if logged in
+      if (user?.preferredLanguage) {
+        const userLanguage = user.preferredLanguage;
+        if (i18n && userLanguage !== i18n.language) {
+          i18n.changeLanguage(userLanguage);
+          setCurrentLanguage(userLanguage);
+
+          if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
+            updateSetting('appPreferences', 'language', userLanguage);
+          }
+          return; // Exit early if we applied user preference
+        }
+      }
+
+      // Otherwise use saved setting or default
       const savedLanguage = settings?.appPreferences?.language;
       const defaultLanguage = savedLanguage || 'vi';
 
-      if (i18n && defaultLanguage !== currentLanguage) {
+      if (i18n && defaultLanguage !== i18n.language) {
         i18n.changeLanguage(defaultLanguage);
         setCurrentLanguage(defaultLanguage);
       }
     } catch (error) {
       console.error("Language initialization error:", error);
-    } 
-  }, []);  // Empty dependency array means this runs once on mount
-
-  // Update language when user changes
-  useEffect(() => {
-    if (user && user.preferredLanguage && user.preferredLanguage !== currentLanguage) {
-      const userLanguage = user.preferredLanguage;
-
-      if (i18n) {
-        i18n.changeLanguage(userLanguage);
-        setCurrentLanguage(userLanguage);
-
-        // Only update settings if different
-        if (updateSetting && settings?.appPreferences?.language !== userLanguage) {
-          updateSetting('appPreferences', 'language', userLanguage);
-        }
-      }
     }
-     
-  }, [user]);  // Only depend on user to avoid loops
+  }, [i18n, settings?.appPreferences?.language, updateSetting, user]);
 
   const handleLanguageChange = (value: string) => {
     if (!i18n || value === currentLanguage) return;
 
-    if (value === 'en' || value === 'vi') {
-      // Update local state first
-      setCurrentLanguage(value);
+    try {
+      if (value === 'en' || value === 'vi') {
+        // Update all language sources in the correct order
+        i18n.changeLanguage(value);
+        setCurrentLanguage(value);
 
-      // Then update i18n
-      i18n.changeLanguage(value);
-
-      // Finally update settings
-      if (updateSetting) {
-        updateSetting('appPreferences', 'language', value);
+        if (updateSetting) {
+          updateSetting('appPreferences', 'language', value);
+        }
       }
+    } catch (error) {
+      console.error("Language change error:", error);
     }
   };
-
-  // Available languages with their labels
-  const languages = [
-    { value: 'en', label: 'English', flag: '🇺🇸' },
-    { value: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' }
-  ];
-
-  // Find the current language display info
-  const currentLangDisplay = languages.find(lang => lang.value === currentLanguage) || languages[1];
 
   return (
     <div className="relative inline-block">
       <Select
-        defaultValue={currentLanguage}
+        value={currentLanguage}
         onValueChange={handleLanguageChange}
       >
         <SelectTrigger className="w-[130px] bg-white dark:bg-gray-800 sm:px-0">
-          <SelectValue placeholder={
+          <SelectValue>
             <div className="flex items-center gap-2">
               <Languages className="h-4 w-4" />
               <span>
                 {currentLangDisplay.flag} {currentLangDisplay.label}
               </span>
             </div>
-          }>
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
