@@ -40,6 +40,18 @@ const getProvider = (user: any): string => {
         return user.app_metadata.provider;
     }
 
+    if (!user.identities || user.identities.length === 0) {
+        const latestIdentity = user.identities.reduce((latest: any, current: any) => {
+            const latestTime = new Date(latest.last_sign_in_at).getTime();
+            const currentTime = new Date(current.last_sign_in_at).getTime();
+            return currentTime > latestTime ? current : latest;
+        }, user.identities[0]);
+
+        const actualProvider = latestIdentity.provider;
+        return actualProvider;
+    }
+
+
     // Default to Google as fallback
     return 'google';
 };
