@@ -13,7 +13,7 @@ export default function ApiKeyForm({ onSubmit, sheetNameProp, setIsApiKeyFormVis
     const { settings, updateSetting } = useSettings();
     const [apiKey, setApiKey] = useState('');
     const [spreadsheetId, setSpreadsheetId] = useState('');
-    const [sheetName, setSheetName] = useState('');
+    const [sheetName, setSheetName] = useState(sheetNameProp || '');
     const [isLoading, setIsLoading] = useState(false);
 
     // Load initial values from settings

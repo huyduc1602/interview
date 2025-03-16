@@ -176,7 +176,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onModelChange }) => {
         <form onSubmit={handleSubmit} className="border-t p-4 bg-white dark:bg-gray-950">
           <div className="flex gap-2">
             <Input
-              value={input}
+              value={input || ''}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t('chat.input.placeholder')}
               disabled={loading}

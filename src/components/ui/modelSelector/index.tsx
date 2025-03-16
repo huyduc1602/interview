@@ -42,7 +42,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     <div className="flex items-center gap-2 mb-4 mt-2 px-1">
       <Select
         value={selectedModel}
-        defaultValue={AIModel.GPT35_0125}
         onValueChange={handleModelChange}
         disabled={props.loading}
       >
