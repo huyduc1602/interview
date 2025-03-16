@@ -2,7 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - staging
   workflow_dispatch:
 
 permissions:
@@ -13,8 +15,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
       - uses: actions/checkout@v4
 
@@ -45,22 +45,24 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run build
-
-      - name: Prepare for deployment
         run: |
-          # Remove any Git-related files from dist directory
-          [ -d "dist/.git" ] && rm -rf dist/.git || true
-          [ -f "dist/.gitmodules" ] && rm -f dist/.gitmodules || true
+          npm run build
+          echo "${{ github.ref }}"  # Check running branch
+
+      - name: Configure CNAME
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "interview.hoanghuyduc.com" > ./dist/CNAME
+          else
+            echo "staging.interview.hoanghuyduc.com" > ./dist/CNAME
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          cname: ${{ secrets.CUSTOM_DOMAIN || 'interview.hoanghuyduc.com' }}
-          force_orphan: true # Creates a new orphan branch with a single commit containing dist contents
-          allow_empty_commit: true
+          force_orphan: true
 
       - name: Send Telegram Message
         run: |
