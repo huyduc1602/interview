@@ -12,22 +12,29 @@ export default function AuthCallback() {
     useEffect(() => {
         async function handleCallback() {
             try {
-                // Let Supabase handle the authentication callback
-                console.log('Processing authentication callback...');
+                // Extract code from URL
+                const url = new URL(window.location.href);
+                const code = url.searchParams.get('code');
 
-                // Use the exchangeAuthCodeForToken function from supabaseClient
-                const result = await exchangeAuthCodeForToken();
-                if (!result.success) {
-                    throw new Error((result.error as ErrorCallback)?.name || 'Authentication failed');
+                if (!code) {
+                    setError('No code provided');
+                    setLoading(false);
+                    return;
                 }
 
-                // Successful authentication, redirect to home page
-                console.log('Authentication successful, redirecting to home page');
+                // Exchange code for token
+                const result = await exchangeAuthCodeForToken({code});
+                if (!result.success) {
+                    setError(result.error || 'Authentication failed');
+                    setLoading(false);
+                    return;
+                }
+
+                // Redirect to home page after successful login
                 navigate('/');
             } catch (err) {
-                console.error('Authentication error:', err);
-                setError(err instanceof Error ? err.message : 'Authentication failed');
-            } finally {
+                console.error('Error during authentication callback:', err);
+                setError(err instanceof Error ? err.message : 'Unknown error during authentication');
                 setLoading(false);
             }
         }
@@ -41,7 +48,7 @@ export default function AuthCallback() {
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-t-blue-500 border-gray-200 rounded-full animate-spin mx-auto mb-4"></div>
                     <h2 className="text-xl font-medium mb-2">{t('auth.processingAuthentication')}</h2>
-                    <p className="text-gray-500">{t('auth.pleaseWait')}</p>
+                    <p className="text-gray-500">{t('auth.pleaseWait') || 'Please wait...'}</p>
                 </div>
             </div>
         );
@@ -67,17 +74,5 @@ export default function AuthCallback() {
         );
     }
 
-    return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <h2 className="text-xl font-medium mb-2">{t('auth.authSuccess')}</h2>
-                <p className="text-gray-500">{t('auth.redirecting')}</p>
-            </div>
-        </div>
-    );
+    return null;
 }

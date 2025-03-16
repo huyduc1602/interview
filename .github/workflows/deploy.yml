@@ -39,6 +39,7 @@ jobs:
           echo "VITE_GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> .env.production
           echo "VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL}}" >> .env.production
           echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY}}" >> .env.production
+          echo "VITE_CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}" >> .env.production
 
       - name: Install dependencies
         run: npm ci
@@ -57,7 +58,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          cname: interview.hoanghuyduc.com
+          cname: ${{ secrets.CUSTOM_DOMAIN || 'interview.hoanghuyduc.com' }}
           force_orphan: true # Creates a new orphan branch with a single commit containing dist contents
           allow_empty_commit: true
 

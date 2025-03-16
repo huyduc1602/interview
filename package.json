@@ -12,7 +12,9 @@
     "build": "npm run build-ts && npm run build-vite",
     "lint": "eslint . --ext ts,tsx --fix",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "predeploy": "npm run build && node scripts/generate-cname.js",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

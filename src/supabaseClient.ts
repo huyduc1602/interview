@@ -27,7 +27,7 @@ const generateCodeVerifier = () => {
         .replace(/=+$/, '');
 };
 
-async function exchangeAuthCodeForToken() {
+async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
     try {
         // First, check if we have a session already
         const { data: sessionData } = await supabase.auth.getSession();
@@ -60,15 +60,18 @@ async function exchangeAuthCodeForToken() {
         console.log('Parsed search params:', Object.fromEntries(searchParams.entries()));
         console.log('Parsed hash params:', Object.fromEntries(hashParams.entries()));
 
-        const codeFromSearch = new URLSearchParams(window.location.search).get('code');
-        const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
+        let authCode = code;
+        if(!code) {
+            const codeFromSearch = new URLSearchParams(window.location.search).get('code');
+            const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
+            console.log('Code from search:', !!codeFromSearch);
+            console.log('Code from hash:', !!codeFromHash);
+            authCode = codeFromSearch || codeFromHash;
+        }
         const accessTokenFromHash = new URLSearchParams(window.location.hash.substring(1)).get('access_token');
 
-        console.log('Code from search:', !!codeFromSearch);
-        console.log('Code from hash:', !!codeFromHash);
         console.log('Access token from hash:', !!accessTokenFromHash);
 
-        const authCode = codeFromSearch || codeFromHash;
         const codeVerifier = localStorage.getItem('code_verifier');
 
         console.log('Extracted auth code exists:', !!authCode);
