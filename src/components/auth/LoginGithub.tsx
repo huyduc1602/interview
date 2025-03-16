@@ -12,7 +12,7 @@ const LoginGithub: React.FC = () => {
         <div className="w-full">
             <ButtonLogin
                 onClick={signInWithGithub}
-                className='bg-gray-800 hover:bg-gray-900 text-white'
+                className='bg-cyan-500 hover:bg-cyan-600 text-white'
                 icon={<Github className='mr-2' />}
             >
                 {t('auth.signInWithGithub')}
