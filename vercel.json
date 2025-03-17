@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "yarn build",
-  "installCommand": "yarn install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "vite",
   "outputDirectory": "dist",
   "builds": [
@@ -13,14 +13,34 @@
       }
     }
   ],
-  "routes": [
-    {
-      "src": "/auth/callback",
-      "dest": "/index.html"
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "development": true,
+      "preview": true
     },
+    "autoAlias": true
+  },
+  "github": {
+    "enabled": true,
+    "silent": false,
+    "autoJobCancelation": true
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:path(.*)\\.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
     }
   ]
 }

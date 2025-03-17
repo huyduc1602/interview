@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Button } from '../button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../select';
-import { Category } from '@/services/googleSheetService.d';
-import { RootState } from '@/store';
+import SelectCategory from '@/components/ui/select/selectMenu';
 
 interface SaveDialogProps {
   isOpen: boolean;
@@ -17,7 +15,6 @@ export function SaveDialog({ isOpen, onClose, message }: SaveDialogProps) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [category, setCategory] = useState('');
-  const { questions } = useSelector((state: RootState) => state.interview);
 
   if (!isOpen || !message) return null;
 
@@ -47,18 +44,12 @@ export function SaveDialog({ isOpen, onClose, message }: SaveDialogProps) {
         </div>
 
         <div className="space-y-4">
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue placeholder={t('chat.selectCategory')} />
-            </SelectTrigger>
-            <SelectContent>
-              {(questions as Category[]).map((cat) => (
-                <SelectItem key={cat.category} value={cat.category}>
-                  {cat.category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectCategory
+            value={category}
+            onValueChange={setCategory}
+            placeholder={t('chat.selectCategory')}
+            className="w-[95%] max-w-md"
+          />
 
           <div className="border rounded p-4 bg-gray-50">
             <p className="text-sm text-gray-600">{message.content}</p>

@@ -27,13 +27,32 @@ const generateCodeVerifier = () => {
         .replace(/=+$/, '');
 };
 
-async function exchangeAuthCodeForToken() {
-    try {
-        console.log('Starting auth code exchange process');
-        console.log('Current URL:', window.location.href);
-        console.log('Search params:', window.location.search);
-        console.log('Hash fragment:', window.location.hash);
+// Common function to retrieve the provider
+const getProvider = (user: any): string => {
+    // First check localStorage for explicitly set provider
+    const savedProvider = localStorage.getItem('auth_provider');
+    if (savedProvider) {
+        return savedProvider;
+    }
 
+    if (!user.identities || user.identities.length === 0) {
+        const latestIdentity = user.identities.reduce((latest: any, current: any) => {
+            const latestTime = new Date(latest.last_sign_in_at).getTime();
+            const currentTime = new Date(current.last_sign_in_at).getTime();
+            return currentTime > latestTime ? current : latest;
+        }, user.identities[0]);
+
+        const actualProvider = latestIdentity.provider;
+        return actualProvider;
+    }
+
+
+    // Default to Google as fallback
+    return 'google';
+};
+
+async function exchangeAuthCodeForToken({ code }: { code?: string | null }) {
+    try {
         // First, check if we have a session already
         const { data: sessionData } = await supabase.auth.getSession();
 
@@ -42,17 +61,17 @@ async function exchangeAuthCodeForToken() {
             const user = sessionData.session.user;
 
             // Create user object with necessary properties
-            const googleUser = {
+            const socialUser = {
                 id: user.id,
                 name: user.user_metadata.full_name || user.email?.split('@')[0] || 'User',
                 email: user.email,
-                provider: 'google'
+                provider: getProvider(user)
             } as User;
 
             // Store user in localStorage for persistence
-            localStorage.setItem('current_user', JSON.stringify(googleUser));
+            localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-            return { success: true, user: googleUser };
+            return { success: true, user: socialUser };
         }
 
         // Check for auth code in URL from multiple sources
@@ -65,15 +84,18 @@ async function exchangeAuthCodeForToken() {
         console.log('Parsed search params:', Object.fromEntries(searchParams.entries()));
         console.log('Parsed hash params:', Object.fromEntries(hashParams.entries()));
 
-        const codeFromSearch = new URLSearchParams(window.location.search).get('code');
-        const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
+        let authCode = code;
+        if (!code) {
+            const codeFromSearch = new URLSearchParams(window.location.search).get('code');
+            const codeFromHash = new URLSearchParams(window.location.hash.substring(1)).get('code');
+            console.log('Code from search:', !!codeFromSearch);
+            console.log('Code from hash:', !!codeFromHash);
+            authCode = codeFromSearch || codeFromHash;
+        }
         const accessTokenFromHash = new URLSearchParams(window.location.hash.substring(1)).get('access_token');
 
-        console.log('Code from search:', !!codeFromSearch);
-        console.log('Code from hash:', !!codeFromHash);
         console.log('Access token from hash:', !!accessTokenFromHash);
 
-        const authCode = codeFromSearch || codeFromHash;
         const codeVerifier = localStorage.getItem('code_verifier');
 
         console.log('Extracted auth code exists:', !!authCode);
@@ -118,17 +140,17 @@ async function exchangeAuthCodeForToken() {
                 const user = data.session.user;
 
                 // Create user object with necessary properties
-                const googleUser = {
+                const socialUser = {
                     id: user.id,
                     name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                     email: user.email,
-                    provider: 'google'
+                    provider: getProvider(user)
                 } as User;
 
                 // Store user in localStorage for persistence
-                localStorage.setItem('current_user', JSON.stringify(googleUser));
+                localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-                return { success: true, user: googleUser };
+                return { success: true, user: socialUser };
             } catch (exchangeError) {
                 console.error('Exception during code exchange:', exchangeError);
 
@@ -137,14 +159,14 @@ async function exchangeAuthCodeForToken() {
                     const { data: refreshData } = await supabase.auth.refreshSession();
                     if (refreshData?.session) {
                         const user = refreshData.session.user;
-                        const googleUser = {
+                        const socialUser = {
                             id: user.id,
                             name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                             email: user.email,
-                            provider: 'google'
+                            provider: getProvider(user)
                         } as User;
-                        localStorage.setItem('current_user', JSON.stringify(googleUser));
-                        return { success: true, user: googleUser };
+                        localStorage.setItem('current_user', JSON.stringify(socialUser));
+                        return { success: true, user: socialUser };
                     }
                 } catch (refreshError) {
                     console.error('Session refresh also failed:', refreshError);
@@ -156,7 +178,7 @@ async function exchangeAuthCodeForToken() {
 
         console.log('Exchanging auth code for token...');
         const response = await fetch(
-            "https://nusledxyrnjehfiohsmz.supabase.co/auth/v1/token?grant_type=pkce",
+            `${SUPABASE_URL}/auth/v1/token?grant_type=pkce`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -182,21 +204,21 @@ async function exchangeAuthCodeForToken() {
         }
 
         // Create user object with necessary properties
-        const googleUser = {
+        const socialUser = {
             id: userData.user.id,
             name: userData.user.user_metadata.full_name || userData.user.email?.split('@')[0] || 'User',
             email: userData.user.email,
-            provider: 'google'
+            provider: getProvider(userData.user)
         } as User;
 
         // Store user in localStorage for persistence
-        localStorage.setItem('current_user', JSON.stringify(googleUser));
+        localStorage.setItem('current_user', JSON.stringify(socialUser));
 
-        return { success: true, user: googleUser };
+        return { success: true, user: socialUser };
     } catch (error) {
         console.error('Error in exchangeAuthCodeForToken:', error);
         return { success: false, error };
     }
 }
 
-export { supabase, generateCodeVerifier, exchangeAuthCodeForToken };
+export { supabase, generateCodeVerifier, exchangeAuthCodeForToken, getProvider };

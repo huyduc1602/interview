@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import ButtonLogin from '@/components/common/ButtonLogin';
-import { Github } from 'lucide-react';
+import { Github } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 
 const LoginGithub: React.FC = () => {
@@ -12,7 +12,7 @@ const LoginGithub: React.FC = () => {
         <div className="w-full">
             <ButtonLogin
                 onClick={signInWithGithub}
-                className='bg-gray-800 hover:bg-gray-900 text-white'
+                className='bg-cyan-500 hover:bg-cyan-600 text-white'
                 icon={<Github className='mr-2' />}
             >
                 {t('auth.signInWithGithub')}

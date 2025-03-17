@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
-import { User } from '@/types/common';
+import { User, AuthProvider } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
 import { getVitePort } from '@/utils/viteUtils';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -30,11 +30,16 @@ declare global {
     }
 }
 
+// Helper function to get provider from app_metadata
+const getProviderFromMetadata = (appMetadata: { provider?: string, providers?: string[] }): AuthProvider => {
+    if (appMetadata.providers?.length == 2) return appMetadata?.provider === 'github' ? AuthProvider.GOOGLE : (AuthProvider.GITHUB || AuthProvider.LOCAL);
+    return appMetadata?.provider === 'github' ? AuthProvider.GITHUB : AuthProvider.GOOGLE;
+};
+
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isLoginGoogleOrGithub, setIsLoginGoogleOrGithub] = useState(true);
 
     useEffect(() => {
         // Load user from localStorage on mount
@@ -42,8 +47,6 @@ export function useAuth() {
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
-
-        if (!isLoginGoogleOrGithub) return;
 
         // Check if user is logged in with Supabase
         const fetchSession = async () => {
@@ -55,11 +58,13 @@ export function useAuth() {
                         session.session.user.email?.split('@')[0] ||
                         'User',
                     email: session.session.user.email,
-                    isGoogle: true
+                    isSocialLogin: true,
+                    provider: getProviderFromMetadata(session.session.user.app_metadata)
                 } as User;
                 setUser(supabaseUser);
                 localStorage.setItem('current_user', JSON.stringify(supabaseUser));
             }
+            setLoading(false);
         };
 
         fetchSession();
@@ -93,11 +98,14 @@ export function useAuth() {
         return supabaseUser ? {
             id: supabaseUser?.id,
             name: supabaseUser.user_metadata?.full_name || supabaseUser?.email?.split('@')[0] || 'User',
-            email: supabaseUser?.email || ''
+            email: supabaseUser?.email || '',
+            isSocialLogin: true,
+            provider: getProviderFromMetadata(supabaseUser.app_metadata)
         } : null
     }
 
     const login = (email: string) => {
+        localStorage.setItem('auth_provider', AuthProvider.LOCAL);
         const currentUserExist = localStorage.getItem('current_user');
         const currentUserExistObject: User | null = currentUserExist ? JSON.parse(currentUserExist) : null
 
@@ -108,7 +116,8 @@ export function useAuth() {
                 id: generateId(),
                 name: email.split('@')[0],
                 email,
-                isGoogle: false
+                isSocialLogin: false,
+                provider: AuthProvider.LOCAL
             };
             setUser(user);
             localStorage.setItem('current_user', JSON.stringify(user));
@@ -117,19 +126,22 @@ export function useAuth() {
 
     const loginWithGoogle = async () => {
         try {
-            // Lấy Google ID token thông qua Google Identity API
+            // Save the provider before initiating login
+            localStorage.setItem('auth_provider', AuthProvider.GOOGLE);
+
+            // Get Google ID token through Google Identity API
             const getGoogleToken = () => {
                 return new Promise<string>((resolve, reject) => {
                     if (!window.google) {
-                        reject(new Error("Google API chưa được tải"));
+                        reject(new Error("Google API not loaded"));
                         return;
                     }
                     const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
                     if (!client_id) {
-                        reject(new Error("Google Client ID không được cấu hình"));
+                        reject(new Error("Google Client ID not configured"));
                         return;
                     }
-                    // Tạo element ẩn để render button đăng nhập Google
+                    // Create hidden element to render Google login button
                     const googleDiv = document.createElement('div');
                     googleDiv.style.display = 'none';
                     document.body.appendChild(googleDiv);
@@ -142,7 +154,7 @@ export function useAuth() {
                                 resolve(response.credential);
                             } else {
                                 document.body.removeChild(googleDiv);
-                                reject(new Error("Không thể lấy được Google credentials"));
+                                reject(new Error("Could not get Google credentials"));
                             }
                         },
                         auto_select: true
@@ -161,40 +173,42 @@ export function useAuth() {
                         googleButton.click();
                     } else {
                         document.body.removeChild(googleDiv);
-                        reject(new Error("Không thể tạo button đăng nhập Google"));
+                        reject(new Error("Could not create Google login button"));
                     }
                 });
             };
 
             // Delete old session if any
             await supabase.auth.signOut();
-            // Thêm delay 500ms để đảm bảo quá trình đăng xuất hoàn tất
+            // Add a 500ms delay to ensure logout process is completed
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Lấy token từ Google
+            // Get token from Google
             const googleIdToken = await getGoogleToken();
-            console.log('Đã lấy Google ID Token:', googleIdToken.substring(0, 20) + '...');
+            console.log('Google ID Token obtained:', googleIdToken.substring(0, 20) + '...');
 
-            // Sử dụng token với Supabase
+            // Use token with Supabase
             const { data, error } = await supabase.auth.signInWithIdToken({
                 provider: 'google',
                 token: googleIdToken
             });
             if (error) {
-                console.error('Đăng nhập Google thất bại:', error);
+                console.error('Google login failed:', error);
                 return { success: false, error };
             }
-            console.log('Đăng nhập Google thành công:', data);
-            setIsLoginGoogleOrGithub(true);
+            console.log('Google login successful:', data);
             return { success: true, data };
         } catch (error) {
-            console.error('Lỗi trong quá trình loginWithGoogle:', error);
+            console.error('Error during loginWithGoogle process:', error);
             return { success: false, error };
         }
     };
 
     const signInWithGithub = async () => {
         try {
+            // Save the provider before initiating login
+            localStorage.setItem('auth_provider', AuthProvider.GITHUB);
+
             const redirectUrl = window.location.origin.includes("localhost")
                 ? `http://localhost:${getVitePort()}/auth/callback`
                 : `${import.meta.env.SUPABASE_URL}/auth/callback`;
@@ -221,7 +235,6 @@ export function useAuth() {
                 return { success: false, error: 'No data or URL' };
             }
             console.log('GitHub login initiated. Redirect URL data:', data);
-            setIsLoginGoogleOrGithub(true);
             return { success: true };
         } catch (error) {
             console.error('Exception in signInWithGithub:', error);
@@ -234,10 +247,10 @@ export function useAuth() {
         setUser(null);
     };
 
-    const isGoogleUser = (): boolean => {
-        if (user && user.isGoogle && user.email && user.email.endsWith('@gmail.com')) return true
+    const isSocialUser = (): boolean => {
+        if (user && user.isSocialLogin && user.email) return true
         return false;
     };
 
-    return { user, session, loading, login, loginWithGoogle, signInWithGithub, logout, isGoogleUser };
+    return { user, session, loading, login, loginWithGoogle, signInWithGithub, logout, isSocialUser };
 }

@@ -2,7 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - staging
   workflow_dispatch:
 
 permissions:
@@ -13,10 +15,10 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false # Skip loading submodules
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,27 +41,30 @@ jobs:
           echo "VITE_GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}" >> .env.production
           echo "VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL}}" >> .env.production
           echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY}}" >> .env.production
+          echo "VITE_CUSTOM_DOMAIN=${{ secrets.CUSTOM_DOMAIN }}" >> .env.production
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build project
-        run: npm run build
-
-      - name: Prepare for deployment
         run: |
-          # Remove any Git-related files from dist directory
-          [ -d "dist/.git" ] && rm -rf dist/.git || true
-          [ -f "dist/.gitmodules" ] && rm -f dist/.gitmodules || true
+          npm run build
+          echo "${{ github.ref }}"  # Check running branch
+
+      - name: Configure CNAME
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "interview.hoanghuyduc.com" > ./dist/CNAME
+          else
+            echo "staging.interview.hoanghuyduc.com" > ./dist/CNAME
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          cname: interview.hoanghuyduc.com
-          force_orphan: true # Creates a new orphan branch with a single commit containing dist contents
-          allow_empty_commit: true
+          force_orphan: true
 
       - name: Send Telegram Message
         run: |

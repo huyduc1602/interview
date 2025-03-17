@@ -13,7 +13,7 @@ interface DataManagementOptions {
 }
 
 export function useDataManagement({ dataType, data, fetchDataFromSupabase }: DataManagementOptions) {
-    const { user, isGoogleUser } = useAuth();
+    const { user, isSocialUser } = useAuth();
     const dispatch = useDispatch();
     const { getApiKeyByService } = useApiKeys();
 
@@ -61,8 +61,8 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         return getApiKeyByService(ApiKeyService.GOOGLE_SHEET_INTERVIEW_QUESTIONS);
     }, [dataType, getApiKeyByService]);
 
-    // Memoize isGoogle check to maintain stable reference
-    const isGoogle = useMemo(() => isGoogleUser(), [isGoogleUser]);
+    // Memoize isSocialLogin check to maintain stable reference
+    const isSocialLogin = useMemo(() => isSocialUser(), [isSocialUser]);
 
     // Setup page reload detection 
     useEffect(() => {
@@ -153,7 +153,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
             }
 
             // Second loading operation: Supabase (only if needed)
-            if (isGoogle && data?.length > 0) {
+            if (isSocialLogin && data?.length > 0) {
                 try {
                     await fetchDataFromSupabase(user?.id ?? generateId());
                     // Process answers...
@@ -304,7 +304,7 @@ export function useDataManagement({ dataType, data, fetchDataFromSupabase }: Dat
         setShuffledQuestions,
         searchQuery,
         isTagsExpanded,
-        isGoogle,
+        isSocialLogin,
         apiKey,
         spreadsheetId,
         sheetName,

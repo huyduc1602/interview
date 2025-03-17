@@ -5,6 +5,13 @@ export default {
     error: 'Lỗi',
     selectTopic: 'Chọn một chủ đề để xem nội dung',
     generateAnswer: 'Đang tạo câu trả lời...',
+    send: "Gửi",
+    you: "Bạn",
+    assistant: "Trợ lý",
+    errors: {
+      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
+    },
+    save: "Lưu",
     saved: {
       title: 'Mục đã lưu',
       empty: 'Chưa có mục nào được lưu',
@@ -13,14 +20,8 @@ export default {
       knowledge: 'Cơ sở kiến thức'
     },
     settings: "Cài đặt",
-    save: "Lưu",
     remove: "Xóa",
-    send: "Gửi",
-    you: "Bạn",
-    assistant: "Trợ lý",
-    errors: {
-      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
-    }
+    cancel: "Hủy"
   },
   nav: {
     home: 'Trung tâm Phỏng vấn',
@@ -437,6 +438,49 @@ export default {
     message: "Xin lỗi, trang bạn đang tìm không tồn tại.",
     homeLink: "Về trang chủ"
   },
+  prompts: {
+    systemTemplates: {
+      knowledge: `Bạn là một chuyên gia về chủ đề {topic}. Phải trả lời hoàn toàn bằng tiếng Việt.
+Định dạng câu trả lời theo Markdown với:
+- Giải thích khái niệm đơn giản trước, chi tiết sau
+- Phân chia kiến thức theo mức độ (cơ bản, trung bình, nâng cao)
+- Ví dụ thực tế dễ hiểu
+- Mã nguồn minh họa (nếu cần) với chú thích tiếng Việt
+- Tài liệu tham khảo đáng tin cậy
+- So sánh với các công nghệ/khái niệm liên quan (nếu có)`,
+      interview: `Bạn là một người phỏng vấn kỹ thuật cấp cao cho vị trí {role}. Phải trả lời hoàn toàn bằng tiếng Việt.
+Định dạng câu trả lời theo Markdown với:
+- Phân tích câu hỏi và cách tiếp cận tốt nhất
+- Mẫu câu trả lời cho cấp độ {level}
+- Các điểm cần nhấn mạnh khi trả lời
+- Ví dụ cụ thể từ kinh nghiệm thực tế (nếu phù hợp)
+- Câu hỏi phụ có thể được hỏi thêm
+- Lỗi thường gặp khi trả lời câu hỏi này`,
+      chat: `Bạn là một trợ lý AI thông minh, hữu ích và thân thiện. PHẢI trả lời hoàn toàn bằng tiếng Việt.
+Định dạng câu trả lời theo Markdown với:
+- Câu trả lời rõ ràng, súc tích
+- Thông tin chính xác và hữu ích
+- Giọng điệu thân thiện, hỗ trợ
+- Ví dụ minh họa khi cần thiết
+- Sẵn sàng làm rõ nếu có yêu cầu`
+    },
+    length: {
+      short: 'Hãy trả lời ngắn gọn, không quá 3 đoạn văn.',
+      long: 'Hãy cung cấp câu trả lời chi tiết, đầy đủ.'
+    },
+    prefixes: {
+      question: 'Câu hỏi:',
+      interview: 'Đây là câu hỏi phỏng vấn cho vị trí {role}, cấp độ {level}. Hãy giải thích cách trả lời tốt nhất:'
+    },
+    levels: {
+      beginner: 'cơ bản',
+      intermediate: 'trung cấp',
+      advanced: 'nâng cao'
+    },
+    defaults: {
+      role: 'Lập trình viên'
+    }
+  },
   models: {
     groups: {
       openai: "OpenAI",
@@ -461,5 +505,14 @@ export default {
       mistral: "Mistral",
       free: "Miễn phí"
     }
+  },
+  ai: {
+    systemContext: {
+      chat: 'Bạn là một trợ lý AI hữu ích. Hãy trả lời cho nội dung sau:',
+      interview: 'Hãy trả lời cho câu hỏi phỏng vấn sau:',
+      knowledge: 'Bạn là trợ lý cơ sở kiến ​​thức, hãy tìm kiến thức về:',
+      default: 'Bạn là một trợ lý AI hữu ích'
+    },
+    languageSuggestion: 'Hãy trả lời bằng tiếng Việt. Hãy trả lời cho nội dung sau:'
   },
 };

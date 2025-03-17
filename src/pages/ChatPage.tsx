@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { ModelSelector } from '@/components/ui/modelSelector';
 import { SaveDialog } from '@/components/ui/saveDialog';
-import { MessageItem } from '@/components/chat/message-item';
-import { SendHorizontal, AlertCircle, Sparkles } from 'lucide-react';
+import { MessageItem } from '@/components/chat/messageItem';
+import { SendHorizontal, AlertCircle, Sparkles } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIResponseDisplay } from '@/components/ai/AIResponseDisplay';
 import { AIModel, AIModelType, TokenUsage } from '../services/aiServices/types';
@@ -176,10 +176,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onModelChange }) => {
         <form onSubmit={handleSubmit} className="border-t p-4 bg-white dark:bg-gray-950">
           <div className="flex gap-2">
             <Input
+              // Use empty string explicitly instead of falsy check
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('chat.input.placeholder')}
-              disabled={loading}
+              placeholder={t('chat.input.placeholder') || 'Type a message...'}
+              disabled={!!loading}
               className="flex-1"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

@@ -2,8 +2,8 @@ import { SharedCategory, SharedItem, User } from '@/types/common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface InterviewState {
-  knowledge: unknown[];
-  questions: unknown[];
+  knowledge: SharedCategory[];
+  questions: SharedCategory[];
   answers: { [key: string]: unknown };
   loading: boolean;
   error: null | unknown;
