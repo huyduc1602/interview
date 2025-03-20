@@ -5,26 +5,72 @@
     <meta charset="utf-8">
     <title>Interview Helper</title>
     <script type="text/javascript">
-        // Handle routing for GitHub Pages
+        // Handle SPA routing for GitHub Pages and other static hosting
         (function () {
-            // Get path from URL
-            var pathSegmentsToKeep = 1;
+            // Parse the current URL
             var location = window.location;
-            var pathname = location.pathname.slice(1);
-            var repo = pathSegmentsToKeep > 0
-                ? location.pathname.split('/').slice(1, pathSegmentsToKeep + 1).join('/')
-                : '';
-            var restOfPath = location.pathname.split('/').slice(pathSegmentsToKeep + 1).join('/');
-            var redirectUrl = location.origin + (repo ? '/' + repo : '') + '/#/' + restOfPath + location.search;
 
-            // Redirect to main page with hash routing
+            // Check if we're already on a hash route to prevent redirect loops
+            if (location.hash.startsWith('#/')) {
+                return; // Already using hash routing, no need to redirect
+            }
+
+            // Get the path without domain
+            var fullPath = location.pathname.substr(1); // Remove leading slash
+
+            // Check if we're on the root path
+            if (fullPath === '' || fullPath === 'index.html') {
+                return; // No need to redirect for root path
+            }
+
+            // Handle GitHub Pages project path if needed
+            var segments = fullPath.split('/');
+            var projectSegment = '';
+
+            // GitHub Pages project repositories use format: username.github.io/project-name/
+            if (location.hostname.endsWith('.github.io')) {
+                // If this is a project page, keep the first segment as the project name
+                if (segments.length > 0) {
+                    projectSegment = segments.shift();
+                    fullPath = segments.join('/');
+                }
+            }
+
+            // Build the redirect URL with hash routing
+            // Format: origin + /project-name + /#/ + rest-of-path + search-params
+            var redirectUrl = location.origin +
+                (projectSegment ? '/' + projectSegment : '') +
+                '/' +
+                (fullPath ? '#/' + fullPath : '#/') +
+                location.search;
+
+            // Redirect to the new URL
             window.location.replace(redirectUrl);
         })();
     </script>
 </head>
 
 <body>
-    <p>Redirecting to the application...</p>
+    <div style="text-align: center; font-family: Arial, sans-serif; margin-top: 50px;">
+        <h2>Redirecting to the application...</h2>
+        <p>If you are not redirected automatically, <a href="/">click here</a> to go to the home page.</p>
+        <div style="margin-top: 20px;">
+            <div
+                style="width: 40px; height: 40px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite; margin: 0 auto;">
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </body>
 
 </html>
