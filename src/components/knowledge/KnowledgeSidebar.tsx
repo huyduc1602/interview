@@ -10,7 +10,7 @@ interface KnowledgeSidebarProps {
     searchQuery: string;
     selectedQuestion: SharedItem | SharedCategoryShuffled | null;
     toggleCategory: (categoryIndex: number) => void;
-    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled) => void;
+    handleQuestionClick: (item: SharedItem | SharedCategoryShuffled) => Promise<void>;
     filterQuestions: (items: SharedItem[] | SharedCategoryShuffled[], query: string) => SharedItem[] | SharedCategoryShuffled[];
     setSearchQuery: (query: string) => void;
     shuffleQuestions: () => void;
