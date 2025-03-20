@@ -9,22 +9,23 @@
   <title>Interview Helper</title>
   <!-- Load environment variables -->
   <script src="%BASE_URL%env-config.js"></script>
-  <!-- SPA routing for custom domain GitHub Pages -->
+  <!-- Start Single Page Apps for GitHub Pages -->
   <script type="text/javascript">
-    (function () {
-      // Check for path in query parameter (from 404.html redirect)
-      var path = new URLSearchParams(window.location.search).get('path');
-      if (path) {
-        // Strip trailing slash if present
-        if (path.endsWith('/')) {
-          path = path.slice(0, -1);
-        }
-
-        // With custom domain, we can simply replace the path
-        window.history.replaceState(null, null, path + window.location.hash);
+    // Single Page Apps for GitHub Pages
+    // MIT License
+    // https://github.com/rafgraph/spa-github-pages
+    (function (l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function (s) {
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+          l.pathname.slice(0, -1) + decoded + l.hash
+        );
       }
-    })();
+    }(window.location))
   </script>
+  <!-- End Single Page Apps for GitHub Pages -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 

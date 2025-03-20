@@ -2,14 +2,22 @@
 <html>
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Interview Helper - Page Not Found</title>
-    <script>
-        // For custom domain, we just need to redirect to the root with path parameter
-        var path = window.location.pathname;
+    <meta charset="utf-8">
+    <title>Interview App</title>
+    <script type="text/javascript">
+        // Single Page Apps for GitHub Pages
+        // MIT License
+        // https://github.com/rafgraph/spa-github-pages
+        var pathSegmentsToKeep = 0;
 
-        // Redirect to the SPA with the path information preserved
-        window.location.replace('/?path=' + encodeURIComponent(path) + window.location.search);
+        var l = window.location;
+        l.replace(
+            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+            l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash
+        );
     </script>
 </head>
 
