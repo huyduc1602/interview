@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState, useMemo } from 'react';
+import React, { JSX, useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus, Send, X } from 'lucide-react';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { generateId } from '@/utils/supabaseUtils';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import LoadingDots from '@/components/ui/loadingDots';
+import { debounce } from 'lodash';
 
 interface InterviewQuestionsContentProps {
   selectedQuestion: SharedItem | SharedCategoryShuffled | null;
@@ -49,7 +50,51 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   const [chatInput, setChatInput] = useState('');
   const { deleteItem, chatHistories, saveChatHistoryForItem } = useSavedItems(typeSavedItem);
 
-  // Extract essential information from complex objects to avoid useEffect dependency on entire objects
+  // Function to delete a message pair (user message and its response)
+  const deleteMessagePair = useCallback(async (messageIndex: number): Promise<void> => {
+    if (!selectedQuestion || !user) return;
+
+    // Find the saved item for this question
+    const savedItem = existingSavedItem || savedItems.find(
+      item => item.question === selectedQuestion.question
+    );
+
+    if (!savedItem) {
+      console.error('Cannot delete message: No saved item found');
+      return;
+    }
+
+    const currentMessages = chatHistories[selectedQuestion.question] || [];
+
+    // Make sure the message at this index is a user message
+    if (messageIndex >= currentMessages.length || currentMessages[messageIndex].role !== 'user') {
+      console.error('Invalid message index or not a user message');
+      return;
+    }
+
+    // Create a copy of messages array for modification
+    const updatedMessages = [...currentMessages];
+
+    // If this user message is followed by an assistant message, remove both
+    if (messageIndex + 1 < updatedMessages.length &&
+      updatedMessages[messageIndex + 1].role === 'assistant') {
+      // Remove both messages (user message and the assistant response)
+      updatedMessages.splice(messageIndex, 2);
+    } else {
+      // Just remove the user message if there's no assistant response
+      updatedMessages.splice(messageIndex, 1);
+    }
+
+    // Save updated chat history
+    try {
+      await saveChatHistoryForItem(savedItem.id, selectedQuestion.question, updatedMessages);
+      console.log('Message pair deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete message pair:', error);
+    }
+  }, [selectedQuestion, user, existingSavedItem, savedItems, chatHistories, saveChatHistoryForItem]);
+
+  // Memoize question identifier to avoid unnecessary re-renders
   const questionIdentifier = useMemo(() => {
     if (!selectedQuestion) return null;
     return {
@@ -58,6 +103,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     };
   }, [selectedQuestion?.id, selectedQuestion?.question]);
 
+  // Memoize saved item identifier for performance
   const savedItemIdentifier = useMemo(() => {
     if (!existingSavedItem) return null;
     return {
@@ -66,7 +112,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     };
   }, [existingSavedItem?.id, existingSavedItem?.question]);
 
-  // Load chat history for the current question
+  // Load chat history when question changes
   useEffect(() => {
     // Safely check data with simplified objects
     if (!questionIdentifier || !questionIdentifier.question) return;
@@ -86,7 +132,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     }
   }, [questionIdentifier, savedItemIdentifier, isSavedAnswer, chatHistories]);
 
-  // Safely handle large objects
+  // Safely get existing saved item with error handling
   const safeGetExistingSavedItem = (question: string): SavedItem | null => {
     try {
       if (existingSavedItem && existingSavedItem.question === question) {
@@ -104,6 +150,160 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
       return null;
     }
   };
+
+  // Handle follow-up question submission
+  const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    if (!chatInput.trim() || !selectedQuestion) return;
+
+    const question = chatInput.trim();
+    setChatInput('');
+
+    try {
+      // Step 1: Get or create saved item
+      const itemId = await getOrCreateSavedItem(selectedQuestion);
+
+      if (!itemId) {
+        console.error('Failed to get or create saved item');
+        return;
+      }
+
+      // Step 2: Get existing chat history for this question
+      const existingMessages = chatHistories[selectedQuestion.question] || [];
+
+      // Step 3: Update history with user's question
+      const updatedMessages = await updateWithUserQuestion(
+        itemId,
+        question,
+        selectedQuestion.question,
+        existingMessages
+      );
+
+      //TODO: Dựa vào config promt ở src/utils/promptUtils.ts để sửa prompt này
+      // Step 4: Create contextual prompt and generate answer
+      const contextualQuestion = `Based on the topic "${selectedQuestion.question}" and its explanation, please answer this follow-up question: ${question}`;
+
+      // Step 5: Generate answer and add to history
+      await generateAndAddAnswer(
+        itemId,
+        question,
+        selectedQuestion.question,
+        contextualQuestion,
+        updatedMessages
+      );
+    } catch (error) {
+      // Find saved item ID again (in case of error during process)
+      const savedItem = existingSavedItem || savedItems.find(
+        item => item.question === selectedQuestion.question
+      );
+
+      if (savedItem) {
+        const existingMessages = chatHistories[selectedQuestion.question] || [];
+        await handleChatError(error, savedItem.id, selectedQuestion.question, existingMessages);
+      } else {
+        console.error('Error handling follow-up question and no saved item found:', error);
+      }
+    }
+  };
+
+  // Optimize input handling with debounce to prevent excessive re-renders
+  const debouncedSetChatInput = useMemo(
+    () => debounce((value: string) => {
+      setChatInput(value);
+    }, 100),
+    []
+  );
+
+  // Handle input changes with debounce
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.persist(); // Prevent synthetic event pooling
+    debouncedSetChatInput(e.target.value);
+  }, [debouncedSetChatInput]);
+
+  // Memoize chat history to prevent unnecessary re-renders
+  const chatHistoryMemo = useMemo(() => {
+    const questionKey = selectedQuestion?.question;
+    if (!questionKey) return null;
+
+    const messages = chatHistories[questionKey];
+    if (!messages || messages.length === 0) return null;
+
+    return messages;
+  }, [selectedQuestion?.question, chatHistories]);
+
+  // Optimize chat history rendering with useCallback
+  const renderChatHistory = useCallback(() => {
+    if (!chatHistoryMemo) return null;
+
+    return (
+      <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
+        {chatHistoryMemo.map((message, index) => (
+          <div
+            key={`${message.timestamp}-${index}`}
+            className={cn(
+              "rounded-lg p-4",
+              message.role === 'user'
+                ? "bg-white border ml-4"
+                : message.isError
+                  ? "bg-red-50 mr-4"
+                  : "bg-purple-50 mr-4"
+            )}
+          >
+            <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+              <span>{message.role === 'user' ? t('common.you') : t('common.assistant')}</span>
+
+              {message.role === 'user' && (
+                <button
+                  onClick={() => deleteMessagePair(index)}
+                  className="hover:bg-gray-200 p-1 rounded-full transition-colors"
+                  title={t('common.delete')}
+                >
+                  <X className="h-3 w-3 text-gray-500" />
+                </button>
+              )}
+            </div>
+            <AIResponseDisplay
+              content={message.content}
+              loading={false}
+              error={message.isError ? message.content : null}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }, [chatHistoryMemo, t, deleteMessagePair]);
+
+  // Optimize question input form rendering with memo
+  const renderQuestionAsk = useMemo(() => {
+    if (!selectedQuestion?.answer) return null;
+
+    return (
+      <form onSubmit={handleFollowUpQuestion} className="flex gap-2">
+        <input
+          type="text"
+          value={chatInput}
+          onChange={handleInputChange}
+          placeholder={t('knowledge.followUp.inputPlaceholder')}
+          className="flex-1 px-4 py-2 ms-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          disabled={loading}
+        />
+        <button
+          type="submit"
+          disabled={loading || !chatInput.trim()}
+          className={cn(
+            "px-4 py-2 rounded-lg",
+            "bg-purple-600 text-white",
+            "hover:bg-purple-700",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "flex items-center gap-2"
+          )}
+        >
+          <Send className="w-4 h-4" />
+          {t('common.send')}
+        </button>
+      </form>
+    );
+  }, [selectedQuestion?.answer, chatInput, loading, t, handleInputChange, handleFollowUpQuestion]);
 
   // 1. Function to get or create a saved item - optimized
   const getOrCreateSavedItem = async (question: SharedItem | SharedCategoryShuffled): Promise<string | null> => {
@@ -195,72 +395,15 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     await saveChatHistoryForItem(itemId, questionContent, errorMessages);
   };
 
-  // Main function refactored
-  const handleFollowUpQuestion = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    if (!chatInput.trim() || !selectedQuestion) return;
-
-    const question = chatInput.trim();
-    setChatInput('');
-
-    try {
-      // Step 1: Get or create saved item
-      const itemId = await getOrCreateSavedItem(selectedQuestion);
-
-      if (!itemId) {
-        console.error('Failed to get or create saved item');
-        return;
-      }
-
-      // Step 2: Get existing chat history for this question
-      const existingMessages = chatHistories[selectedQuestion.question] || [];
-
-      // Step 3: Update history with user's question
-      const updatedMessages = await updateWithUserQuestion(
-        itemId,
-        question,
-        selectedQuestion.question,
-        existingMessages
-      );
-
-      //TODO: Dựa vào config promt ở src/utils/promptUtils.ts để sửa prompt này
-      // Step 4: Create contextual prompt and generate answer
-      const contextualQuestion = `Based on the topic "${selectedQuestion.question}" and its explanation, please answer this follow-up question: ${question}`;
-
-      // Step 5: Generate answer and add to history
-      await generateAndAddAnswer(
-        itemId,
-        question,
-        selectedQuestion.question,
-        contextualQuestion,
-        updatedMessages
-      );
-    } catch (error) {
-      // Find saved item ID again (in case of error during process)
-      const savedItem = existingSavedItem || savedItems.find(
-        item => item.question === selectedQuestion.question
-      );
-
-      if (savedItem) {
-        const existingMessages = chatHistories[selectedQuestion.question] || [];
-        await handleChatError(error, savedItem.id, selectedQuestion.question, existingMessages);
-      } else {
-        console.error('Error handling follow-up question and no saved item found:', error);
-      }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setChatInput(e.target.value);
-  };
-
+  // Handle saving or deleting items
   const handleSaveOrDeleteItem = () => {
     try {
       if (isSavedAnswer) {
+        // Delete existing item
         if (existingSavedItem) deleteItem(existingSavedItem.id);
       } else {
+        // Create new item with only essential properties
         if (selectedQuestion && selectedQuestion.question) {
-          // Only use essential properties to avoid processing large objects
           const itemSaved: SavedItem = {
             id: selectedQuestion.id ?? generateId(),
             user_id: user?.id ?? generateId(),
@@ -275,6 +418,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
         }
       }
 
+      // Toggle saved state
       if (setIsSavedAnswer) {
         setIsSavedAnswer(!isSavedAnswer);
       }
@@ -283,145 +427,12 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     }
   };
 
-  // New function to delete a message and its response
-  const deleteMessagePair = async (messageIndex: number): Promise<void> => {
-    if (!selectedQuestion || !user) return;
-
-    // Find the saved item for this question
-    const savedItem = existingSavedItem || savedItems.find(
-      item => item.question === selectedQuestion.question
-    );
-
-    if (!savedItem) {
-      console.error('Cannot delete message: No saved item found');
-      return;
-    }
-
-    const currentMessages = chatHistories[selectedQuestion.question] || [];
-
-    // Make sure the message at this index is a user message
-    if (messageIndex >= currentMessages.length || currentMessages[messageIndex].role !== 'user') {
-      console.error('Invalid message index or not a user message');
-      return;
-    }
-
-    // Create a copy of messages array for modification
-    const updatedMessages = [...currentMessages];
-
-    // If this user message is followed by an assistant message, remove both
-    if (messageIndex + 1 < updatedMessages.length &&
-      updatedMessages[messageIndex + 1].role === 'assistant') {
-      // Remove both messages (user message and the assistant response)
-      updatedMessages.splice(messageIndex, 2);
-    } else {
-      // Just remove the user message if there's no assistant response
-      updatedMessages.splice(messageIndex, 1);
-    }
-
-    // Save updated chat history
-    try {
-      await saveChatHistoryForItem(savedItem.id, selectedQuestion.question, updatedMessages);
-      console.log('Message pair deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete message pair:', error);
-    }
-  };
-
-  // Update the renderChatHistory function to handle possible large data
-  const renderChatHistory = () => {
-    // Safely access nested properties
-    const questionKey = selectedQuestion?.question;
-    if (!questionKey) return null;
-
-    try {
-      const messages = chatHistories[questionKey];
-      if (!messages || messages.length === 0) return null;
-
-      return (
-        <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                "rounded-lg p-4",
-                message.role === 'user'
-                  ? "bg-white border ml-4"
-                  : message.isError
-                    ? "bg-red-50 mr-4"
-                    : "bg-purple-50 mr-4"
-              )}
-            >
-              <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-                <span>{message.role === 'user' ? t('common.you') : t('common.assistant')}</span>
-
-                {/* Add delete button for user messages */}
-                {message.role === 'user' && (
-                  <button
-                    onClick={() => deleteMessagePair(index)}
-                    className="hover:bg-gray-200 p-1 rounded-full transition-colors"
-                    title={t('common.delete')}
-                  >
-                    <X className="h-3 w-3 text-gray-500" />
-                  </button>
-                )}
-              </div>
-              <AIResponseDisplay
-                content={message.content}
-                loading={false}
-                error={message.isError ? message.content : null}
-              />
-            </div>
-          ))}
-        </div>
-      );
-    } catch (error) {
-      console.error('Error rendering chat history:', error);
-      return (
-        <div className="text-red-500 p-2">
-          {t('common.errors.failedToRenderHistory')}
-        </div>
-      );
-    }
-  };
-
-  // Optimize renderQuestionAsk check
-  const renderQuestionAsk = () => {
-    // Simplified existence check
-    return selectedQuestion && selectedQuestion.answer ? (
-      <form onSubmit={handleFollowUpQuestion} className="flex gap-2">
-        <input
-          type="text"
-          value={chatInput}
-          onChange={handleInputChange}
-          placeholder={t('knowledge.followUp.inputPlaceholder')}
-          className="flex-1 px-4 py-2 ms-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !chatInput.trim()}
-          className={cn(
-            "px-4 py-2 rounded-lg",
-            "bg-purple-600 text-white",
-            "hover:bg-purple-700",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            "flex items-center gap-2"
-          )}
-        >
-          <Send className="w-4 h-4" />
-          {t('common.send')}
-        </button>
-      </form>
-    ) : null;
-  }
-
   return (
     <div className="py-6 overflow-y-auto">
       {selectedQuestion ? (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <h1 className="text-2xl font-bold">
-              {/* Safe display with null check */}
               {selectedQuestion.question || t('common.untitled')}
             </h1>
             {renderModelSelector && renderModelSelector()}
@@ -456,7 +467,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
                   {t('knowledge.followUp.title')}
                 </h2>
                 {renderChatHistory()}
-                {renderQuestionAsk()}
+                {renderQuestionAsk}
               </div>
             </>
           )}
@@ -470,4 +481,5 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   );
 };
 
-export default SharedContent;
+// Export component with memo for performance optimization
+export default React.memo(SharedContent);
