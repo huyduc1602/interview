@@ -70,23 +70,6 @@ jobs:
           # Alternative: Keep the history of the gh-pages branch
           keep_files: true
 
-      # Add this step to ensure custom domain is set
-      - name: Update GitHub Pages custom domain
-        if: success()
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const domain = "${{ github.ref }}" === "refs/heads/master" 
-              ? "interview.hoanghuyduc.com" 
-              : "staging.interview.hoanghuyduc.com";
-
-            await github.rest.repos.updateInformationAboutPagesSite({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              cname: domain
-            });
-
       - name: Send Telegram Message
         run: |
           curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
