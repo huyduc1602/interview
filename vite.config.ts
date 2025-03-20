@@ -35,6 +35,23 @@ export default defineConfig(({ mode }) => {
                 transformIndexHtml(html) {
                     return html.replace(/%CUSTOM_DOMAIN%/g, customDomain || '');
                 }
+            },
+            // Thêm plugin để copy 404.html vào thư mục dist trong quá trình build
+            {
+                name: 'copy-404-html',
+                closeBundle() {
+                    // Copy 404.html để GitHub Pages xử lý SPA routing
+                    if (mode === 'production') {
+                        try {
+                            const source = path.resolve('./public/404.html');
+                            const dest = path.resolve('./dist/404.html');
+                            fs.copyFileSync(source, dest);
+                            console.log('404.html copied to dist folder');
+                        } catch (err) {
+                            console.error('Error copying 404.html:', err);
+                        }
+                    }
+                }
             }
         ],
         define: {
@@ -53,7 +70,7 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,
-            historyApiFallback: true, // Thêm dòng này để hỗ trợ BrowserRouter trong môi trường dev
+            historyApiFallback: true, // Hỗ trợ BrowserRouter trong môi trường dev
         },
         base: base // Use '/' for custom domain
     };
