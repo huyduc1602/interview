@@ -11,23 +11,26 @@
   <script src="/env-config.js"></script>
   <!-- Start Single Page Apps for GitHub Pages -->
   <script type="text/javascript">
-    // Single Page Apps for GitHub Pages
-    // MIT License
-    // https://github.com/rafgraph/spa-github-pages
+    // This script helps with redirecting routes in GitHub Pages
+    // It handles the redirect from the 404.html file
     (function (l) {
       if (l.search[1] === '/') {
         var decoded = l.search.slice(1).split('&').map(function (s) {
           return s.replace(/~and~/g, '&')
         }).join('?');
+
         window.history.replaceState(null, null,
           l.pathname.slice(0, -1) + decoded + l.hash
         );
       }
+
+      // Thêm debug logging để theo dõi quá trình redirect
+      console.log('URL processing complete, current path:', window.location.pathname);
     }(window.location))
   </script>
   <!-- End Single Page Apps for GitHub Pages -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" crossorigin src="/assets/index-BZ126030.js"></script>
+  <script type="module" crossorigin src="/assets/index-q2hSG0HK.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-D_Hw-VED.css">
 </head>
 
