@@ -1,7 +1,27 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, type, ...props }, ref) => {
+// Add a flag to track if we're in an onChange handler
+const isHandlingChange = { current: false };
+
+const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, type, onChange, ...props }, ref) => {
+  // Create a more efficient onChange handler
+  const handleChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent nested/recursive change handlers
+    if (isHandlingChange.current) return;
+
+    isHandlingChange.current = true;
+
+    // Use setTimeout to process the change asynchronously
+    // This prevents long-running handlers from blocking the UI
+    setTimeout(() => {
+      if (onChange) {
+        onChange(e);
+      }
+      isHandlingChange.current = false;
+    }, 0);
+  }, [onChange]);
+
   return (
     <input
       type={type}
@@ -10,6 +30,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
         className
       )}
       ref={ref}
+      onChange={handleChange}
       {...props}
     />
   )
