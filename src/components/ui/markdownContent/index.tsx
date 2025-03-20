@@ -128,7 +128,6 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                 remarkPlugins={[remarkGfm]}
                 components={{
                     pre({ children }) {
-                        // Return children directly to avoid creating unnecessary pre tag
                         return <>{children}</>;
                     },
                     code({ inline, className, children, ...props }: CodeProps) {
@@ -144,7 +143,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                         }
 
                         return (
-                            <div className="relative group my-4">
+                            <pre className="relative group my-4">
                                 <button
                                     onClick={() => handleCopyCode(code)}
                                     className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
@@ -161,29 +160,26 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                                         lineHeight: '1.5',
                                         margin: 0
                                     }}
-                                    PreTag="div"
+                                    PreTag="pre"
                                     {...props}
                                 >
                                     {code}
                                 </SyntaxHighlighter>
-                            </div>
+                            </pre>
                         );
                     },
-                    p({ node, children }) {
-                        // Check if this paragraph only contains a code block
-                        if (node && node.children) {
-                            // Check if there's only one child and it's either a code element or a div wrapping a code element
-                            const singleChild = node.children.length === 1 && node.children[0];
-                            const isCodeBlock =
-                                (singleChild && 'tagName' in singleChild && singleChild.tagName === 'code') ||
-                                (singleChild && 'tagName' in singleChild && singleChild.tagName === 'div');
+                    p(props: React.ComponentPropsWithoutRef<'p'>) {
+                        const children = React.Children.toArray(props.children);
+                        const hasCodeBlock = children.some(child =>
+                            React.isValidElement(child) &&
+                            (child.type === 'pre' || child.type === SyntaxHighlighter)
+                        );
 
-                            if (isCodeBlock) {
-                                // Return the children directly, not wrapped in a paragraph
-                                return <>{children}</>;
-                            }
+                        if (hasCodeBlock) {
+                            return <>{props.children}</>;
                         }
-                        return <p>{children}</p>;
+
+                        return <p {...props} />;
                     }
                 }}
             >

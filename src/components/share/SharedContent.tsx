@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { generateId } from '@/utils/supabaseUtils';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import LoadingDots from '@/components/ui/loadingDots';
-import { debounce } from 'lodash';
 
 interface InterviewQuestionsContentProps {
   selectedQuestion: SharedItem | SharedCategoryShuffled | null;
@@ -206,19 +205,11 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     }
   };
 
-  // Optimize input handling with debounce to prevent excessive re-renders
-  const debouncedSetChatInput = useMemo(
-    () => debounce((value: string) => {
-      setChatInput(value);
-    }, 100),
-    []
-  );
-
-  // Handle input changes with debounce
+  // Handle direct input changes with immediate state updates
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    e.persist(); // Prevent synthetic event pooling
-    debouncedSetChatInput(e.target.value);
-  }, [debouncedSetChatInput]);
+    const value = e.target.value;
+    setChatInput(value);
+  }, []);
 
   // Memoize chat history to prevent unnecessary re-renders
   const chatHistoryMemo = useMemo(() => {
