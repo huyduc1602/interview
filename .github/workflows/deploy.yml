@@ -11,6 +11,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: write
 
 jobs:
   deploy:
@@ -64,7 +65,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          force_orphan: true
+          # Remove or comment out the force_orphan flag
+          # force_orphan: true
+          # Alternative: Keep the history of the gh-pages branch
+          keep_files: true
 
       - name: Send Telegram Message
         run: |
