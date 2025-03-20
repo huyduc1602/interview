@@ -38,7 +38,6 @@ const ChatInputArea = memo(({
     // This reduces the number of state updates while typing
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
-        console.debug('ChatInputArea - handleChange:', e.target.value);
         setLocalInput(newValue);
 
         // Clear any pending timeouts

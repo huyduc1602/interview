@@ -1,36 +1,14 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-// Add a flag to track if we're in an onChange handler
-const isHandlingChange = { current: false };
-
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, type, onChange, ...props }, ref) => {
-  // Create a more efficient onChange handler
+  // Simple direct onChange handler that preserves all IME functionality
   const handleChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Prevent nested/recursive change handlers
-    if (isHandlingChange.current) return;
-
-    // Capture the value synchronously before the event is recycled
-    const value = e.target.value;
-    const name = e.target.name;
-
-    isHandlingChange.current = true;
-
-    // Use setTimeout to process the change asynchronously
-    // This prevents long-running handlers from blocking the UI
-    setTimeout(() => {
-      if (onChange) {
-        // Create a new synthetic event with the captured value
-        const syntheticEvent = Object.create(e);
-        // Preserve the important properties with captured values
-        syntheticEvent.target = { value, name };
-        syntheticEvent.currentTarget = { value, name };
-
-        // Call the original onChange handler with our preserved event
-        onChange(syntheticEvent);
-      }
-      isHandlingChange.current = false;
-    }, 0);
+    // Call the original onChange handler directly
+    // This ensures all IME and character encoding information is preserved
+    if (onChange) {
+      onChange(e);
+    }
   }, [onChange]);
 
   return (
