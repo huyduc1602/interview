@@ -6,8 +6,14 @@ import { Provider } from 'react-redux';
 import store from './store';
 import './index.css';
 
-// Simplify routing handling for GitHub Pages using HashRouter
-const isGitHubPages = window.location.hostname.includes('.github.io');
+// Detect if we're running on GitHub Pages
+const isGitHubPages = window.location.hostname.includes('.github.io') ||
+  import.meta.env.VITE_IS_GITHUB_PAGES === true;
+
+// Log routing mode for debugging
+console.log(`Using ${isGitHubPages ? 'HashRouter' : 'BrowserRouter'} for routing`);
+console.log(`Current hostname: ${window.location.hostname}`);
+console.log(`Current pathname: ${window.location.pathname}`);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
