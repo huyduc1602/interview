@@ -8,8 +8,10 @@ export default {
     send: "Gửi",
     you: "Bạn",
     assistant: "Trợ lý",
+    untitled: "Không có tiêu đề",
     errors: {
-      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại."
+      failedToGetAnswer: "Xin lỗi, tôi không thể tạo ra câu trả lời. Vui lòng thử lại.",
+      failedToRenderHistory: "Không hiển thị được lịch sử trò chuyện"
     },
     save: "Lưu",
     saved: {

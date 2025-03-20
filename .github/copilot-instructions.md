@@ -34,6 +34,7 @@ Interview Helper is a web application built with React that helps users prepare 
 - Use translation keys from the localization files
 - Format: `t('namespace.key')` or `t('namespace.section.key')`
 - Always provide both Vietnamese and English translations
+- When adding new translation keys in code, make sure to insert the corresponding translations in the language files located in the `/src/locales` directory
 
 ### Styling
 - Use Tailwind CSS for styling components
