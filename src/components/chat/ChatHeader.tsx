@@ -26,7 +26,7 @@ const ChatHeader = memo(({
     loading
 }: ChatHeaderProps) => (
     <div className="border-b p-4 bg-white/80 backdrop-blur-sm dark:bg-gray-950/80">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-2">
             <h1 className="text-xl font-semibold flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-blue-500" />
                 {title}
