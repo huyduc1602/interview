@@ -207,25 +207,27 @@ export const useSettings = () => {
                 setSettings(defaultSettings);
                 previousSettingsRef.current = defaultSettings;
 
-                // Save default settings to Supabase for first-time users
-                const dbSettings = {
-                    // Direct API keys
-                    openai: defaultSettings.openai,
-                    gemini: defaultSettings.gemini,
-                    mistral: defaultSettings.mistral,
-                    openchat: defaultSettings.openchat,
-                    googleSheetApiKey: defaultSettings.googleSheetApiKey,
-                    // Structured settings
-                    api_settings: {
-                        ...defaultSettings.apiSettings,
-                        spreadsheetId: defaultSettings.spreadsheetId,
-                        sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
-                        sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
-                    },
-                    app_preferences: defaultSettings.appPreferences || {},
-                    feature_flags: defaultSettings.featureFlags || {}
-                };
-                await saveUserSettings(user.id, dbSettings);
+                // Only save default settings to Supabase if it's not a network error
+                if (!error.message.includes('Failed to fetch')) {
+                    const dbSettings = {
+                        // Direct API keys
+                        openai: defaultSettings.openai,
+                        gemini: defaultSettings.gemini,
+                        mistral: defaultSettings.mistral,
+                        openchat: defaultSettings.openchat,
+                        googleSheetApiKey: defaultSettings.googleSheetApiKey,
+                        // Structured settings
+                        api_settings: {
+                            ...defaultSettings.apiSettings,
+                            spreadsheetId: defaultSettings.spreadsheetId,
+                            sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
+                            sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
+                        },
+                        app_preferences: defaultSettings.appPreferences || {},
+                        feature_flags: defaultSettings.featureFlags || {}
+                    };
+                    await saveUserSettings(user.id, dbSettings);
+                }
             } else if (data) {
                 // Convert database schema to settings state
                 const mappedSettings: SettingsState = {
@@ -254,26 +256,29 @@ export const useSettings = () => {
                 console.log(`First login for user ${user.id} - creating default settings in Supabase`);
                 const defaultSettings = createDefaultSettings();
 
-                // Save default settings to Supabase
-                const dbSettings = {
-                    // Direct API keys
-                    openai: defaultSettings.openai,
-                    gemini: defaultSettings.gemini,
-                    mistral: defaultSettings.mistral,
-                    openchat: defaultSettings.openchat,
-                    googleSheetApiKey: defaultSettings.googleSheetApiKey,
-                    // Structured settings
-                    api_settings: {
-                        ...defaultSettings.apiSettings,
-                        spreadsheetId: defaultSettings.spreadsheetId,
-                        sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
-                        sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
-                    },
-                    app_preferences: defaultSettings.appPreferences || {},
-                    feature_flags: defaultSettings.featureFlags || {}
-                };
+                // Only save if there's a meaningful difference to save
+                if (!data || JSON.stringify(data) !== JSON.stringify(defaultSettings)) {
+                    // Save default settings to Supabase
+                    const dbSettings = {
+                        // Direct API keys
+                        openai: defaultSettings.openai,
+                        gemini: defaultSettings.gemini,
+                        mistral: defaultSettings.mistral,
+                        openchat: defaultSettings.openchat,
+                        googleSheetApiKey: defaultSettings.googleSheetApiKey,
+                        // Structured settings
+                        api_settings: {
+                            ...defaultSettings.apiSettings,
+                            spreadsheetId: defaultSettings.spreadsheetId,
+                            sheetNameKnowledgeBase: defaultSettings.sheetNameKnowledgeBase,
+                            sheetNameInterviewQuestions: defaultSettings.sheetNameInterviewQuestions
+                        },
+                        app_preferences: defaultSettings.appPreferences || {},
+                        feature_flags: defaultSettings.featureFlags || {}
+                    };
 
-                await saveUserSettings(user.id, dbSettings);
+                    await saveUserSettings(user.id, dbSettings);
+                }
 
                 // Update in-memory settings
                 setSettings(defaultSettings);

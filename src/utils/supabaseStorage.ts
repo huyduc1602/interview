@@ -190,48 +190,69 @@ export const fetchUserSettings = async (userId: string): Promise<SettingsRespons
 
 // Save or update user settings to Supabase
 export const saveUserSettings = async (userId: string, settings: SaveSettingsInput): Promise<{ data: any, error: Error | null }> => {
-    try {
-        // Format settings for database
-        const dbSettings = {
-            user_id: userId,
-            openai: settings.openai,
-            gemini: settings.gemini,
-            mistral: settings.mistral,
-            openchat: settings.openchat,
-            google_sheet_api_key: settings.googleSheetApiKey,
-            api_settings: settings.api_settings || {},
-            app_preferences: settings.app_preferences || {},
-            feature_flags: settings.feature_flags || {}
-        };
+    let retryCount = 0;
+    const maxRetries = 2;
 
-        // Check if settings already exist for this user
-        const { data: existingSettings } = await supabase
-            .from('settings')
-            .select('id')
-            .eq('user_id', userId)
-            .single();
+    const attemptSave = async (): Promise<{ data: any, error: Error | null }> => {
+        try {
+            // Format settings for database
+            const dbSettings = {
+                user_id: userId,
+                openai: settings.openai,
+                gemini: settings.gemini,
+                mistral: settings.mistral,
+                openchat: settings.openchat,
+                google_sheet_api_key: settings.googleSheetApiKey,
+                api_settings: settings.api_settings || {},
+                app_preferences: settings.app_preferences || {},
+                feature_flags: settings.feature_flags || {}
+            };
 
-        let result;
-        if (existingSettings) {
-            // Update existing settings
-            result = await supabase
+            // Check if settings already exist for this user
+            const { data: existingSettings, error: checkError } = await supabase
                 .from('settings')
-                .update(dbSettings)
-                .eq('user_id', userId);
-        } else {
-            // Insert new settings
-            result = await supabase
-                .from('settings')
-                .insert([dbSettings]);
+                .select('id')
+                .eq('user_id', userId)
+                .single();
+
+            if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+                throw checkError;
+            }
+
+            let result;
+            if (existingSettings) {
+                // Update existing settings
+                result = await supabase
+                    .from('settings')
+                    .update(dbSettings)
+                    .eq('user_id', userId);
+            } else {
+                // Insert new settings
+                result = await supabase
+                    .from('settings')
+                    .insert([dbSettings]);
+            }
+
+            if (result.error) throw result.error;
+
+            return { data: result.data, error: null };
+        } catch (error) {
+            // If network error and we haven't exceeded retries, try again
+            if (error instanceof Error &&
+                error.message.includes('Failed to fetch') &&
+                retryCount < maxRetries) {
+                retryCount++;
+                // Exponential backoff: 500ms, 1000ms, etc.
+                await new Promise(resolve => setTimeout(resolve, 500 * retryCount));
+                return attemptSave();
+            }
+
+            console.error('Error saving user settings:', error);
+            return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
         }
+    };
 
-        if (result.error) throw result.error;
-
-        return { data: result.data, error: null };
-    } catch (error) {
-        console.error('Error saving user settings:', error);
-        return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
-    }
+    return attemptSave();
 };
 
 // Get feature flag values from user settings
