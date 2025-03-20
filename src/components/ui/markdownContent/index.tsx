@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -69,36 +69,52 @@ interface CodeProps {
     children?: React.ReactNode;
 }
 
-export function MarkdownContent({ content, className }: MarkdownContentProps) {
+// Primary component implementation wrapped with React.memo to prevent unnecessary re-renders
+const MarkdownContentComponent = ({ content, className }: MarkdownContentProps) => {
     const [loadedLanguages, setLoadedLanguages] = useState<string[]>([]);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Detect languages from content using regex to find ```language blocks
+    // Detect languages from content only when content changes
+    const detectedLanguages = useMemo(() => {
         const languageRegex = /```(\w+)/g;
-        const detectedLanguages = new Set<string>();
+        const languages = new Set<string>();
         let match;
-        while ((match = languageRegex.exec(content)) !== null) {
-            detectedLanguages.add(match[1]);
+
+        // Create a copy to avoid regex lastIndex issues
+        const regexCopy = new RegExp(languageRegex);
+        while ((match = regexCopy.exec(content)) !== null) {
+            languages.add(match[1]);
         }
 
-        // Load detected languages
-        const loadLanguages = async () => {
-            const promises = Array.from(detectedLanguages).map(async (lang) => {
-                if (!loadedLanguages.includes(lang)) {
-                    return registerLanguage(lang);
-                }
-                return null;
-            });
+        return Array.from(languages);
+    }, [content]);
 
+    // Load detected languages - optimized with proper dependencies
+    useEffect(() => {
+        // Skip if no new languages to load
+        if (detectedLanguages.length === 0) return;
+
+        const loadLanguages = async () => {
+            const languagesToLoad = detectedLanguages.filter(
+                lang => !loadedLanguages.includes(lang)
+            );
+
+            if (languagesToLoad.length === 0) return;
+
+            const promises = languagesToLoad.map(lang => registerLanguage(lang));
             const loaded = await Promise.all(promises);
-            setLoadedLanguages((prev) => [...prev, ...loaded.filter(Boolean) as string[]]);
+
+            const validLanguages = loaded.filter(Boolean) as string[];
+            if (validLanguages.length > 0) {
+                setLoadedLanguages(prev => [...prev, ...validLanguages]);
+            }
         };
 
         loadLanguages();
-    }, [content, loadedLanguages]);
+    }, [detectedLanguages, loadedLanguages]);
 
-    const handleCopyCode = (code: string) => {
+    // Memoize the handleCopyCode function to prevent recreation on each render
+    const handleCopyCode = useCallback((code: string) => {
         navigator.clipboard.writeText(code)
             .then(() => {
                 setCopiedCode(code);
@@ -107,10 +123,78 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             .catch((err) => {
                 console.error('Failed to copy code:', err);
             });
-    };
+    }, []);
 
-    return (
-        <div className={cn(
+    // Memoize ReactMarkdown components to prevent recreation on each render
+    const markdownComponents = useMemo(() => ({ 
+        pre({ children }: { children?: React.ReactNode }) {
+            return <>{children}</>;
+        },
+        code({ inline, className, children, ...props }: CodeProps) {
+            const match = /language-(\w+)/.exec(className || '');
+            const code = String(children).replace(/\n$/, '');
+
+            if (inline) {
+                return (
+                    <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5" {...props}>
+                        {children}
+                    </code>
+                );
+            }
+
+            // For code blocks, return the complete pre element
+            return (
+                <div className="not-prose my-4">
+                    <pre className="relative group">
+                        <button
+                            onClick={() => handleCopyCode(code)}
+                            className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
+                            aria-label="Copy code to clipboard"
+                        >
+                            {copiedCode === code ? "Copied!" : "Copy"}
+                        </button>
+                        <SyntaxHighlighter
+                            style={oneDark}
+                            language={match ? match[1] : ''}
+                            customStyle={{
+                                padding: '1rem',
+                                fontSize: '0.875rem',
+                                lineHeight: '1.5',
+                                margin: 0
+                            }}
+                            PreTag="div"
+                            {...props}
+                        >
+                            {code}
+                        </SyntaxHighlighter>
+                    </pre>
+                </div>
+            );
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        p({ node, children, ...props }: { node?: any; children?: React.ReactNode; [key: string]: any }) {
+            // Check if this paragraph only contains a code block
+            const hasOnlyCodeBlock = React.Children.count(children) === 1 &&
+                React.Children.toArray(children).some(child =>
+                    React.isValidElement(child) &&
+                    (child.type === 'pre' ||
+                        (child.props && typeof (child.props as { className?: string }).className === 'string' &&
+                            (child.props as { className: string }).className.includes('language-')))
+                );
+
+            // If it only has a code block, don't wrap in paragraph
+            if (hasOnlyCodeBlock) {
+                return <>{children}</>;
+            }
+
+            // Otherwise, use normal paragraph
+            return <div style={{ display: 'inline-block' }} {...props}>{children}</div>;
+        }
+    }), [copiedCode, handleCopyCode]);
+
+    // Memoize the class names to prevent recalculation on each render
+    const containerClassName = useMemo(() =>
+        cn(
             "prose prose-slate max-w-none dark:prose-invert",
             // Headings
             "prose-headings:font-semibold prose-headings:text-gray-800 dark:prose-headings:text-gray-200",
@@ -123,78 +207,20 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             // Inline code
             "prose-code:before:content-none prose-code:after:content-none prose-code:font-normal prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded dark:prose-code:bg-gray-800",
             className
-        )}>
+        ),
+        [className]);
+
+    return (
+        <div className={containerClassName}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                components={{
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    pre({ node, children }) {
-                        return <>{children}</>;
-                    },
-                    code({ inline, className, children, ...props }: CodeProps) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const code = String(children).replace(/\n$/, '');
-
-                        if (inline) {
-                            return (
-                                <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5" {...props}>
-                                    {children}
-                                </code>
-                            );
-                        }
-
-                        // For code blocks, return the complete pre element
-                        return (
-                            <div className="not-prose my-4">
-                                <pre className="relative group">
-                                    <button
-                                        onClick={() => handleCopyCode(code)}
-                                        className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
-                                        aria-label="Copy code to clipboard"
-                                    >
-                                        {copiedCode === code ? "Copied!" : "Copy"}
-                                    </button>
-                                    <SyntaxHighlighter
-                                        style={oneDark}
-                                        language={match ? match[1] : ''}
-                                        customStyle={{
-                                            padding: '1rem',
-                                            fontSize: '0.875rem',
-                                            lineHeight: '1.5',
-                                            margin: 0
-                                        }}
-                                        PreTag="div"
-                                        {...props}
-                                    >
-                                        {code}
-                                    </SyntaxHighlighter>
-                                </pre>
-                            </div>
-                        );
-                    },
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    p({ node, children, ...props }) {
-                        // Check if this paragraph only contains a code block
-                        const hasOnlyCodeBlock = React.Children.count(children) === 1 &&
-                            React.Children.toArray(children).some(child =>
-                                React.isValidElement(child) &&
-                                (child.type === 'pre' ||
-                                    (child.props && typeof (child.props as { className?: string }).className === 'string' &&
-                                        (child.props as { className: string }).className.includes('language-')))
-                            );
-
-                        // If it only has a code block, don't wrap in paragraph
-                        if (hasOnlyCodeBlock) {
-                            return <>{children}</>;
-                        }
-
-                        // Otherwise, use normal paragraph
-                        return <div style={{ display: 'inline-block' }} {...props}>{children}</div>;
-                    }
-                }}
+                components={markdownComponents}
             >
                 {content}
             </ReactMarkdown>
         </div>
     );
-}
+};
+
+// Export memoized component to prevent unnecessary re-renders when props don't change
+export const MarkdownContent = React.memo(MarkdownContentComponent);

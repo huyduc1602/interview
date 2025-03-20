@@ -1,6 +1,7 @@
 import { LoadingSpinner } from '@/components/ui';
 import { MarkdownContent } from '@/components/ui/markdownContent';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface AIResponseDisplayProps {
     loading: boolean;
@@ -10,7 +11,8 @@ interface AIResponseDisplayProps {
     className?: string;
 }
 
-export function AIResponseDisplay({
+// Wrap component with React.memo to prevent unnecessary re-renders
+export const AIResponseDisplay = React.memo(function AIResponseDisplay({
     loading,
     content,
     error,
@@ -51,4 +53,4 @@ export function AIResponseDisplay({
             {emptyMessage || 'No content to display'}
         </div>
     );
-}
+});
