@@ -52,23 +52,13 @@ jobs:
           npm run build
           echo "${{ github.ref }}"  # Check running branch
 
-      - name: Configure CNAME
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "interview.hoanghuyduc.com" > ./dist/CNAME
-          else
-            echo "staging.interview.hoanghuyduc.com" > ./dist/CNAME
-          fi
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          # Remove or comment out the force_orphan flag
-          # force_orphan: true
-          # Alternative: Keep the history of the gh-pages branch
           keep_files: true
+          cname: ${{ github.ref == 'refs/heads/master' && 'interview.hoanghuyduc.com' || 'staging.interview.hoanghuyduc.com' }}
 
       - name: Send Telegram Message
         run: |
