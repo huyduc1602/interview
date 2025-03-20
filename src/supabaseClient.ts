@@ -2,11 +2,19 @@ import { createClient } from '@supabase/supabase-js';
 import { User } from '@/types/common';
 import { getVitePort } from '@/utils/viteUtils';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `http://localhost:${getVitePort()}`;
+const isDevelopment = import.meta.env.DEV;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ||
+    (isDevelopment ? `http://localhost:${getVitePort()}` : 'https://nusledxyrnjehfiohsmz.supabase.co');
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const SITE_URL = window.location.origin;
 const REDIRECT_URL = `${SITE_URL}/auth/callback`;
 
+// Add validation to prevent unexpected behavior
+if (!SUPABASE_URL) {
+    console.error('SUPABASE_URL is not defined! Please check your environment variables.');
+}
+
+console.log('Using Supabase URL:', SUPABASE_URL);
 console.log('Using auth redirect URL:', REDIRECT_URL);
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
