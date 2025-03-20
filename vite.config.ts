@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,
+            historyApiFallback: true, // Thêm dòng này để hỗ trợ BrowserRouter trong môi trường dev
         },
         base: base // Use '/' for custom domain
     };
