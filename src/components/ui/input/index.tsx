@@ -10,13 +10,24 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
     // Prevent nested/recursive change handlers
     if (isHandlingChange.current) return;
 
+    // Capture the value synchronously before the event is recycled
+    const value = e.target.value;
+    const name = e.target.name;
+
     isHandlingChange.current = true;
 
     // Use setTimeout to process the change asynchronously
     // This prevents long-running handlers from blocking the UI
     setTimeout(() => {
       if (onChange) {
-        onChange(e);
+        // Create a new synthetic event with the captured value
+        const syntheticEvent = Object.create(e);
+        // Preserve the important properties with captured values
+        syntheticEvent.target = { value, name };
+        syntheticEvent.currentTarget = { value, name };
+
+        // Call the original onChange handler with our preserved event
+        onChange(syntheticEvent);
       }
       isHandlingChange.current = false;
     }, 0);

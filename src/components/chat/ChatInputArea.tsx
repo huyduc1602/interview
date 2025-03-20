@@ -1,4 +1,4 @@
-import React, { memo, useRef } from 'react';
+import React, { memo, useRef, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SendHorizontal } from '@/components/icons';
@@ -24,31 +24,75 @@ const ChatInputArea = memo(({
     placeholder,
     hint
 }: ChatInputAreaProps) => {
-    // Use refs to detect if we are handling a keydown event
-    const isHandlingKeyDown = useRef(false);
+    // Internal state to handle input value
+    // This helps reduce re-renders on the parent component
+    const [localInput, setLocalInput] = useState(input);
+    const inputTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // Internal event handlers
+    // Update local input when prop changes
+    useEffect(() => {
+        setLocalInput(input);
+    }, [input]);
+
+    // Debounced input change handler
+    // This reduces the number of state updates while typing
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onInputChange(e.target.value);
+        const newValue = e.target.value;
+        console.debug('ChatInputArea - handleChange:', e.target.value);
+        setLocalInput(newValue);
+
+        // Clear any pending timeouts
+        if (inputTimeout.current) {
+            clearTimeout(inputTimeout.current);
+        }
+
+        // Debounce the input change to reduce state updates
+        inputTimeout.current = setTimeout(() => {
+            onInputChange(newValue);
+        }, 100);
     };
 
+    // Improved keydown handler that avoids setTimeout for tracking state
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !loading) {
             e.preventDefault();
-            isHandlingKeyDown.current = true;
-            onSubmit(e as unknown as React.FormEvent);
-            // Reset after a small delay
-            setTimeout(() => {
-                isHandlingKeyDown.current = false;
-            }, 100);
+
+            // Ensure we use the current local input value
+            if (localInput !== input) {
+                onInputChange(localInput);
+            }
+
+            // Create a proper form event for submission
+            const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent;
+            onSubmit(formEvent);
         }
     };
 
+    // Clear timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (inputTimeout.current) {
+                clearTimeout(inputTimeout.current);
+            }
+        };
+    }, []);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Ensure we use the current local input value
+        if (localInput !== input) {
+            onInputChange(localInput);
+        }
+
+        onSubmit(e);
+    };
+
     return (
-        <form onSubmit={onSubmit} className="border-t p-4 bg-white dark:bg-gray-950">
+        <form onSubmit={handleSubmit} className="border-t p-4 bg-white dark:bg-gray-950">
             <div className="flex gap-2">
                 <Input
-                    value={input}
+                    value={localInput}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     disabled={loading}
@@ -57,7 +101,7 @@ const ChatInputArea = memo(({
                 />
                 <Button
                     type="submit"
-                    disabled={loading || !input.trim()}
+                    disabled={loading || !localInput.trim()}
                     variant={loading ? "outline" : "default"}
                     className="transition-all duration-200 hover:scale-105"
                 >
