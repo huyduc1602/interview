@@ -1,19 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
-// Add language supports if needed
-import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
-import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
-import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
-
-// Register languages
-SyntaxHighlighter.registerLanguage('jsx', jsx);
-SyntaxHighlighter.registerLanguage('typescript', typescript);
-SyntaxHighlighter.registerLanguage('javascript', javascript);
+// Define a mapping of languages to their import functions
+const languageMap: Record<string, () => Promise<any>> = {
+    jsx: () => import('react-syntax-highlighter/dist/cjs/languages/prism/jsx').then(m => m.default),
+    typescript: () => import('react-syntax-highlighter/dist/cjs/languages/prism/typescript').then(m => m.default),
+    ts: () => import('react-syntax-highlighter/dist/cjs/languages/prism/typescript').then(m => m.default),
+    javascript: () => import('react-syntax-highlighter/dist/cjs/languages/prism/javascript').then(m => m.default),
+    js: () => import('react-syntax-highlighter/dist/cjs/languages/prism/javascript').then(m => m.default),
+    css: () => import('react-syntax-highlighter/dist/cjs/languages/prism/css').then(m => m.default),
+    python: () => import('react-syntax-highlighter/dist/cjs/languages/prism/python').then(m => m.default),
+    py: () => import('react-syntax-highlighter/dist/cjs/languages/prism/python').then(m => m.default),
+    java: () => import('react-syntax-highlighter/dist/cjs/languages/prism/java').then(m => m.default),
+    php: () => import('react-syntax-highlighter/dist/cjs/languages/prism/php').then(m => m.default),
+    go: () => import('react-syntax-highlighter/dist/cjs/languages/prism/go').then(m => m.default),
+    ruby: () => import('react-syntax-highlighter/dist/cjs/languages/prism/ruby').then(m => m.default),
+    rust: () => import('react-syntax-highlighter/dist/cjs/languages/prism/rust').then(m => m.default),
+    swift: () => import('react-syntax-highlighter/dist/cjs/languages/prism/swift').then(m => m.default),
+    c: () => import('react-syntax-highlighter/dist/cjs/languages/prism/c').then(m => m.default),
+    cpp: () => import('react-syntax-highlighter/dist/cjs/languages/prism/cpp').then(m => m.default),
+    'c++': () => import('react-syntax-highlighter/dist/cjs/languages/prism/cpp').then(m => m.default),
+    csharp: () => import('react-syntax-highlighter/dist/cjs/languages/prism/csharp').then(m => m.default),
+    'c#': () => import('react-syntax-highlighter/dist/cjs/languages/prism/csharp').then(m => m.default),
+    sql: () => import('react-syntax-highlighter/dist/cjs/languages/prism/sql').then(m => m.default),
+    json: () => import('react-syntax-highlighter/dist/cjs/languages/prism/json').then(m => m.default),
+    yaml: () => import('react-syntax-highlighter/dist/cjs/languages/prism/yaml').then(m => m.default),
+    yml: () => import('react-syntax-highlighter/dist/cjs/languages/prism/yaml').then(m => m.default),
+    bash: () => import('react-syntax-highlighter/dist/cjs/languages/prism/bash').then(m => m.default),
+    shell: () => import('react-syntax-highlighter/dist/cjs/languages/prism/bash').then(m => m.default),
+    markdown: () => import('react-syntax-highlighter/dist/cjs/languages/prism/markdown').then(m => m.default),
+    md: () => import('react-syntax-highlighter/dist/cjs/languages/prism/markdown').then(m => m.default),
+    html: () => import('react-syntax-highlighter/dist/cjs/languages/prism/markup').then(m => m.default),
+    xml: () => import('react-syntax-highlighter/dist/cjs/languages/prism/markup').then(m => m.default),
+    scala: () => import('react-syntax-highlighter/dist/cjs/languages/prism/scala').then(m => m.default),
+    kotlin: () => import('react-syntax-highlighter/dist/cjs/languages/prism/kotlin').then(m => m.default),
+    dart: () => import('react-syntax-highlighter/dist/cjs/languages/prism/dart').then(m => m.default),
+};
 
 interface MarkdownContentProps {
     content: string;
@@ -27,6 +53,35 @@ interface CodeProps {
 }
 
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
+    const [loadedLanguages, setLoadedLanguages] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Detect languages from content using regex to find ```language blocks
+        const languageRegex = /```(\w+)/g;
+        const detectedLanguages = new Set<string>();
+        let match;
+        while ((match = languageRegex.exec(content)) !== null) {
+            detectedLanguages.add(match[1]);
+        }
+
+        // Load detected languages
+        const loadLanguages = async () => {
+            const promises = Array.from(detectedLanguages).map(async (lang) => {
+                if (languageMap[lang] && !loadedLanguages.includes(lang)) {
+                    const language = await languageMap[lang]();
+                    SyntaxHighlighter.registerLanguage(lang, language);
+                    return lang;
+                }
+                return null;
+            });
+
+            const loaded = await Promise.all(promises);
+            setLoadedLanguages((prev) => [...prev, ...loaded.filter(Boolean) as string[]]);
+        };
+
+        loadLanguages();
+    }, [content, loadedLanguages]);
+
     const handleCopyCode = (code: string) => {
         navigator.clipboard.writeText(code)
             .then(() => {
@@ -83,6 +138,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                                         lineHeight: '1.5',
                                         margin: 0
                                     }}
+                                    PreTag="div"
                                     {...props}
                                 >
                                     {code}
