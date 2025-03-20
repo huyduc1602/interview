@@ -119,17 +119,22 @@ export function useItemInteractions({
 
     // Handle item click
     const handleItemClick = useCallback(async (item: SharedItem | SharedCategoryShuffled | any) => {
-        const actualItem = item as any;
-        setSelectedItem(actualItem);
-        const questionContent = actualItem.question;
-        const existingSaved = savedItems.find(savedItem =>
-            savedItem.question === questionContent
-        );
-        setExistingSavedItem(existingSaved || null);
-        if (existingSaved && existingSaved.id === selectedItem?.id) {
-            setIsSavedAnswer(true);
+        try {
+            const actualItem = item as any;
+            setSelectedItem(actualItem);
+            const questionContent = actualItem.question;
+            const existingSaved = savedItems.find(savedItem =>
+                savedItem.question === questionContent
+            );
+            setExistingSavedItem(existingSaved || null);
+            if (existingSaved && existingSaved.id === selectedItem?.id) {
+                setIsSavedAnswer(true);
+            }
+            await fetchItemData(actualItem, existingSaved || null);
+        } catch (error) {
+            console.error("Error handling item click:", error);
+            // Xử lý lỗi phù hợp ở đây
         }
-        await fetchItemData(actualItem, existingSaved || null);
     }, [savedItems, fetchItemData, selectedItem?.id]);
 
     // Handle regenerate answer
