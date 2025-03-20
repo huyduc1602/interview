@@ -419,7 +419,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     <div className="py-6 overflow-y-auto">
       {selectedQuestion ? (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
             <h1 className="text-2xl font-bold">
               {/* Safe display with null check */}
               {selectedQuestion.question || t('common.untitled')}
