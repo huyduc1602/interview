@@ -8,8 +8,10 @@ export default {
     send: 'Send',
     you: 'You',
     assistant: 'Assistant',
+    untitled: 'Untitled',
     errors: {
-      failedToGetAnswer: "Sorry, I couldn't generate an answer. Please try again."
+      failedToGetAnswer: "Sorry, I couldn't generate an answer. Please try again.",
+      failedToRenderHistory: "Failed to render chat history"
     },
     save: 'Save',
     saved: {

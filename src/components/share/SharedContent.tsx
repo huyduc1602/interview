@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { BookmarkPlus, Send, X } from 'lucide-react';
@@ -49,51 +49,100 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   const [chatInput, setChatInput] = useState('');
   const { deleteItem, chatHistories, saveChatHistoryForItem } = useSavedItems(typeSavedItem);
 
+  // Extract essential information from complex objects to avoid useEffect dependency on entire objects
+  const questionIdentifier = useMemo(() => {
+    if (!selectedQuestion) return null;
+    return {
+      id: selectedQuestion.id,
+      question: selectedQuestion.question
+    };
+  }, [selectedQuestion?.id, selectedQuestion?.question]);
+
+  const savedItemIdentifier = useMemo(() => {
+    if (!existingSavedItem) return null;
+    return {
+      id: existingSavedItem.id,
+      question: existingSavedItem.question
+    };
+  }, [existingSavedItem?.id, existingSavedItem?.question]);
+
   // Load chat history for the current question
   useEffect(() => {
-    // If there's an existing saved item and we've saved the answer, prepare to display chat history
-    if (selectedQuestion && existingSavedItem && isSavedAnswer) {
-      console.log('Loading chat history for:', selectedQuestion.question);
+    // Safely check data with simplified objects
+    if (!questionIdentifier || !questionIdentifier.question) return;
+
+    try {
+      // Only process when necessary and with simplified data
+      if (savedItemIdentifier && isSavedAnswer) {
+        console.log('Loading chat history for:', questionIdentifier.question);
+
+        // Limit processing large objects in useEffect
+        // Example: instead of processing the entire chatHistories, just check for existence
+        const chatHistoryExists = questionIdentifier.question in chatHistories;
+        console.log('Chat history exists:', chatHistoryExists);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
     }
-  }, [selectedQuestion, existingSavedItem, isSavedAnswer]);
+  }, [questionIdentifier, savedItemIdentifier, isSavedAnswer, chatHistories]);
 
-  // Refactored small functions for better maintainability
+  // Safely handle large objects
+  const safeGetExistingSavedItem = (question: string): SavedItem | null => {
+    try {
+      if (existingSavedItem && existingSavedItem.question === question) {
+        return existingSavedItem;
+      }
 
-  // 1. Function to get or create a saved item
+      // Safely find item in the list
+      if (savedItems && savedItems.length) {
+        return savedItems.find(item => item.question === question) || null;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error finding saved item:', error);
+      return null;
+    }
+  };
+
+  // 1. Function to get or create a saved item - optimized
   const getOrCreateSavedItem = async (question: SharedItem | SharedCategoryShuffled): Promise<string | null> => {
-    if (!user || !question) return null;
+    if (!user || !question || !question.question) return null;
 
-    // Check if item exists
-    const existingSaved = existingSavedItem || savedItems.find(
-      item => item.question === question.question
-    );
+    try {
+      // Optimize existence check
+      const existingSaved = safeGetExistingSavedItem(question.question);
 
-    // If exists, return its ID
-    if (existingSaved) {
-      return existingSaved.id;
+      // If exists, return its ID
+      if (existingSaved) {
+        return existingSaved.id;
+      }
+
+      // Only use necessary fields from the large object
+      const newItem: SavedItem = {
+        id: question.id ?? generateId(),
+        user_id: user.id,
+        category: question.category || '',
+        question: question.question,
+        answer: question.answer || '',
+        model: selectedModel,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Save the item and return new ID
+      const newId = await saveItem(newItem);
+
+      // Update UI state to show this item is now saved
+      if (setIsSavedAnswer) {
+        setIsSavedAnswer(true);
+      }
+
+      return newId;
+    } catch (error) {
+      console.error('Error in getOrCreateSavedItem:', error);
+      return null;
     }
-
-    // Otherwise create and save new item
-    const newItem: SavedItem = {
-      id: question.id ?? generateId(),
-      user_id: user.id,
-      category: question.category || '',
-      question: question.question,
-      answer: question.answer || '',
-      model: selectedModel,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    // Save the item and return new ID
-    const newId = await saveItem(newItem);
-
-    // Update UI state to show this item is now saved
-    if (setIsSavedAnswer) {
-      setIsSavedAnswer(true);
-    }
-
-    return newId;
   };
 
   // 2. Function to update chat history with user question
@@ -206,26 +255,31 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
   };
 
   const handleSaveOrDeleteItem = () => {
-    if (isSavedAnswer) {
-      if (existingSavedItem) deleteItem(existingSavedItem.id);
-    } else {
-      if (selectedQuestion) {
-        const itemSaved: SavedItem = {
-          id: selectedQuestion.id ?? generateId(),
-          user_id: user?.id ?? generateId(),
-          category: selectedQuestion.category || '',
-          question: selectedQuestion.question,
-          answer: selectedQuestion.answer || '',
-          model: selectedModel,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+    try {
+      if (isSavedAnswer) {
+        if (existingSavedItem) deleteItem(existingSavedItem.id);
+      } else {
+        if (selectedQuestion && selectedQuestion.question) {
+          // Only use essential properties to avoid processing large objects
+          const itemSaved: SavedItem = {
+            id: selectedQuestion.id ?? generateId(),
+            user_id: user?.id ?? generateId(),
+            category: selectedQuestion.category || '',
+            question: selectedQuestion.question,
+            answer: selectedQuestion.answer || '',
+            model: selectedModel,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          saveItem(itemSaved);
         }
-        saveItem(itemSaved);
       }
-    }
 
-    if (setIsSavedAnswer) {
-      setIsSavedAnswer(!isSavedAnswer);
+      if (setIsSavedAnswer) {
+        setIsSavedAnswer(!isSavedAnswer);
+      }
+    } catch (error) {
+      console.error('Error in handleSaveOrDeleteItem:', error);
     }
   };
 
@@ -273,51 +327,67 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
     }
   };
 
-  // Update the renderChatHistory function to include delete buttons
+  // Update the renderChatHistory function to handle possible large data
   const renderChatHistory = () => {
-    const messages = selectedQuestion && chatHistories[selectedQuestion.question];
+    // Safely access nested properties
+    const questionKey = selectedQuestion?.question;
+    if (!questionKey) return null;
 
-    return selectedQuestion?.question && messages && messages.length > 0 && (
-      <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={cn(
-              "rounded-lg p-4",
-              message.role === 'user'
-                ? "bg-white border ml-4"
-                : message.isError
-                  ? "bg-red-50 mr-4"
-                  : "bg-purple-50 mr-4"
-            )}
-          >
-            <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-              <span>{message.role === 'user' ? t('common.you') : t('common.assistant')}</span>
+    try {
+      const messages = chatHistories[questionKey];
+      if (!messages || messages.length === 0) return null;
 
-              {/* Add delete button for user messages */}
-              {message.role === 'user' && (
-                <button
-                  onClick={() => deleteMessagePair(index)}
-                  className="hover:bg-gray-200 p-1 rounded-full transition-colors"
-                  title={t('common.delete')}
-                >
-                  <X className="h-3 w-3 text-gray-500" />
-                </button>
+      return (
+        <div className="space-y-4 mb-6 border rounded-lg p-4 bg-gray-50">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={cn(
+                "rounded-lg p-4",
+                message.role === 'user'
+                  ? "bg-white border ml-4"
+                  : message.isError
+                    ? "bg-red-50 mr-4"
+                    : "bg-purple-50 mr-4"
               )}
+            >
+              <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+                <span>{message.role === 'user' ? t('common.you') : t('common.assistant')}</span>
+
+                {/* Add delete button for user messages */}
+                {message.role === 'user' && (
+                  <button
+                    onClick={() => deleteMessagePair(index)}
+                    className="hover:bg-gray-200 p-1 rounded-full transition-colors"
+                    title={t('common.delete')}
+                  >
+                    <X className="h-3 w-3 text-gray-500" />
+                  </button>
+                )}
+              </div>
+              <AIResponseDisplay
+                content={message.content}
+                loading={false}
+                error={message.isError ? message.content : null}
+              />
             </div>
-            <AIResponseDisplay
-              content={message.content}
-              loading={false}
-              error={message.isError ? message.content : null}
-            />
-          </div>
-        ))}
-      </div>
-    );
+          ))}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error rendering chat history:', error);
+      return (
+        <div className="text-red-500 p-2">
+          {t('common.errors.failedToRenderHistory')}
+        </div>
+      );
+    }
   };
 
+  // Optimize renderQuestionAsk check
   const renderQuestionAsk = () => {
-    return selectedQuestion?.answer && (
+    // Simplified existence check
+    return selectedQuestion && selectedQuestion.answer ? (
       <form onSubmit={handleFollowUpQuestion} className="flex gap-2">
         <input
           type="text"
@@ -342,7 +412,7 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
           {t('common.send')}
         </button>
       </form>
-    )
+    ) : null;
   }
 
   return (
@@ -350,7 +420,10 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
       {selectedQuestion ? (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{selectedQuestion.question}</h1>
+            <h1 className="text-2xl font-bold">
+              {/* Safe display with null check */}
+              {selectedQuestion.question || t('common.untitled')}
+            </h1>
             {renderModelSelector && renderModelSelector()}
           </div>
 
