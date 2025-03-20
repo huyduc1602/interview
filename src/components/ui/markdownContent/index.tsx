@@ -54,6 +54,7 @@ interface CodeProps {
 
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
     const [loadedLanguages, setLoadedLanguages] = useState<string[]>([]);
+    const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
     useEffect(() => {
         // Detect languages from content using regex to find ```language blocks
@@ -85,7 +86,8 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
     const handleCopyCode = (code: string) => {
         navigator.clipboard.writeText(code)
             .then(() => {
-                console.log('Code copied to clipboard');
+                setCopiedCode(code);
+                setTimeout(() => setCopiedCode(null), 2000);
             })
             .catch((err) => {
                 console.error('Failed to copy code:', err);
@@ -118,17 +120,23 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                         const match = /language-(\w+)/.exec(className || '');
                         const code = String(children).replace(/\n$/, '');
 
-                        return !inline ? (
-                            <div className="relative group">
-                                <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition">
-                                    <button
-                                        onClick={() => handleCopyCode(code)}
-                                        className="px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700"
-                                        aria-label="Copy code to clipboard"
-                                    >
-                                        Copy
-                                    </button>
-                                </div>
+                        if (inline) {
+                            return (
+                                <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5" {...props}>
+                                    {children}
+                                </code>
+                            );
+                        }
+
+                        return (
+                            <div className="relative group my-4">
+                                <button
+                                    onClick={() => handleCopyCode(code)}
+                                    className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
+                                    aria-label="Copy code to clipboard"
+                                >
+                                    {copiedCode === code ? "Copied!" : "Copy"}
+                                </button>
                                 <SyntaxHighlighter
                                     style={oneDark}
                                     language={match ? match[1] : ''}
@@ -144,16 +152,21 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                                     {code}
                                 </SyntaxHighlighter>
                             </div>
-                        ) : (
-                            <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5" {...props}>
-                                {children}
-                            </code>
                         );
                     },
                     p({ node, children }) {
-                        // Check if the paragraph contains only a code block
-                        if (node && node.children.length === 1 && 'tagName' in node.children[0] && node.children[0].tagName === 'code') {
-                            return <div>{children}</div>;
+                        // Check if this paragraph only contains a code block
+                        if (node && node.children) {
+                            // Check if there's only one child and it's either a code element or a div wrapping a code element
+                            const singleChild = node.children.length === 1 && node.children[0];
+                            const isCodeBlock =
+                                (singleChild && 'tagName' in singleChild && singleChild.tagName === 'code') ||
+                                (singleChild && 'tagName' in singleChild && singleChild.tagName === 'div');
+
+                            if (isCodeBlock) {
+                                // Return the children directly, not wrapped in a paragraph
+                                return <>{children}</>;
+                            }
                         }
                         return <p>{children}</p>;
                     }
