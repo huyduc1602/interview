@@ -5,7 +5,6 @@ import { SaveDialog } from '@/components/ui/saveDialog';
 import { AIModel, AIModelType, TokenUsage } from '../services/aiServices/types';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
-import { debounce } from 'lodash';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInputArea } from '@/components/chat/ChatInputArea';
 import { MessageList } from '@/components/chat/MessageList';

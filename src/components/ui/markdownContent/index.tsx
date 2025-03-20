@@ -127,7 +127,8 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                    pre({ children }) {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    pre({ node, children }) {
                         return <>{children}</>;
                     },
                     code({ inline, className, children, ...props }: CodeProps) {
@@ -142,44 +143,53 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                             );
                         }
 
+                        // For code blocks, return the complete pre element
                         return (
-                            <pre className="relative group my-4">
-                                <button
-                                    onClick={() => handleCopyCode(code)}
-                                    className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
-                                    aria-label="Copy code to clipboard"
-                                >
-                                    {copiedCode === code ? "Copied!" : "Copy"}
-                                </button>
-                                <SyntaxHighlighter
-                                    style={oneDark}
-                                    language={match ? match[1] : ''}
-                                    customStyle={{
-                                        padding: '1rem',
-                                        fontSize: '0.875rem',
-                                        lineHeight: '1.5',
-                                        margin: 0
-                                    }}
-                                    PreTag="pre"
-                                    {...props}
-                                >
-                                    {code}
-                                </SyntaxHighlighter>
-                            </pre>
+                            <div className="not-prose my-4">
+                                <pre className="relative group">
+                                    <button
+                                        onClick={() => handleCopyCode(code)}
+                                        className="absolute right-2 top-2 px-2 py-1 rounded text-xs bg-gray-800 text-gray-300 hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
+                                        aria-label="Copy code to clipboard"
+                                    >
+                                        {copiedCode === code ? "Copied!" : "Copy"}
+                                    </button>
+                                    <SyntaxHighlighter
+                                        style={oneDark}
+                                        language={match ? match[1] : ''}
+                                        customStyle={{
+                                            padding: '1rem',
+                                            fontSize: '0.875rem',
+                                            lineHeight: '1.5',
+                                            margin: 0
+                                        }}
+                                        PreTag="div"
+                                        {...props}
+                                    >
+                                        {code}
+                                    </SyntaxHighlighter>
+                                </pre>
+                            </div>
                         );
                     },
-                    p(props: React.ComponentPropsWithoutRef<'p'>) {
-                        const children = React.Children.toArray(props.children);
-                        const hasCodeBlock = children.some(child =>
-                            React.isValidElement(child) &&
-                            (child.type === 'pre' || child.type === SyntaxHighlighter)
-                        );
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    p({ node, children, ...props }) {
+                        // Check if this paragraph only contains a code block
+                        const hasOnlyCodeBlock = React.Children.count(children) === 1 &&
+                            React.Children.toArray(children).some(child =>
+                                React.isValidElement(child) &&
+                                (child.type === 'pre' ||
+                                    (child.props && typeof (child.props as { className?: string }).className === 'string' &&
+                                        (child.props as { className: string }).className.includes('language-')))
+                            );
 
-                        if (hasCodeBlock) {
-                            return <>{props.children}</>;
+                        // If it only has a code block, don't wrap in paragraph
+                        if (hasOnlyCodeBlock) {
+                            return <>{children}</>;
                         }
 
-                        return <p {...props} />;
+                        // Otherwise, use normal paragraph
+                        return <div style={{ display: 'inline-block' }} {...props}>{children}</div>;
                     }
                 }}
             >
