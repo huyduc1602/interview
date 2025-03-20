@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="zalo-platform-site-verification" content="FyM38jos27aQfOLQvOWt31YkdGtqs4nKCpCo" />
+  <title>Interview Helper</title>
+  <!-- Load environment variables -->
+  <script src="/env-config.js"></script>
+  <!-- SPA routing for custom domain GitHub Pages -->
+  <script type="text/javascript">
+    (function () {
+      // Check for path in query parameter (from 404.html redirect)
+      var path = new URLSearchParams(window.location.search).get('path');
+      if (path) {
+        // Strip trailing slash if present
+        if (path.endsWith('/')) {
+          path = path.slice(0, -1);
+        }
+
+        // With custom domain, we can simply replace the path
+        window.history.replaceState(null, null, path + window.location.hash);
+      }
+    })();
+  </script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="module" crossorigin src="/assets/index-CNRGe32d.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Bdyspyd4.css">
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
