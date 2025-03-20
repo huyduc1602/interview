@@ -3,24 +3,23 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Interview App</title>
+    <title>Interview Helper</title>
     <script type="text/javascript">
-        // Single Page Apps for GitHub Pages
-        // MIT License
-        // https://github.com/rafgraph/spa-github-pages
+        // Handle routing for GitHub Pages
+        (function () {
+            // Get path from URL
+            var pathSegmentsToKeep = 1;
+            var location = window.location;
+            var pathname = location.pathname.slice(1);
+            var repo = pathSegmentsToKeep > 0
+                ? location.pathname.split('/').slice(1, pathSegmentsToKeep + 1).join('/')
+                : '';
+            var restOfPath = location.pathname.split('/').slice(pathSegmentsToKeep + 1).join('/');
+            var redirectUrl = location.origin + (repo ? '/' + repo : '') + '/#/' + restOfPath + location.search;
 
-        // Điều này sẽ giúp GitHub Pages xử lý routes
-        var segmentCount = 0;
-        var l = window.location;
-
-        // Đảm bảo redirect URL được tạo đúng định dạng
-        l.replace(
-            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-            l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
-            l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
-            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-            l.hash
-        );
+            // Redirect to main page with hash routing
+            window.location.replace(redirectUrl);
+        })();
     </script>
 </head>
 
