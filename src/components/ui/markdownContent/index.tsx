@@ -55,6 +55,10 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                    pre({ children }) {
+                        // Return children directly to avoid creating unnecessary pre tag
+                        return <>{children}</>;
+                    },
                     code({ inline, className, children, ...props }: CodeProps) {
                         const match = /language-(\w+)/.exec(className || '');
                         const code = String(children).replace(/\n$/, '');
@@ -73,7 +77,6 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                                 <SyntaxHighlighter
                                     style={oneDark}
                                     language={match ? match[1] : ''}
-                                    PreTag="div"
                                     customStyle={{
                                         padding: '1rem',
                                         fontSize: '0.875rem',
