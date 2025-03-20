@@ -4,6 +4,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
+// Check if the app is running on GitHub Pages
+const isGitHubPages = process.env.GITHUB_PAGES === 'true' ||
+    (process.env.NODE_ENV === 'production' && process.env.DEPLOY_TARGET === 'gh-pages');
+
 // Get base from environment or repository name for GitHub Pages
 const base = process.env.BASE_URL || '/';
 
@@ -25,6 +29,9 @@ function getCustomDomain() {
 export default defineConfig(({ mode }) => {
     // Load env variables based on mode
     const customDomain = getCustomDomain();
+    const base = process.env.NODE_ENV === 'production' && isGitHubPages
+        ? `/interview/`  // Path to the repo on GitHub
+        : '/';
 
     return {
         plugins: [
@@ -36,11 +43,11 @@ export default defineConfig(({ mode }) => {
                     return html.replace(/%CUSTOM_DOMAIN%/g, customDomain || '');
                 }
             },
-            // Thêm plugin để copy 404.html vào thư mục dist trong quá trình build
+            // Add plugin to copy 404.html to dist folder during build
             {
                 name: 'copy-404-html',
                 closeBundle() {
-                    // Copy 404.html để GitHub Pages xử lý SPA routing
+                    // Copy 404.html for GitHub Pages SPA routing
                     if (mode === 'production') {
                         try {
                             const source = path.resolve('./public/404.html');
@@ -70,7 +77,7 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,
-            historyApiFallback: true, // Hỗ trợ BrowserRouter trong môi trường dev
+            historyApiFallback: true, // Support BrowserRouter in dev environment
         },
         base: base // Use '/' for custom domain
     };
