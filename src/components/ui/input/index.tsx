@@ -1,7 +1,16 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, type, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, type, onChange, ...props }, ref) => {
+  // Simple direct onChange handler that preserves all IME functionality
+  const handleChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Call the original onChange handler directly
+    // This ensures all IME and character encoding information is preserved
+    if (onChange) {
+      onChange(e);
+    }
+  }, [onChange]);
+
   return (
     <input
       type={type}
@@ -10,6 +19,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
         className
       )}
       ref={ref}
+      onChange={handleChange}
       {...props}
     />
   )
