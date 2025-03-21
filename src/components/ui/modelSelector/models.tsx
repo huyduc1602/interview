@@ -1,4 +1,5 @@
 import { Zap, Sparkles, Bot, Stars } from "lucide-react";
+import { Brain } from "@/components/icons/Brain";
 import { AIModel } from "@/services/aiServices/types";
 
 export interface ModelOption {
@@ -36,6 +37,15 @@ export const modelGroups: ModelGroup[] = [
                     color: "text-muted-foreground"
                 }
             },
+            {
+                id: AIModel.PERFLEXITY,
+                name: "models.perflexity.sonar",
+                icon: <Brain className="w-4 h-4 text-blue-700" />,
+                badge: {
+                    text: "models.badges.perflexity",
+                    color: "text-blue-700"
+                }
+            },
         ]
     },
     {
@@ -67,7 +77,7 @@ export const modelGroups: ModelGroup[] = [
                     text: "models.badges.free",
                     color: "text-orange-500"
                 }
-            },
+            }
         ]
     }
 ];

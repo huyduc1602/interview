@@ -55,6 +55,13 @@ const ApiKeysForm: React.FC<ApiKeysFormProps> = ({
             placeholder: ''
         },
         {
+            name: 'perflexity_api_key',
+            category: '',
+            label: t('settings.apiKeys.perflexity.label'),
+            helpText: t('settings.apiKeys.perflexity.help'),
+            placeholder: 'pplx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        },
+        {
             name: 'googleSheetApiKey',
             category: '',
             label: t('settings.apiKeys.googleSheetApiKey.label'),

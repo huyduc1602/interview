@@ -165,7 +165,8 @@ export default {
       geminiApiError: 'Lỗi API Gemini: {message}',
       openchatApiError: 'Lỗi API OpenChat: {message}',
       invalidApiKey: 'API key không hợp lệ cho {model}',
-      endpointNotFound: 'Không tìm thấy endpoint API cho {model}'
+      endpointNotFound: 'Không tìm thấy endpoint API cho {model}',
+      perflexityApiError: 'Lỗi API Perflexity: {message}',
     },
     models: {
       select: 'Chọn mô hình',
@@ -288,6 +289,10 @@ export default {
       sheetNameInterviewQuestions: {
         label: "Tên trang tính câu hỏi phỏng vấn",
         help: "Nhập tên trang tính cho Câu hỏi phỏng vấn."
+      },
+      perflexity: {
+        label: "Khóa API Perflexity",
+        help: "Lấy khóa API từ bảng điều khiển Perflexity"
       },
       modelKeys: {
         title: "Khóa API mô hình AI",
@@ -433,6 +438,17 @@ export default {
         3: "ID bảng tính là chuỗi dài trong URL giữa '/d/' và '/edit'"
       },
       link: "Đi tới Google Trang tính"
+    },
+    perflexity: {
+      title: "Perflexity API Key",
+      description: "Thực hiện theo các bước sau để lấy khóa API Perflexity của bạn.",
+      steps: {
+        1: "Truy cập trang web Perflexity API.",
+        2: "Đăng ký tài khoản miễn phí hoặc trả phí.",
+        3: "Điều hướng đến phần API trong trang cài đặt.",
+        4: "Tạo khóa API mới và sao chép khóa đó."
+      },
+      link: "Truy cập Perflexity API"
     }
   },
   notFound: {
@@ -501,11 +517,15 @@ export default {
     openchat: {
       35: "OpenChat 3.5"
     },
+    perflexity: {
+      sonar: "Perflexity Sonar Pro"
+    },
     badges: {
       premium: "Cao cấp",
       google: "Google",
       mistral: "Mistral",
-      free: "Miễn phí"
+      free: "Miễn phí",
+      perflexity: "Perflexity",
     }
   },
   ai: {

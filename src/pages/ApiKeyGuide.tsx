@@ -119,6 +119,24 @@ const ApiKeyGuide: React.FC = () => {
                         </a>
                     </section>
                     <section>
+                        <h2 className="text-2xl font-semibold mb-2">{t('apiKeyGuide.perflexity.title')}</h2>
+                        <p>{t('apiKeyGuide.perflexity.description')}</p>
+                        <ol className="list-decimal list-inside space-y-2 mt-2">
+                            <li>{t('apiKeyGuide.perflexity.steps.1')}</li>
+                            <li>{t('apiKeyGuide.perflexity.steps.2')}</li>
+                            <li>{t('apiKeyGuide.perflexity.steps.3')}</li>
+                            <li>{t('apiKeyGuide.perflexity.steps.4')}</li>
+                        </ol>
+                        <a
+                            href="https://docs.perplexity.ai/docs/getting-started"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                        >
+                            {t('apiKeyGuide.perflexity.link')}
+                        </a>
+                    </section>
+                    <section>
                         <h2 className="text-2xl font-semibold mb-2">{t('apiKeyGuide.spreadsheetId.title')}</h2>
                         <p>{t('apiKeyGuide.spreadsheetId.description')}</p>
                         <ol className="list-decimal list-inside space-y-2 mt-2">

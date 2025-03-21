@@ -5,6 +5,7 @@ export enum ApiKeyService {
     GEMINI = 'GEMINI',
     MISTRAL = 'MISTRAL',
     OPENCHAT = 'OPENCHAT',
+    PERFLEXITY = 'PERFLEXITY',
     GOOGLE_SHEET_API_KEY = 'GOOGLE_SHEET_API_KEY',
     SPREADSHEET_ID = 'SPREADSHEET_ID',
     GOOGLE_SHEET_KNOWLEDGE_BASE = 'GOOGLE_SHEET_KNOWLEDGE_BASE',
@@ -41,6 +42,8 @@ export function useApiKeys() {
                 return settings.openchat || '';
             case ApiKeyService.GOOGLE_SHEET_API_KEY:
                 return settings.googleSheetApiKey || '';
+            case ApiKeyService.PERFLEXITY:
+                return settings.perflexity || '';
             case ApiKeyService.SPREADSHEET_ID:
                 return settings.spreadsheetId || '';
             case ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE:

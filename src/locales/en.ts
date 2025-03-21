@@ -172,6 +172,7 @@ export default {
       networkError: 'Network connection error',
       geminiApiError: 'Gemini API Error: {message}',
       openchatApiError: 'OpenChat API Error: {message}',
+      perflexityApiError: 'Perflexity API Error: {message}',
       invalidApiKey: 'Invalid API key for {model}',
       endpointNotFound: 'API endpoint not found for {model}'
     },
@@ -296,6 +297,10 @@ export default {
       sheetNameInterviewQuestions: {
         label: "Interview Questions Sheet Name",
         help: "Enter the sheet name for the Interview Questions."
+      },
+      perflexity: {
+        label: "Perflexity API Key",
+        help: "Get your API key from Perflexity dashboard"
       },
       modelKeys: {
         title: "AI Model API Keys",
@@ -431,6 +436,17 @@ export default {
       },
       link: "Go to OpenChat"
     },
+    perflexity: {
+      title: "Perflexity API Key",
+      description: "Follow these steps to obtain your Perflexity API key.",
+      steps: {
+        1: "Go to the Perflexity API website.",
+        2: "Sign up for a free or paid account.",
+        3: "Navigate to the API section in settings.",
+        4: "Create a new API key and copy it."
+      },
+      link: "Go to Perflexity API"
+    },
     spreadsheetId: {
       title: "Spreadsheet ID",
       description: "Follow these steps to obtain your Google Spreadsheet ID.",
@@ -508,11 +524,15 @@ Format your responses in Markdown with:
     openchat: {
       35: "OpenChat 3.5"
     },
+    perflexity: {
+      sonar: "Perflexity Sonar Pro"
+    },
     badges: {
       premium: "Premium",
       google: "Google",
       mistral: "Mistral",
-      free: "Free"
+      free: "Free",
+      perflexity: "Perflexity"
     }
   },
   ai: {
