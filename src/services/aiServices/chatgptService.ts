@@ -1,12 +1,16 @@
 import axios from 'axios';
-import type { OpenAIResponse } from './types';
+import type { OpenAIResponse, PromptMessage } from './types';
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 
-export async function fetchChatGPTAnswer(prompt: string, model: string, user: User | null): Promise<OpenAIResponse> {
+export async function fetchChatGPTAnswer(
+  messages: PromptMessage[],
+  model: string,
+  user: User | null
+): Promise<OpenAIResponse> {
   if (!user) {
     throw new Error('User not authenticated');
   }
@@ -18,16 +22,12 @@ export async function fetchChatGPTAnswer(prompt: string, model: string, user: Us
   }
 
   try {
+    // Send the entire message history to maintain conversation context
     const response = await axios.post(
       API_URL,
       {
         model: model,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 1000,
       },

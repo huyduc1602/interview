@@ -197,7 +197,8 @@ export default {
     noResults: "Không tìm thấy chủ đề nào phù hợp",
     followUp: {
       title: "Đặt câu hỏi thêm",
-      inputPlaceholder: "Đặt câu hỏi về chủ đề này..."
+      inputPlaceholder: "Đặt câu hỏi về chủ đề này...",
+      contextPrompt: 'Dựa trên chủ đề "{{topic}}" và giải thích của nó, hãy trả lời câu hỏi bổ sung này: {{question}}',
     }
   },
   interview: {

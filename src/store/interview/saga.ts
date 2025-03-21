@@ -16,6 +16,7 @@ import {
     updateKnowledgeStatusFailure,
 } from './slice';
 import { User } from '@/types/common';
+import { PromptMessage } from '../../services/aiServices/types';
 
 interface KnowledgeStatusPayload {
     rowIndex: number;
@@ -56,7 +57,11 @@ function* fetchDataSaga(action: ReturnType<typeof fetchDataRequest>): Generator<
 function* fetchAnswerSaga(action: PayloadAction<{ question: string; user: User }>): Generator<unknown, void, AIResponse> {
     try {
         const { question, user } = action.payload;
-        const response: AIResponse = yield call(fetchChatGPTAnswer, question, 'gpt-3.5-turbo-0125', user);
+        const messages: PromptMessage[] = [{
+            role: 'user',
+            content: question
+        }];
+        const response: AIResponse = yield call(fetchChatGPTAnswer, messages, 'gpt-3.5-turbo-0125', user);
         yield put(fetchAnswerSuccess({
             question,
             answer: 'choices' in response ? response.choices[0].message.content : response.candidates[0].content.parts[0].text,

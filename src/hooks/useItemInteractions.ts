@@ -6,9 +6,10 @@ import { useSettings } from '@/hooks/useSettings';
 import { useTranslation } from 'react-i18next';
 
 interface ItemInteractionsOptions {
-    type: 'knowledge' | 'interview';
+    type: 'knowledge' | 'interview' | 'chat';
     generateAnswer: (question: string) => Promise<string>;
     savedItems: SavedItem[];
+    clearHistory?: () => void; // Optional to maintain backward compatibility
 }
 
 /**
@@ -34,7 +35,8 @@ interface ItemInteractionsOptions {
 export function useItemInteractions({
     type,
     generateAnswer,
-    savedItems
+    savedItems,
+    clearHistory
 }: ItemInteractionsOptions) {
     // Get settings from useSettings hook
     const { settings } = useSettings();
@@ -130,12 +132,18 @@ export function useItemInteractions({
             if (existingSaved && existingSaved.id === selectedItem?.id) {
                 setIsSavedAnswer(true);
             }
+
+            // Clear chat history before generating new answer
+            if (clearHistory) {
+                clearHistory();
+            }
+
             await fetchItemData(actualItem, existingSaved || null);
         } catch (error) {
             console.error("Error handling item click:", error);
             // Xử lý lỗi phù hợp ở đây
         }
-    }, [savedItems, fetchItemData, selectedItem?.id]);
+    }, [savedItems, fetchItemData, selectedItem?.id, clearHistory]);
 
     // Handle regenerate answer
     const handleRegenerateAnswer = useCallback(async (): Promise<void> => {
@@ -146,13 +154,18 @@ export function useItemInteractions({
             const promptType = type === 'knowledge' ? PromptType.KNOWLEDGE : PromptType.INTERVIEW;
             const promptOptions = createPromptOptions(selectedItem);
 
+            // Clear chat history before regenerating answer
+            if (clearHistory) {
+                clearHistory();
+            }
+
             const enhancedPrompt = createPromptByType(questionContent, promptType, promptOptions);
             const answer = await generateAnswer(enhancedPrompt);
             setSelectedItem(prev => prev ? ({ ...prev, answer }) : null);
         } catch (error) {
             console.error('Failed to regenerate answer:', error);
         }
-    }, [selectedItem, generateAnswer, type, createPromptOptions]);
+    }, [selectedItem, generateAnswer, type, createPromptOptions, clearHistory]);
 
     return {
         selectedItem,

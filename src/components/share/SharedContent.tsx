@@ -178,9 +178,11 @@ const SharedContent: React.FC<InterviewQuestionsContentProps> = ({
         existingMessages
       );
 
-      //TODO: Dựa vào config promt ở src/utils/promptUtils.ts để sửa prompt này
-      // Step 4: Create contextual prompt and generate answer
-      const contextualQuestion = `Based on the topic "${selectedQuestion.question}" and its explanation, please answer this follow-up question: ${question}`;
+      // Step 4: Create contextual prompt with internationalization
+      const contextualQuestion = t('knowledge.followUp.contextPrompt', {
+        topic: selectedQuestion.question,
+        question: question
+      });
 
       // Step 5: Generate answer and add to history
       await generateAndAddAnswer(
