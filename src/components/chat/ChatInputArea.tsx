@@ -2,6 +2,8 @@ import React, { memo, useRef, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SendHorizontal } from '@/components/icons';
+import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ChatInputAreaProps {
     input: string;
@@ -28,6 +30,7 @@ const ChatInputArea = memo(({
     // This helps reduce re-renders on the parent component
     const [localInput, setLocalInput] = useState(input);
     const inputTimeout = useRef<NodeJS.Timeout | null>(null);
+    const { t } = useTranslation();
 
     // Update local input when prop changes
     useEffect(() => {
@@ -96,15 +99,22 @@ const ChatInputArea = memo(({
                     onKeyDown={handleKeyDown}
                     disabled={loading}
                     placeholder={placeholder}
-                    className="flex-1"
+                    className="flex-1 h-[56px]"
                 />
                 <Button
                     type="submit"
                     disabled={loading || !localInput.trim()}
                     variant={loading ? "outline" : "default"}
-                    className="transition-all duration-200 hover:scale-105"
+                    className={cn(
+                        "px-4 py-2 rounded-lg",
+                        "bg-purple-600 text-white",
+                        "hover:bg-purple-700",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                        "flex items-center gap-2"
+                    )}
                 >
                     <SendHorizontal className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    {t('common.send')}
                 </Button>
             </div>
             <div className="mt-2 text-xs text-muted-foreground text-center">
