@@ -205,7 +205,8 @@ export default {
     noResults: "No topics found for your search",
     followUp: {
       title: "Ask Follow-up Questions",
-      inputPlaceholder: "Ask a question about this topic..."
+      inputPlaceholder: "Ask a question about this topic...",
+      contextPrompt: 'Based on the topic "{{topic}}" and its explanation, please answer this follow-up question: {{question}}'
     }
   },
   interview: {
