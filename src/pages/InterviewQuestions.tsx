@@ -26,7 +26,8 @@ export default function InterviewQuestions() {
         selectedModel,
         setSelectedModel,
         generateAnswer,
-        setAnswer
+        setAnswer,
+        clearHistory
     } = useChat({ type: 'interview' }, user);
 
     // Use shared data management hook
@@ -65,6 +66,7 @@ export default function InterviewQuestions() {
         type: 'interview',
         generateAnswer,
         savedItems,
+        clearHistory
     });
 
     // Check for existing saved item

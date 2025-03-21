@@ -1,39 +1,40 @@
-import { AIModel } from './types';
 import axios from 'axios';
-import type { GeminiResponse } from './types';
-import { handleAPIError } from './utils';
+import { GeminiResponse, processGeminiResponse, PromptMessage } from './types';
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
-export async function generateGeminiResponse(prompt: string, user: User | null): Promise<GeminiResponse> {
+export async function generateGeminiResponse(
+  messages: PromptMessage[],
+  user: User | null
+): Promise<GeminiResponse> {
   if (!user) {
     throw new Error('User not authenticated');
   }
 
-  const GEMINI_API_KEY = process.env.NODE_ENV === 'development' ? getApiKey(ApiKeyService.GEMINI, user.id) : '';
-  if (!GEMINI_API_KEY && process.env.NODE_ENV === 'development') {
-    throw new Error("Gemini API key is not configured in development mode");
-  }
+  const GEMINI_API_KEY = getApiKey(ApiKeyService.GEMINI, user.id);
 
   if (!GEMINI_API_KEY) {
     throw new Error('Gemini API key not configured');
   }
 
   try {
+    // Format messages for Gemini API
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : msg.role,
+      parts: [{ text: msg.content }]
+    }));
+
+    // Send the entire conversation history to maintain context
     const response = await axios.post(
       `${API_URL}?key=${GEMINI_API_KEY}`,
       {
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
+        contents: formattedMessages,
         generationConfig: {
-          temperature: 1.0,
-          maxOutputTokens: 8192,
+          temperature: 0.7,
+          maxOutputTokens: 2048,
           topP: 0.95,
           topK: 40
         }
@@ -45,19 +46,11 @@ export async function generateGeminiResponse(prompt: string, user: User | null):
       }
     );
 
-    if (!response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+    if (!response.data) {
       throw new Error('Invalid response format from Gemini API');
     }
 
-    return {
-      model: AIModel.GEMINI,
-      candidates: response.data.candidates,
-      usage: {
-        prompt_tokens: response.data.usageMetadata.promptTokenCount || 0,
-        completion_tokens: response.data.usageMetadata.candidatesTokenCount || 0,
-        total_tokens: response.data.usageMetadata.totalTokenCount || 0
-      }
-    };
+    return processGeminiResponse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Gemini API Error:', {
@@ -65,7 +58,8 @@ export async function generateGeminiResponse(prompt: string, user: User | null):
         data: error.response?.data,
         message: error.message
       });
+      throw new Error(`Gemini API Error: ${error.response?.data?.error?.message || error.message}`);
     }
-    throw handleAPIError(error, 'Gemini');
+    throw error;
   }
 }

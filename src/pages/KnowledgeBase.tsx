@@ -26,7 +26,8 @@ export default function KnowledgeBase() {
         selectedModel,
         setSelectedModel,
         generateAnswer,
-        setAnswer
+        setAnswer,
+        clearHistory
     } = useChat({ type: 'knowledge' }, user);
 
     // Use shared data management hook
@@ -65,6 +66,7 @@ export default function KnowledgeBase() {
         type: 'knowledge',
         generateAnswer,
         savedItems,
+        clearHistory
     });
 
     // Erase existingSavedAnswer if needed

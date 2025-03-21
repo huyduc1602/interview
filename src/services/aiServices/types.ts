@@ -87,6 +87,17 @@ export interface PromptMessage {
   content: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number;
+}
+
+export interface ChatThread {
+  messages: ChatMessage[];
+  model: AIModelType;
+}
+
 export interface OpenChatResponse extends BaseResponse {
   id: string;
   object: string;

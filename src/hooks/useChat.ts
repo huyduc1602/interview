@@ -9,6 +9,7 @@ import {
   type AIModelType,
   type AIResponse,
   type TokenUsage,
+  type ChatMessage,
   isOpenAIResponse,
   isGeminiResponse,
   isMistralResponse,
@@ -32,6 +33,8 @@ interface UseChatReturn {
   error: string | null;
   usage: TokenUsage | undefined;
   isFirstQuestion: boolean;
+  chatHistory: ChatMessage[];
+  clearHistory: () => void;
 }
 
 export function useChat({ type }: UseChatOptions, user: User | null): UseChatReturn {
@@ -41,6 +44,8 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
   const [answer, setAnswer] = useState<string | null>(null);
   const [isFirstQuestion, setIsFirstQuestion] = useState(true);
   const [error] = useState<string | null>(null);
+  // Add chat history state
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const { t } = useTranslation();
 
   const getSystemContext = useCallback(() => {
@@ -56,11 +61,55 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
     }
   }, [t, type]);
 
+  // Add initial system message when chat is initialized
+  useEffect(() => {
+    const systemMessage: ChatMessage = {
+      role: 'system',
+      content: getSystemContext(),
+      timestamp: Date.now()
+    };
+    setChatHistory([systemMessage]);
+  }, [getSystemContext]);
+
+  // Function to clear chat history (except system message)
+  const clearHistory = useCallback(() => {
+    // Keep only the system message
+    const systemMessage = chatHistory.find(msg => msg.role === 'system');
+    setChatHistory(systemMessage ? [systemMessage] : []);
+    setIsFirstQuestion(true);
+    // Remove chatHistory from dependencies to break circular dependency
+  }, []);
+
+  // Get system message separately to avoid dependency on chatHistory
+  const getSystemMessage = useCallback(() => {
+    return {
+      role: 'system' as const,
+      content: getSystemContext(),
+      timestamp: Date.now()
+    };
+  }, [getSystemContext]);
+
+  // Update history when model changes
+  useEffect(() => {
+    // Reset history with just the system message
+    setChatHistory([getSystemMessage()]);
+    setIsFirstQuestion(true);
+  }, [selectedModel, getSystemMessage]);
+
   const generateAnswer = useCallback(async (input: string): Promise<string> => {
     try {
       setLoading(true);
 
-      const finalInput = `${getSystemContext()} ${input}.`;
+      // Add user message to chat history
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: input,
+        timestamp: Date.now()
+      };
+
+      // Create updated history for API calls
+      const updatedHistory = [...chatHistory, userMessage];
+      setChatHistory(updatedHistory);
 
       let response: AIResponse;
 
@@ -68,55 +117,117 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
         case AIModel.GPT35:
         case AIModel.GPT4:
         case AIModel.GPT35_0125:
-          response = await fetchChatGPTAnswer(finalInput, selectedModel, user);
+          // Convert chat history to OpenAI format
+          response = await fetchChatGPTAnswer(
+            updatedHistory.map(msg => ({ role: msg.role, content: msg.content })),
+            selectedModel,
+            user
+          );
           if (isOpenAIResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
             const content = response.choices[0].message.content;
+
+            // Add assistant response to history
+            const assistantMessage: ChatMessage = {
+              role: 'assistant',
+              content,
+              timestamp: Date.now()
+            };
+            setChatHistory([...updatedHistory, assistantMessage]);
+
             setAnswer(content);
             return content;
           }
           break;
 
         case AIModel.GEMINI:
-          response = await generateGeminiResponse(finalInput, user);
+          response = await generateGeminiResponse(
+            updatedHistory.map(msg => ({ role: msg.role, content: msg.content })),
+            user
+          );
           if (isGeminiResponse(response)) {
             setUsage(undefined);
             setIsFirstQuestion(false);
             const content = response.candidates[0].content.parts[0].text;
+
+            // Add assistant response to history
+            const assistantMessage: ChatMessage = {
+              role: 'assistant',
+              content,
+              timestamp: Date.now()
+            };
+            setChatHistory([...updatedHistory, assistantMessage]);
+
             setAnswer(content);
             return content;
           }
           break;
 
         case AIModel.MISTRAL:
-          response = await generateMistralResponse(finalInput, user);
+          response = await generateMistralResponse(
+            updatedHistory.map(msg => ({ role: msg.role, content: msg.content })),
+            user
+          );
           if (isMistralResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
             const content = response.choices[0].message.content;
+
+            // Add assistant response to history
+            const assistantMessage: ChatMessage = {
+              role: 'assistant',
+              content,
+              timestamp: Date.now()
+            };
+            setChatHistory([...updatedHistory, assistantMessage]);
+
             setAnswer(content);
             return content;
           }
           break;
 
         case AIModel.OPENCHAT:
-          response = await generateOpenChatResponse(finalInput, user);
+          response = await generateOpenChatResponse(
+            updatedHistory.map(msg => ({ role: msg.role, content: msg.content })),
+            user
+          );
           if (isOpenChatResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
             const content = response.choices[0].message.content;
+
+            // Add assistant response to history
+            const assistantMessage: ChatMessage = {
+              role: 'assistant',
+              content,
+              timestamp: Date.now()
+            };
+            setChatHistory([...updatedHistory, assistantMessage]);
+
             setAnswer(content);
             return content;
           }
           break;
 
         case AIModel.PERFLEXITY:
-          response = await fetchPerflexityAnswer(finalInput, user);
+          response = await fetchPerflexityAnswer(
+            updatedHistory.map(msg => ({ role: msg.role, content: msg.content })),
+            user
+          );
           if (isPerflexityResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
             const content = response.choices[0].message.content;
+
+            // Add assistant response to history
+            const assistantMessage: ChatMessage = {
+              role: 'assistant',
+              content,
+              timestamp: Date.now()
+            };
+            setChatHistory([...updatedHistory, assistantMessage]);
+
             setAnswer(content);
             return content;
           }
@@ -137,11 +248,8 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
     } finally {
       setLoading(false);
     }
-  }, [selectedModel, isFirstQuestion, getSystemContext, user]);
+  }, [selectedModel, chatHistory, user]);
 
-  useEffect(() => {
-    setIsFirstQuestion(true);
-  }, [selectedModel]);
   return {
     loading,
     selectedModel,
@@ -151,6 +259,8 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
     answer,
     setAnswer,
     isFirstQuestion,
-    error
+    error,
+    chatHistory,
+    clearHistory
   };
 }

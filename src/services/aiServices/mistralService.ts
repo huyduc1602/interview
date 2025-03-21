@@ -1,13 +1,15 @@
 import axios from 'axios';
-import { handleAPIError } from './utils';
-import { MistralResponse } from './types';
+import type { MistralResponse, PromptMessage } from './types';
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
 import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
-export async function generateMistralResponse(prompt: string, user: User | null): Promise<MistralResponse> {
+export async function generateMistralResponse(
+  messages: PromptMessage[],
+  user: User | null
+): Promise<MistralResponse> {
   if (!user) {
     throw new Error('User not authenticated');
   }
@@ -19,18 +21,14 @@ export async function generateMistralResponse(prompt: string, user: User | null)
   }
 
   try {
+    // Send the entire message history to maintain conversation context
     const response = await axios.post(
       API_URL,
       {
-        model: 'mistral-small',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+        model: 'mistral-small-latest',
+        messages: messages,
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 1000,
       },
       {
         headers: {
@@ -44,23 +42,15 @@ export async function generateMistralResponse(prompt: string, user: User | null)
       throw new Error('Invalid response format from Mistral API');
     }
 
-    interface MistralAPIResponse {
-      id: string;
-      object: string;
-      created: number;
-      choices: Array<{
-        index: number;
-        message: {
-          role: string;
-          tool_calls?: unknown[] | null;
-          content: string;
-        };
-        finish_reason: string;
-      }>;
-    }
-
-    const response_data: MistralAPIResponse = response.data;
-    return response_data as MistralResponse;
+    return {
+      id: response.data.id,
+      object: response.data.object,
+      created: response.data.created,
+      prompt: response.data.prompt || messages,
+      choices: response.data.choices,
+      usage: response.data.usage,
+      model: response.data.model
+    } as MistralResponse;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Mistral API Error:', {
@@ -68,7 +58,8 @@ export async function generateMistralResponse(prompt: string, user: User | null)
         data: error.response?.data,
         message: error.message
       });
+      throw new Error(`Mistral API Error: ${error.response?.data?.error?.message || error.message}`);
     }
-    throw handleAPIError(error, 'Mistral');
+    throw error;
   }
 }

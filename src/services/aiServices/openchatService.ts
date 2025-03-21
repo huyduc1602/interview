@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { OpenChatResponse } from './types';
+import type { OpenChatResponse, PromptMessage } from './types';
 import { handleAPIError } from './utils';
 import { getApiKey } from '@/utils/apiKeys';
 import { User } from '@/types/common';
@@ -7,7 +7,10 @@ import { ApiKeyService } from '@/hooks/useApiKeys';
 
 const API_URL = 'https://api.together.xyz/v1/chat/completions';
 
-export async function generateOpenChatResponse(prompt: string, user: User | null): Promise<OpenChatResponse> {
+export async function generateOpenChatResponse(
+  messages: PromptMessage[],
+  user: User | null
+): Promise<OpenChatResponse> {
   if (!user) {
     throw new Error('User not authenticated');
   }
@@ -19,14 +22,12 @@ export async function generateOpenChatResponse(prompt: string, user: User | null
   }
 
   try {
+    // Send the entire message history to maintain conversation context
     const response = await axios.post(
       API_URL,
       {
         model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
-        messages: [{
-          role: 'user',
-          content: prompt
-        }],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 4096,
         top_p: 0.95,
