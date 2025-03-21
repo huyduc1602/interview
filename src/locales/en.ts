@@ -172,6 +172,7 @@ export default {
       networkError: 'Network connection error',
       geminiApiError: 'Gemini API Error: {message}',
       openchatApiError: 'OpenChat API Error: {message}',
+      perflexityApiError: 'Perflexity API Error: {message}',
       invalidApiKey: 'Invalid API key for {model}',
       endpointNotFound: 'API endpoint not found for {model}'
     },
@@ -508,11 +509,15 @@ Format your responses in Markdown with:
     openchat: {
       35: "OpenChat 3.5"
     },
+    perflexity: {
+      sonar: "Perflexity Sonar Pro"
+    },
     badges: {
       premium: "Premium",
       google: "Google",
       mistral: "Mistral",
-      free: "Free"
+      free: "Free",
+      perflexity: "Perflexity"
     }
   },
   ai: {

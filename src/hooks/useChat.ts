@@ -3,6 +3,7 @@ import { fetchChatGPTAnswer } from '@/services/aiServices/chatgptService';
 import { generateGeminiResponse } from '@/services/aiServices/geminiService';
 import { generateMistralResponse } from '@/services/aiServices/mistralService';
 import { generateOpenChatResponse } from '@/services/aiServices/openchatService';
+import { fetchPerflexityAnswer } from '@/services/aiServices/perflexityService';
 import {
   AIModel,
   type AIModelType,
@@ -11,7 +12,8 @@ import {
   isOpenAIResponse,
   isGeminiResponse,
   isMistralResponse,
-  isOpenChatResponse
+  isOpenChatResponse,
+  isPerflexityResponse
 } from '@/services/aiServices/types';
 import { User } from '@/types/common';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +35,7 @@ interface UseChatReturn {
 }
 
 export function useChat({ type }: UseChatOptions, user: User | null): UseChatReturn {
-  const [selectedModel, setSelectedModel] = useState<AIModelType>(AIModel.GPT35_0125);
+  const [selectedModel, setSelectedModel] = useState<AIModelType>(type == 'chat' ? AIModel.PERFLEXITY : AIModel.GPT35_0125);
   const [loading, setLoading] = useState(false);
   const [usage, setUsage] = useState<TokenUsage | undefined>(undefined);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -101,6 +103,17 @@ export function useChat({ type }: UseChatOptions, user: User | null): UseChatRet
         case AIModel.OPENCHAT:
           response = await generateOpenChatResponse(finalInput, user);
           if (isOpenChatResponse(response)) {
+            setUsage(response.usage ?? undefined);
+            setIsFirstQuestion(false);
+            const content = response.choices[0].message.content;
+            setAnswer(content);
+            return content;
+          }
+          break;
+
+        case AIModel.PERFLEXITY:
+          response = await fetchPerflexityAnswer(finalInput, user);
+          if (isPerflexityResponse(response)) {
             setUsage(response.usage ?? undefined);
             setIsFirstQuestion(false);
             const content = response.choices[0].message.content;

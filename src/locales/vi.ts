@@ -165,7 +165,8 @@ export default {
       geminiApiError: 'Lỗi API Gemini: {message}',
       openchatApiError: 'Lỗi API OpenChat: {message}',
       invalidApiKey: 'API key không hợp lệ cho {model}',
-      endpointNotFound: 'Không tìm thấy endpoint API cho {model}'
+      endpointNotFound: 'Không tìm thấy endpoint API cho {model}',
+      perflexityApiError: 'Lỗi API Perflexity: {message}',
     },
     models: {
       select: 'Chọn mô hình',
@@ -501,11 +502,15 @@ export default {
     openchat: {
       35: "OpenChat 3.5"
     },
+    perflexity: {
+      sonar: "Perflexity Sonar Pro"
+    },
     badges: {
       premium: "Cao cấp",
       google: "Google",
       mistral: "Mistral",
-      free: "Miễn phí"
+      free: "Miễn phí",
+      perflexity: "Perflexity",
     }
   },
   ai: {

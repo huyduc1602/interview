@@ -1,32 +1,55 @@
-import * as React from 'react';
+import React from "react";
 
-export interface LucideProps extends React.SVGProps<SVGSVGElement> {
-    size?: string | number;
+/**
+* Custom Brain icon component for use with the Perflexity AI model
+* 
+* This component creates a brain icon to represent the Perflexity AI
+* in the model selection interface
+ */
+interface BrainProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
 }
 
-const Brain: React.FC<LucideProps> = ({ size = 24, ...props }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        {...props}
-    >
-        <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
-        <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
-        <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
-        <path d="M17.599 6.5a3 3 0 0 0 .399-1.375" />
-        <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" />
-        <path d="M3.477 10.896a4 4 0 0 1 .585-.396" />
-        <path d="M19.938 10.5a4 4 0 0 1 .585.396" />
-        <path d="M6 18a4 4 0 0 1-1.967-.516" />
-        <path d="M19.967 17.484A4 4 0 0 1 18 18" />
-    </svg>
-);
+export const Brain = React.forwardRef<
+    SVGSVGElement,
+    BrainProps
+>(({ color = "currentColor", strokeWidth = 2, size = 24, ...props }, ref) => {
+    return (
+        <svg
+            ref={ref}
+            xmlns="http://www.w3.org/2000/svg"
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+        >
+            {/* Left hemisphere */}
+            <path d="M9.5 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 1 1 0 -5z" />
+            <path d="M4.5 10a2.5 2.5 0 1 1 0 5 2.5 2.5 0 1 1 0 -5z" />
+            <path d="M2 19a2 2 0 1 1 4 0 2 2 0 1 1 -4 0z" />
+            <path d="M9.5 22a2.5 2.5 0 1 1 0 -5 2.5 2.5 0 1 1 0 5z" />
+
+            {/* Right hemisphere */}
+            <path d="M14.5 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0 -5z" />
+            <path d="M19.5 10a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0 -5z" />
+            <path d="M22 19a2 2 0 1 0 -4 0 2 2 0 1 0 4 0z" />
+            <path d="M14.5 22a2.5 2.5 0 1 0 0 -5 2.5 2.5 0 1 0 0 5z" />
+
+            {/* Connecting lines */}
+            <path d="M12 7.5v9" />
+            <path d="M7 10.5l5-3" />
+            <path d="M7 13.5l5 3" />
+            <path d="M17 10.5l-5-3" />
+            <path d="M17 13.5l-5 3" />
+        </svg>
+    );
+});
+
+Brain.displayName = "Brain";
 
 export default Brain;

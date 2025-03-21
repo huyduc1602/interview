@@ -4,7 +4,8 @@ export enum AIModel {
   GPT35_0125 = 'gpt-3.5-turbo-0125',
   GEMINI = 'gemini-pro',
   MISTRAL = 'mistral-small',
-  OPENCHAT = 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free'
+  OPENCHAT = 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
+  PERFLEXITY = 'sonar-pro',
 }
 
 export type AIModelType = AIModel | string;
@@ -106,6 +107,22 @@ export interface OpenChatResponse extends BaseResponse {
   usage?: TokenUsage;
 }
 
+export interface PerflexityResponse extends BaseResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }>;
+  usage?: TokenUsage;
+}
+
 export interface ApiResponse {
   success: boolean;
   data?: unknown;
@@ -121,7 +138,8 @@ export type AIResponse =
   | OpenAIResponse
   | GeminiResponse
   | MistralResponse
-  | OpenChatResponse;
+  | OpenChatResponse
+  | PerflexityResponse;
 
 export function isOpenAIResponse(response: AIResponse): response is OpenAIResponse {
   return 'object' in response && response.object === 'chat.completion';
@@ -146,6 +164,18 @@ export function isOpenChatResponse(response: AIResponse): response is OpenChatRe
   );
 }
 
+export function isPerflexityResponse(response: AIResponse): response is PerflexityResponse {
+  return (
+    'choices' in response &&
+    Array.isArray(response.choices) &&
+    response.choices.length > 0 &&
+    'message' in response.choices[0] &&
+    'content' in response.choices[0].message &&
+    typeof response.choices[0].message.content === 'string' &&
+    response.model?.includes('sonar')
+  ) || false;
+}
+
 export const processGeminiResponse = (response: unknown): GeminiResponse => {
   type GeminiCandidate = {
     content: {
@@ -157,7 +187,7 @@ export const processGeminiResponse = (response: unknown): GeminiResponse => {
     finishReason: string;
     avgLogprobs?: number;
   };
-  
+
   const typedResponse = response as { candidates?: GeminiCandidate[] };
   return {
     model: AIModel.GEMINI,
