@@ -42,6 +42,8 @@ export function useApiKeys() {
                 return settings.openchat || '';
             case ApiKeyService.GOOGLE_SHEET_API_KEY:
                 return settings.googleSheetApiKey || '';
+            case ApiKeyService.PERFLEXITY:
+                return settings.perflexity || '';
             case ApiKeyService.SPREADSHEET_ID:
                 return settings.spreadsheetId || '';
             case ApiKeyService.GOOGLE_SHEET_KNOWLEDGE_BASE:

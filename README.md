@@ -121,6 +121,7 @@ interview/
 | `VITE_OPENCHAT_API_KEY` | OpenChat API key | Yes |
 | `VITE_GEMINI_API_KEY` | Gemini API key | Yes |
 | `VITE_MISTRAL_API_KEY` | Mistral API key | Yes |
+| `VITE_PERFLEXITY_API_KEY` | Perflexity API key | Yes |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes |
 | `VITE_GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Yes |
 | `VITE_GOOGLE_REFRESH_TOKEN` | Google OAuth Refresh Token | Yes |
@@ -139,6 +140,7 @@ For GitHub Actions deployment, add these secrets to your repository:
 | `GEMINI_API_KEY` | Google Gemini API key for AI responses | Yes |
 | `MISTRAL_API_KEY` | Mistral AI API key for AI responses | Yes |
 | `OPENCHAT_API_KEY` | OpenChat API key for AI responses | Yes |
+| `PERFLEXITY_API_KEY` | Perflexity API key for AI responses | Yes |
 | `GOOGLE_SHEET_API_KEY` | API key for Google Sheets integration | Yes |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Yes |

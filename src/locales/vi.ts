@@ -290,6 +290,10 @@ export default {
         label: "Tên trang tính câu hỏi phỏng vấn",
         help: "Nhập tên trang tính cho Câu hỏi phỏng vấn."
       },
+      perflexity: {
+        label: "Khóa API Perflexity",
+        help: "Lấy khóa API từ bảng điều khiển Perflexity"
+      },
       modelKeys: {
         title: "Khóa API mô hình AI",
         description: "Khóa API cho các mô hình AI được sử dụng trong ứng dụng."
@@ -434,6 +438,17 @@ export default {
         3: "ID bảng tính là chuỗi dài trong URL giữa '/d/' và '/edit'"
       },
       link: "Đi tới Google Trang tính"
+    },
+    perflexity: {
+      title: "Perflexity API Key",
+      description: "Thực hiện theo các bước sau để lấy khóa API Perflexity của bạn.",
+      steps: {
+        1: "Truy cập trang web Perflexity API.",
+        2: "Đăng ký tài khoản miễn phí hoặc trả phí.",
+        3: "Điều hướng đến phần API trong trang cài đặt.",
+        4: "Tạo khóa API mới và sao chép khóa đó."
+      },
+      link: "Truy cập Perflexity API"
     }
   },
   notFound: {

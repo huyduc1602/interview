@@ -298,6 +298,10 @@ export default {
         label: "Interview Questions Sheet Name",
         help: "Enter the sheet name for the Interview Questions."
       },
+      perflexity: {
+        label: "Perflexity API Key",
+        help: "Get your API key from Perflexity dashboard"
+      },
       modelKeys: {
         title: "AI Model API Keys",
         description: "API keys for AI models used in the application."
@@ -431,6 +435,17 @@ export default {
         3: "Generate a new API key."
       },
       link: "Go to OpenChat"
+    },
+    perflexity: {
+      title: "Perflexity API Key",
+      description: "Follow these steps to obtain your Perflexity API key.",
+      steps: {
+        1: "Go to the Perflexity API website.",
+        2: "Sign up for a free or paid account.",
+        3: "Navigate to the API section in settings.",
+        4: "Create a new API key and copy it."
+      },
+      link: "Go to Perflexity API"
     },
     spreadsheetId: {
       title: "Spreadsheet ID",
