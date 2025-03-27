@@ -5,11 +5,14 @@ import { debounce } from 'lodash';
 import type { ItemTypeSaved, SavedItem, ChatMessage } from '@/types/common';
 import { generateId } from '@/utils/supabaseUtils';
 import { FollowUpQuestion } from '../types/common';
+import { useDispatch } from 'react-redux';
+import { fetchAnswerSuccess } from '@/store/interview/slice';
 
 export function useSavedItems(type: ItemTypeSaved) {
   const { user, isSocialUser: isSocialUser } = useAuth();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
+  const dispatch = useDispatch();
 
   // Store user ID in a ref to avoid unnecessary effect triggers
   const userIdRef = useRef<string | null>(null);
@@ -24,6 +27,7 @@ export function useSavedItems(type: ItemTypeSaved) {
           console.error('Error fetching saved items from Supabase:', error);
         } else if (data) {
           setSavedItems(data);
+          dispatch(fetchAnswerSuccess(data));
 
           // Also fetch chat histories for these items
           const chatHistoriesMap: Record<string, ChatMessage[]> = {};
