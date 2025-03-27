@@ -105,32 +105,40 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
                 };
             }
 
-            const rows = knowledgeResponse.data.values.slice(1); // Skip header row
+            interface Row extends Array<string> {
+                [index: number]: string;
+            }
+            const rows: Row[] = knowledgeResponse.data.values.slice(1); // Skip header row
+            if (!rows[1]) return {
+                success: false,
+                error: 'No "knowledge" categories found. Please check the sheet structure.'
+            };;
             let currentCategory: string | null = null;
             const categorizedKnowledge: Category[] = [];
             const knowledgeItems: { [key: string]: SharedItem[] } = {};
 
-            interface Row extends Array<string> {
-                [index: number]: string;
-            }
+            for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+                const rowData = rows[rowIndex];
+                // Stop processing if the question cell is empty
 
-            rows.forEach((row: Row, rowIndex: number): void => {
-                if (!row[0] && row[1]) {
-                    currentCategory = row[1];
-                    knowledgeItems[currentCategory] = [];
-                } else if (row[0] && row[1] && currentCategory) {
+                if (rowData) {
+                    // Skip rows without order or category
+                    if (!rowData[2]) continue;
+                    currentCategory = rowData[2];
+                    if (!knowledgeItems[currentCategory]) knowledgeItems[currentCategory] = [];
+
                     knowledgeItems[currentCategory].push({
                         rowIndex: rowIndex + 2, // +2 because we skipped header and array is 0-based
-                        order: Number.parseInt(row[0]),
-                        question: row[1],
-                        status: row[2] || 'Đang đợi',
-                        notes: row[3] || '',
+                        order: Number.parseInt(rowData[0]),
+                        question: rowData[1] || '',
+                        notes: '',
+                        status: 'Waiting',
                         id: generateId(),
                         category: currentCategory,
                         answer: null
                     });
                 }
-            });
+            };
 
             Object.keys(knowledgeItems).forEach(category => {
                 categorizedKnowledge.push({
