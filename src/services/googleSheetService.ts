@@ -184,18 +184,18 @@ export const fetchGoogleSheetData = async (_apiKey: string, _spreadsheetId: stri
 
             questionRows.forEach((row: QuestionRow, index: number): void => {
                 // If first element has value, it's a new category
-                if (row[0]) {
-                    currentQuestionCategory = row[0];
+                if (row[1]) {
+                    currentQuestionCategory = row[1];
                     if (!questionItems[currentQuestionCategory]) {
                         questionItems[currentQuestionCategory] = [];
                     }
                 }
 
                 // If row has a question (second element) and category is defined
-                if (row[1] && currentQuestionCategory) {
+                if (row[0] && currentQuestionCategory) {
                     questionItems[currentQuestionCategory].push({
                         rowIndex: index + 2,
-                        question: row[1],
+                        question: row[0],
                         answer: '',
                         category: currentQuestionCategory
                     });
